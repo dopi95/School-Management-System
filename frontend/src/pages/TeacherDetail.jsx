@@ -117,8 +117,18 @@ const TeacherDetail = () => {
           </div>
         </div>
 
-        {/* Role Information */}
+        {/* Photo & Role Information */}
         <div className="space-y-6">
+          {/* Employee Photo */}
+          {employee.photo && (
+            <div className="card">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Employee Photo</h3>
+              <div className="w-32 h-32 border-2 border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
+                <img src={employee.photo} alt={employee.name} className="w-full h-full object-cover" />
+              </div>
+            </div>
+          )}
+          
           {employee.role === 'Teacher' && employee.classes && employee.classes.length > 0 && (
             <div className="card">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Teaching Information</h3>

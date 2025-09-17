@@ -41,8 +41,8 @@ const StudentDetail = () => {
         <div className="lg:col-span-2">
           <div className="card">
             <div className="flex items-center space-x-6 mb-6">
-              <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center">
-                <span className="text-3xl font-bold text-primary-600">
+              <div className="w-24 h-24 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
+                <span className="text-3xl font-bold text-primary-600 dark:text-primary-400">
                   {student.name.charAt(0)}
                 </span>
               </div>
@@ -125,8 +125,18 @@ const StudentDetail = () => {
           </div>
         </div>
 
-        {/* Parent Information */}
+        {/* Photo & Parent Information */}
         <div className="space-y-6">
+          {/* Student Photo */}
+          {student.photo && (
+            <div className="card">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Student Photo</h3>
+              <div className="w-32 h-32 border-2 border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
+                <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
+              </div>
+            </div>
+          )}
+          
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Parent Information</h3>
             <div className="space-y-4">

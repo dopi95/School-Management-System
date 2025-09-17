@@ -23,7 +23,8 @@ const AddStudent = () => {
     fatherName: '',
     fatherPhone: '',
     motherName: '',
-    motherPhone: ''
+    motherPhone: '',
+    photo: ''
   });
   
   const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
@@ -45,7 +46,8 @@ const AddStudent = () => {
           fatherName: student.fatherName || '',
           fatherPhone: student.fatherPhone || student.phone || '',
           motherName: student.motherName || '',
-          motherPhone: student.motherPhone || ''
+          motherPhone: student.motherPhone || '',
+          photo: student.photo || ''
         });
       }
     }
@@ -53,6 +55,17 @@ const AddStudent = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, photo: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const generateId = () => {
@@ -64,8 +77,18 @@ const AddStudent = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    // Generate ID if not provided
+    const finalId = formData.id.trim() || generateId();
+    
+    // Check for duplicate ID when adding new student
+    if (!isEdit && studentsList.some(s => s.id === finalId)) {
+      alert('Student ID already exists. Please use a different ID.');
+      return;
+    }
+    
     const studentData = {
       ...formData,
+      id: finalId,
       phone: formData.fatherPhone, // Use father's phone as main phone
       status: 'active',
       payments: {},
@@ -83,7 +106,6 @@ const AddStudent = () => {
       });
     } else {
       const newStudent = {
-        id: formData.id || generateId(),
         ...studentData
       };
       
@@ -144,6 +166,31 @@ const AddStudent = () => {
           {/* Student Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Student Information</h3>
+            
+            {/* Photo Upload */}
+            <div className="flex items-center space-x-6">
+              <div className="w-32 h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center overflow-hidden">
+                {formData.photo ? (
+                  <img src={formData.photo} alt="Student" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-center">
+                    <div className="text-gray-400 text-sm">4x4 Photo</div>
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Student Photo (4x4)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="input-field"
+                />
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -155,7 +202,7 @@ const AddStudent = () => {
                   value={formData.id}
                   onChange={handleChange}
                   className="input-field"
-                  placeholder="e.g., ST001"
+                  placeholder="e.g., ST001 (optional - auto-generated if empty)"
                 />
               </div>
 
