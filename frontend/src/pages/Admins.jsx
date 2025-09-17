@@ -1,19 +1,15 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Eye, Trash2, UserCog } from 'lucide-react';
+import { Plus, Search, Eye, Trash2, UserCog, Edit } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { useAdmins } from '../context/AdminsContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
 
 const Admins = () => {
   const { t } = useLanguage();
+  const { adminsList, deleteAdmin } = useAdmins();
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, admin: null });
-  const [adminsList, setAdminsList] = useState([
-    { id: 'A001', name: 'John Doe', email: 'john@bluelight.edu', role: 'super_admin', status: 'Active' },
-    { id: 'A002', name: 'Jane Smith', email: 'jane@bluelight.edu', role: 'admin', status: 'Active' },
-    { id: 'A003', name: 'Mike Johnson', email: 'mike@bluelight.edu', role: 'admin', status: 'Active' },
-    { id: 'A004', name: 'Sarah Wilson', email: 'sarah@bluelight.edu', role: 'student_admin', status: 'Active' }
-  ]);
 
   const getRoleDisplay = (role) => {
     switch (role) {
@@ -44,7 +40,7 @@ const Admins = () => {
   };
 
   const handleDeleteConfirm = () => {
-    setAdminsList(prev => prev.filter(a => a.id !== deleteModal.admin.id));
+    deleteAdmin(deleteModal.admin.id);
     setDeleteModal({ isOpen: false, admin: null });
   };
 
@@ -56,7 +52,7 @@ const Admins = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('admins')}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admins</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Manage administrator accounts and permissions</p>
         </div>
         <Link to="/admins/add" className="btn-primary flex items-center space-x-2">
@@ -137,8 +133,12 @@ const Admins = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                      {admin.status}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      admin.status === 'active' 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                    }`}>
+                      {admin.status === 'active' ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -146,12 +146,21 @@ const Admins = () => {
                       <Link
                         to={`/admins/${admin.id}`}
                         className="text-primary-600 hover:text-primary-700"
+                        title="View Details"
                       >
                         <Eye className="w-5 h-5" />
+                      </Link>
+                      <Link
+                        to={`/admins/edit/${admin.id}`}
+                        className="text-blue-600 hover:text-blue-700"
+                        title="Edit Admin"
+                      >
+                        <Edit className="w-5 h-5" />
                       </Link>
                       <button
                         onClick={() => handleDeleteClick(admin)}
                         className="text-red-600 hover:text-red-700"
+                        title="Delete Admin"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>

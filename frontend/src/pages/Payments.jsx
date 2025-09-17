@@ -7,8 +7,14 @@ import jsPDF from 'jspdf';
 const Payments = () => {
   const { t } = useLanguage();
   const { studentsList, updateStudentPayment } = useStudents();
-  const [selectedMonth, setSelectedMonth] = useState(0); // Start with September (index 0)
-  const [selectedYear, setSelectedYear] = useState(2017);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const saved = localStorage.getItem('payments-selected-month');
+    return saved !== null ? parseInt(saved) : 0; // Start with September (index 0)
+  });
+  const [selectedYear, setSelectedYear] = useState(() => {
+    const saved = localStorage.getItem('payments-selected-year');
+    return saved !== null ? parseInt(saved) : 2017;
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [showDescModal, setShowDescModal] = useState({ isOpen: false, student: null });
@@ -153,7 +159,7 @@ const Payments = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('payments')}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Payments</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Track student payment status by month</p>
         </div>
       </div>
@@ -232,7 +238,11 @@ const Payments = () => {
             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <select
               value={selectedYear}
-              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              onChange={(e) => {
+                const year = parseInt(e.target.value);
+                setSelectedYear(year);
+                localStorage.setItem('payments-selected-year', year.toString());
+              }}
               className="input-field pl-10"
             >
               {years.map(year => (
@@ -246,7 +256,11 @@ const Payments = () => {
             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <select
               value={selectedMonth}
-              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+              onChange={(e) => {
+                const month = parseInt(e.target.value);
+                setSelectedMonth(month);
+                localStorage.setItem('payments-selected-month', month.toString());
+              }}
               className="input-field pl-10"
             >
               {months.map((month, index) => (

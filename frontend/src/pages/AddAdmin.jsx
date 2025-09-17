@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { useAdmins } from '../context/AdminsContext.jsx';
+import SuccessModal from '../components/SuccessModal.jsx';
 
 const AddAdmin = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { id } = useParams();
+  const { adminsList, setAdminsList } = useAdmins();
+  const isEdit = Boolean(id);
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,6 +19,8 @@ const AddAdmin = () => {
     role: '',
     permissions: ['dashboard'] // Dashboard selected by default
   });
+  
+  const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
 
   const roles = [
     { value: 'admin', label: 'Admin' },
@@ -23,11 +31,27 @@ const AddAdmin = () => {
     { value: 'dashboard', label: 'Dashboard' },
     { value: 'students', label: 'Students' },
     { value: 'inactive-students', label: 'Inactive Students' },
-    { value: 'teachers', label: 'Teachers' },
+    { value: 'employees', label: 'Employees' },
+    { value: 'inactive-employees', label: 'Inactive Employees' },
     { value: 'admins', label: 'Admins' },
     { value: 'payments', label: 'Payments' },
     { value: 'settings', label: 'Settings' }
   ];
+
+  useEffect(() => {
+    if (isEdit && id) {
+      const admin = adminsList.find(a => a.id === id);
+      if (admin) {
+        setFormData({
+          name: admin.name || '',
+          email: admin.email || '',
+          username: admin.username || '',
+          role: admin.role || '',
+          permissions: admin.permissions || ['dashboard']
+        });
+      }
+    }
+  }, [isEdit, id, adminsList]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,9 +67,40 @@ const AddAdmin = () => {
     }));
   };
 
+  const generateId = () => {
+    const existingIds = adminsList.map(a => parseInt(a.id.replace('A', '')));
+    const maxId = Math.max(...existingIds, 0);
+    return `A${String(maxId + 1).padStart(3, '0')}`;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Adding admin:', formData);
+    
+    if (isEdit) {
+      setAdminsList(prev => prev.map(admin => 
+        admin.id === id ? { ...admin, ...formData } : admin
+      ));
+      setSuccessModal({
+        isOpen: true,
+        title: 'Admin Updated!',
+        message: `${formData.name || 'Admin'} has been successfully updated.`
+      });
+    } else {
+      const newAdmin = {
+        id: generateId(),
+        ...formData
+      };
+      setAdminsList(prev => [...prev, newAdmin]);
+      setSuccessModal({
+        isOpen: true,
+        title: 'Admin Added!',
+        message: `${formData.name || 'New admin'} has been successfully added to the system.`
+      });
+    }
+  };
+
+  const handleSuccessClose = () => {
+    setSuccessModal({ isOpen: false, title: '', message: '' });
     navigate('/admins');
   };
 
@@ -56,8 +111,12 @@ const AddAdmin = () => {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Add Administrator</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">Create new administrator account with specific permissions</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            {isEdit ? 'Edit Administrator' : 'Add Administrator'}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            {isEdit ? 'Update administrator account and permissions' : 'Create new administrator account with specific permissions'}
+          </p>
         </div>
       </div>
 
@@ -162,7 +221,7 @@ const AddAdmin = () => {
           <div className="flex space-x-4">
             <button type="submit" className="btn-primary flex items-center space-x-2">
               <Save className="w-5 h-5" />
-              <span>Create Admin</span>
+              <span>{isEdit ? 'Update Admin' : 'Create Admin'}</span>
             </button>
             <Link to="/admins" className="btn-secondary">
               {t('cancel')}
@@ -170,6 +229,15 @@ const AddAdmin = () => {
           </div>
         </form>
       </div>
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={successModal.isOpen}
+        onClose={handleSuccessClose}
+        title={successModal.title}
+        message={successModal.message}
+        actionText="View Admins"
+      />
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Eye, Filter, Trash2, Users, UserX } from 'lucide-react';
+import { Plus, Search, Eye, Filter, Trash2, Users, UserX, Edit } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
@@ -50,7 +50,7 @@ const Students = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('students')}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Students</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Manage student information and records</p>
         </div>
         <Link
@@ -58,7 +58,7 @@ const Students = () => {
           className="btn-primary flex items-center space-x-2"
         >
           <Plus className="w-5 h-5" />
-          <span>{t('addStudent')}</span>
+          <span>Add Student</span>
         </Link>
       </div>
 
@@ -110,7 +110,7 @@ const Students = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder={t('searchStudents')}
+                placeholder="Search students..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input-field pl-10"
@@ -127,7 +127,7 @@ const Students = () => {
                 onChange={(e) => setClassFilter(e.target.value)}
                 className="input-field pl-10 appearance-none"
               >
-                <option value="all">{t('filterByClass')}</option>
+                <option value="all">All Classes</option>
                 {classes.map(cls => (
                   <option key={cls} value={cls}>{cls}</option>
                 ))}
@@ -144,22 +144,22 @@ const Students = () => {
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  {t('studentName')}
+                  Student Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  {t('idNumber')}
+                  ID Number
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  {t('phoneNumber')}
+                  Phone Number
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  {t('class')}
+                  Class
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  {t('actions')}
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -208,8 +208,16 @@ const Students = () => {
                       <Link
                         to={`/students/${student.id}`}
                         className="text-primary-600 hover:text-primary-700"
+                        title="View Details"
                       >
                         <Eye className="w-5 h-5" />
+                      </Link>
+                      <Link
+                        to={`/students/edit/${student.id}`}
+                        className="text-blue-600 hover:text-blue-700"
+                        title="Edit Student"
+                      >
+                        <Edit className="w-5 h-5" />
                       </Link>
                       <button
                         onClick={() => handleStatusToggle(student.id)}
@@ -221,6 +229,7 @@ const Students = () => {
                       <button
                         onClick={() => handleDeleteClick(student)}
                         className="text-red-600 hover:text-red-700"
+                        title="Delete Student"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>

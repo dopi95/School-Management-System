@@ -48,14 +48,14 @@ const Login = () => {
           <div className="w-20 h-20 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl font-bold text-white">BA</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('bluelightAcademy')}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Bluelight Academy</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">School Management System</p>
         </div>
 
         {/* Login Form */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-8">
-            {t('login')}
+            Login
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -68,7 +68,7 @@ const Login = () => {
             {/* Email Field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('email')}
+                Email
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -87,7 +87,7 @@ const Login = () => {
             {/* Password Field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('password')}
+                Password
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -120,13 +120,13 @@ const Login = () => {
                   onChange={handleChange}
                   className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                 />
-                <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">{t('rememberMe')}</span>
+                <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Remember Me</span>
               </label>
               <Link
                 to="/forgot-password"
                 className="text-sm text-primary-600 hover:text-primary-700 font-medium"
               >
-                {t('forgotPassword')}
+                Forgot Password?
               </Link>
             </div>
 
@@ -136,7 +136,7 @@ const Login = () => {
               disabled={loading}
               className="w-full btn-primary py-3 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Signing in...' : t('signIn')}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
         </div>

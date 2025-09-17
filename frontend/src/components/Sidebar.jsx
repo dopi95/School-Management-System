@@ -21,14 +21,43 @@ const Sidebar = () => {
   const { language, toggleLanguage, t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const getMenuLabel = (key) => {
+    if (language === 'am') {
+      const amharicLabels = {
+        dashboard: 'ዳሽቦርድ',
+        students: 'ተማሪዎች',
+        'inactive-students': 'Inactive ተማሪዎች',
+        employees: 'ሰራተኞች',
+        'inactive-employees': 'Inactive ሰራተኞች',
+        admins: 'አስተዳዳሪዎች',
+        payments: 'ክፍያዎች',
+        settings: 'ሴቲንግ'
+      };
+      return amharicLabels[key] || key;
+    }
+    
+    const englishLabels = {
+      dashboard: 'Dashboard',
+      students: 'Students',
+      'inactive-students': 'Inactive Students',
+      employees: 'Employees',
+      'inactive-employees': 'Inactive Employees',
+      admins: 'Admins',
+      payments: 'Payments',
+      settings: 'Settings'
+    };
+    return englishLabels[key] || key;
+  };
+
   const menuItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
-    { path: '/students', icon: Users, label: t('students') },
-    { path: '/inactive-students', icon: UserX, label: 'Inactive Students' },
-    { path: '/teachers', icon: GraduationCap, label: t('teachers') },
-    { path: '/admins', icon: UserCog, label: t('admins') },
-    { path: '/payments', icon: CreditCard, label: t('payments') },
-    { path: '/settings', icon: Settings, label: t('settings') },
+    { path: '/dashboard', icon: LayoutDashboard, label: getMenuLabel('dashboard') },
+    { path: '/students', icon: Users, label: getMenuLabel('students') },
+    { path: '/inactive-students', icon: UserX, label: getMenuLabel('inactive-students') },
+    { path: '/teachers', icon: GraduationCap, label: getMenuLabel('employees') },
+    { path: '/inactive-employees', icon: UserX, label: getMenuLabel('inactive-employees') },
+    { path: '/admins', icon: UserCog, label: getMenuLabel('admins') },
+    { path: '/payments', icon: CreditCard, label: getMenuLabel('payments') },
+    { path: '/settings', icon: Settings, label: getMenuLabel('settings') },
   ];
 
   return (

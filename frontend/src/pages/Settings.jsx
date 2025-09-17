@@ -11,8 +11,8 @@ const Settings = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('settings')}</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">{t('customizePreferences')}</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">Customize your preferences and application settings</p>
       </div>
 
       {/* Settings Cards */}
@@ -30,10 +30,10 @@ const Settings = () => {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {isDark ? t('darkMode') : t('lightMode')}
+                  {isDark ? 'Dark Mode' : 'Light Mode'}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {t('switchThemes')}
+                  Switch between light and dark themes
                 </p>
               </div>
             </div>
@@ -63,7 +63,7 @@ const Settings = () => {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {t('language')}
+                  Language
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   {language === 'en' ? 'English (EN)' : 'Amharic (AM)'}
@@ -107,10 +107,10 @@ const Settings = () => {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t('applicationInfo')}
+                Application Info
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {t('appVersion')}
+                Bluelight Academy v1.0.0
               </p>
             </div>
           </div>
