@@ -13,9 +13,11 @@ const AddStudent = () => {
   const isEdit = Boolean(id);
   
   const [formData, setFormData] = useState({
+    id: '',
     name: '',
     email: '',
     dateOfBirth: '',
+    joinedYear: '',
     address: '',
     class: '',
     fatherName: '',
@@ -33,9 +35,11 @@ const AddStudent = () => {
       const student = studentsList.find(s => s.id === id);
       if (student) {
         setFormData({
+          id: student.id || '',
           name: student.name || '',
           email: student.email || '',
           dateOfBirth: student.dateOfBirth || '',
+          joinedYear: student.joinedYear || '',
           address: student.address || '',
           class: student.class || '',
           fatherName: student.fatherName || '',
@@ -64,7 +68,8 @@ const AddStudent = () => {
       ...formData,
       phone: formData.fatherPhone, // Use father's phone as main phone
       status: 'active',
-      payments: {}
+      payments: {},
+      joinedYear: formData.joinedYear || new Date().getFullYear().toString() // Default to current year if empty
     };
 
     if (isEdit) {
@@ -78,10 +83,33 @@ const AddStudent = () => {
       });
     } else {
       const newStudent = {
-        id: generateId(),
+        id: formData.id || generateId(),
         ...studentData
       };
-      setStudentsList(prev => [...prev, newStudent]);
+      
+      // Insert student at the end of their class group
+      setStudentsList(prev => {
+        const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
+        const sortedStudents = [...prev].sort((a, b) => {
+          return classOrder[a.class] - classOrder[b.class];
+        });
+        
+        // Find the last index of the same class
+        const lastIndexOfClass = sortedStudents.findLastIndex(s => s.class === newStudent.class);
+        
+        if (lastIndexOfClass === -1) {
+          // No students in this class yet, insert at appropriate position
+          const insertIndex = sortedStudents.findIndex(s => classOrder[s.class] > classOrder[newStudent.class]);
+          if (insertIndex === -1) {
+            return [...sortedStudents, newStudent];
+          } else {
+            return [...sortedStudents.slice(0, insertIndex), newStudent, ...sortedStudents.slice(insertIndex)];
+          }
+        } else {
+          // Insert after the last student of the same class
+          return [...sortedStudents.slice(0, lastIndexOfClass + 1), newStudent, ...sortedStudents.slice(lastIndexOfClass + 1)];
+        }
+      });
       setSuccessModal({
         isOpen: true,
         title: 'Student Added!',
@@ -119,6 +147,20 @@ const AddStudent = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Student ID
+                </label>
+                <input
+                  type="text"
+                  name="id"
+                  value={formData.id}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="e.g., ST001"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Student Name
                 </label>
                 <input
@@ -153,6 +195,20 @@ const AddStudent = () => {
                   value={formData.dateOfBirth}
                   onChange={handleChange}
                   className="input-field"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Joined Year
+                </label>
+                <input
+                  type="text"
+                  name="joinedYear"
+                  value={formData.joinedYear}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="e.g., 2024"
                 />
               </div>
 

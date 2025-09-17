@@ -1,26 +1,33 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Eye, Filter, Trash2, Users, UserX, Edit } from 'lucide-react';
+import { Plus, Search, Eye, Filter, Trash2, Users, UserX, Edit, CheckSquare, Square } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
+import SuccessModal from '../components/SuccessModal.jsx';
 
 const Students = () => {
   const { t } = useLanguage();
-  const { studentsList, updateStudentStatus, deleteStudent } = useStudents();
+  const { studentsList, updateStudentStatus, deleteStudent, bulkUpdateStudents } = useStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, student: null });
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [classEditModal, setClassEditModal] = useState({ isOpen: false, newClass: '' });
+  const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
 
   const classes = ['KG-1', 'KG-2', 'KG-3'];
 
   const filteredStudents = studentsList.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.phone.includes(searchTerm);
+                         (student.joinedYear && student.joinedYear.includes(searchTerm));
     const matchesClass = classFilter === 'all' || student.class === classFilter;
     const isActive = student.status === 'active';
     return matchesSearch && matchesClass && isActive;
+  }).sort((a, b) => {
+    const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
+    return classOrder[a.class] - classOrder[b.class];
   });
 
   const handleDeleteClick = (student) => {
@@ -45,6 +52,48 @@ const Students = () => {
     setDeleteModal({ isOpen: false, student: null });
   };
 
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedStudents(filteredStudents.map(s => s.id));
+    } else {
+      setSelectedStudents([]);
+    }
+  };
+
+  const handleSelectStudent = (studentId, checked) => {
+    if (checked) {
+      setSelectedStudents(prev => [...prev, studentId]);
+    } else {
+      setSelectedStudents(prev => prev.filter(id => id !== studentId));
+    }
+  };
+
+  const handleBulkInactive = () => {
+    bulkUpdateStudents(selectedStudents, { status: 'inactive' });
+    setSuccessModal({
+      isOpen: true,
+      title: 'Students Updated!',
+      message: `${selectedStudents.length} students have been marked as inactive.`
+    });
+    setSelectedStudents([]);
+  };
+
+  const handleBulkClassEdit = () => {
+    if (classEditModal.newClass) {
+      bulkUpdateStudents(selectedStudents, { class: classEditModal.newClass });
+      setSuccessModal({
+        isOpen: true,
+        title: 'Classes Updated!',
+        message: `${selectedStudents.length} students have been moved to ${classEditModal.newClass}.`
+      });
+      setSelectedStudents([]);
+      setClassEditModal({ isOpen: false, newClass: '' });
+    }
+  };
+
+  const isAllSelected = filteredStudents.length > 0 && selectedStudents.length === filteredStudents.length;
+  const isIndeterminate = selectedStudents.length > 0 && selectedStudents.length < filteredStudents.length;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -53,13 +102,33 @@ const Students = () => {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Students</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Manage student information and records</p>
         </div>
-        <Link
-          to="/students/add"
-          className="btn-primary flex items-center space-x-2"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Add Student</span>
-        </Link>
+        <div className="flex items-center space-x-3">
+          {selectedStudents.length > 0 && (
+            <>
+              <button
+                onClick={handleBulkInactive}
+                className="btn-secondary flex items-center space-x-2"
+              >
+                <UserX className="w-4 h-4" />
+                <span>Inactive All Selected</span>
+              </button>
+              <button
+                onClick={() => setClassEditModal({ isOpen: true, newClass: '' })}
+                className="btn-secondary flex items-center space-x-2"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Edit Class of Selected</span>
+              </button>
+            </>
+          )}
+          <Link
+            to="/students/add"
+            className="btn-primary flex items-center space-x-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Add Student</span>
+          </Link>
+        </div>
       </div>
 
       {/* Count Cards */}
@@ -110,7 +179,7 @@ const Students = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search students..."
+                placeholder="Search by name, ID, or joined year..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input-field pl-10"
@@ -144,6 +213,20 @@ const Students = () => {
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = isIndeterminate;
+                      }}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                    />
+                    <span>Select All</span>
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Student Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -166,6 +249,14 @@ const Students = () => {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredStudents.map((student) => (
                 <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={selectedStudents.includes(student.id)}
+                      onChange={(e) => handleSelectStudent(student.id, e.target.checked)}
+                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                    />
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
@@ -254,6 +345,54 @@ const Students = () => {
         onConfirm={handleDeleteConfirm}
         itemName={deleteModal.student?.name}
         itemType="Student"
+      />
+
+      {/* Class Edit Modal */}
+      {classEditModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Edit Class for Selected Students
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              {selectedStudents.length} students selected
+            </p>
+            <select
+              value={classEditModal.newClass}
+              onChange={(e) => setClassEditModal(prev => ({ ...prev, newClass: e.target.value }))}
+              className="input-field w-full mb-4"
+            >
+              <option value="">Select New Class</option>
+              {classes.map(cls => (
+                <option key={cls} value={cls}>{cls}</option>
+              ))}
+            </select>
+            <div className="flex space-x-3">
+              <button
+                onClick={handleBulkClassEdit}
+                disabled={!classEditModal.newClass}
+                className="btn-primary flex-1 disabled:opacity-50"
+              >
+                Update Classes
+              </button>
+              <button
+                onClick={() => setClassEditModal({ isOpen: false, newClass: '' })}
+                className="btn-secondary flex-1"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ isOpen: false, title: '', message: '' })}
+        title={successModal.title}
+        message={successModal.message}
+        actionText="Continue"
       />
     </div>
   );

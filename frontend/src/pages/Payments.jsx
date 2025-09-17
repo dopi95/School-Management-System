@@ -36,6 +36,9 @@ const Payments = () => {
                          student.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClass = classFilter === 'all' || student.class === classFilter;
     return matchesSearch && matchesClass;
+  }).sort((a, b) => {
+    const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
+    return classOrder[a.class] - classOrder[b.class];
   });
 
   const currentMonthKey = `${selectedYear}-${selectedMonth}`;

@@ -46,12 +46,21 @@ export const StudentsProvider = ({ children }) => {
     setStudentsList(prev => prev.filter(student => student.id !== studentId));
   };
 
+  const bulkUpdateStudents = (studentIds, updates) => {
+    setStudentsList(prev => prev.map(student => 
+      studentIds.includes(student.id) 
+        ? { ...student, ...updates }
+        : student
+    ));
+  };
+
   const value = {
     studentsList,
     setStudentsList,
     updateStudentStatus,
     updateStudentPayment,
-    deleteStudent
+    deleteStudent,
+    bulkUpdateStudents
   };
 
   return (
