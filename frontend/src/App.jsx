@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { LanguageProvider } from './context/LanguageContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
+import { StudentsProvider } from './context/StudentsContext.jsx';
 import Layout from './components/Layout.jsx';
 import Login from './pages/Login.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
@@ -18,6 +19,8 @@ import AddAdmin from './pages/AddAdmin';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import AdminDetails from './pages/AdminDetails';
+import Payments from './pages/Payments';
+import InactiveStudents from './pages/InactiveStudents';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -113,6 +116,18 @@ const AppRoutes = () => {
           <Layout><AdminDetails /></Layout>
         </ProtectedRoute>
       } />
+      
+      <Route path="/payments" element={
+        <ProtectedRoute>
+          <Layout><Payments /></Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/inactive-students" element={
+        <ProtectedRoute>
+          <Layout><InactiveStudents /></Layout>
+        </ProtectedRoute>
+      } />
     </Routes>
   );
 };
@@ -122,11 +137,13 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <LanguageProvider>
-          <Router>
-            <div className="App">
-              <AppRoutes />
-            </div>
-          </Router>
+          <StudentsProvider>
+            <Router>
+              <div className="App">
+                <AppRoutes />
+              </div>
+            </Router>
+          </StudentsProvider>
         </LanguageProvider>
       </AuthProvider>
     </ThemeProvider>

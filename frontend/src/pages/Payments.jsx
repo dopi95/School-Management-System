@@ -1,0 +1,450 @@
+import React, { useState } from 'react';
+import { History, Check, CreditCard, Calendar, Users, Search, Filter, FileText, Download } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext.jsx';
+import { useStudents } from '../context/StudentsContext.jsx';
+import jsPDF from 'jspdf';
+
+const Payments = () => {
+  const { t } = useLanguage();
+  const { studentsList, updateStudentPayment } = useStudents();
+  const [selectedMonth, setSelectedMonth] = useState(0); // Start with September (index 0)
+  const [selectedYear, setSelectedYear] = useState(2017);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [classFilter, setClassFilter] = useState('all');
+  const [showDescModal, setShowDescModal] = useState({ isOpen: false, student: null });
+  const [showHistoryModal, setShowHistoryModal] = useState({ isOpen: false, student: null });
+  const [description, setDescription] = useState('');
+
+  const months = [
+    'September', 'October', 'November', 'December', 'January', 'February',
+    'March', 'April', 'May', 'June', 'July', 'August'
+  ];
+
+  const classes = ['KG-1', 'KG-2', 'KG-3'];
+  const years = Array.from({ length: 34 }, (_, i) => 2017 + i); // 2017 to 2050
+
+  const activeStudentsList = studentsList.filter(student => student.status === 'active');
+  
+  const filteredStudents = activeStudentsList.filter(student => {
+    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         student.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesClass = classFilter === 'all' || student.class === classFilter;
+    return matchesSearch && matchesClass;
+  });
+
+  const currentMonthKey = `${selectedYear}-${selectedMonth}`;
+  const paidStudents = filteredStudents.filter(student => student.payments[currentMonthKey]?.paid).length;
+  const unpaidStudents = filteredStudents.length - paidStudents;
+
+  const generatePDF = (type) => {
+    const studentsToExport = type === 'paid' 
+      ? filteredStudents.filter(student => student.payments[currentMonthKey]?.paid)
+      : filteredStudents.filter(student => !student.payments[currentMonthKey]?.paid);
+    
+    if (studentsToExport.length === 0) {
+      alert(`No ${type} students found for ${months[selectedMonth]} ${selectedYear}`);
+      return;
+    }
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const margin = 20;
+    
+    // Header
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text('Bluelight Academy', pageWidth / 2, 20, { align: 'center' });
+    
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'normal');
+    doc.text(`${type.charAt(0).toUpperCase() + type.slice(1)} Students Report`, pageWidth / 2, 30, { align: 'center' });
+    doc.text(`${months[selectedMonth]} ${selectedYear}`, pageWidth / 2, 40, { align: 'center' });
+    
+    // Filter info
+    doc.setFontSize(10);
+    let filterText = `Total Students: ${studentsToExport.length}`;
+    if (classFilter !== 'all') filterText += ` | Class: ${classFilter}`;
+    if (searchTerm) filterText += ` | Search: "${searchTerm}"`;
+    doc.text(filterText, pageWidth / 2, 50, { align: 'center' });
+    
+    // Table headers
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    let yPos = 70;
+    doc.text('No.', margin, yPos);
+    doc.text('Student Name', margin + 20, yPos);
+    doc.text('ID Number', margin + 80, yPos);
+    doc.text('Class', margin + 120, yPos);
+    if (type === 'paid') {
+      doc.text('Payment Date', margin + 150, yPos);
+    }
+    
+    // Line under headers
+    doc.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
+    
+    // Table content
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(10);
+    yPos += 10;
+    
+    studentsToExport.forEach((student, index) => {
+      if (yPos > 270) { // New page if needed
+        doc.addPage();
+        yPos = 30;
+      }
+      
+      doc.text((index + 1).toString(), margin, yPos);
+      doc.text(student.name, margin + 20, yPos);
+      doc.text(student.id, margin + 80, yPos);
+      doc.text(student.class, margin + 120, yPos);
+      
+      if (type === 'paid' && student.payments[currentMonthKey]?.date) {
+        doc.text(student.payments[currentMonthKey].date, margin + 150, yPos);
+      }
+      
+      yPos += 8;
+    });
+    
+    // Footer
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, doc.internal.pageSize.height - 10);
+      doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, doc.internal.pageSize.height - 10);
+    }
+    
+    // Download
+    const fileName = `${type}_students_${months[selectedMonth]}_${selectedYear}.pdf`;
+    doc.save(fileName);
+  };
+
+  const handlePaymentToggle = (studentId, isChecked) => {
+    if (isChecked) {
+      setShowDescModal({ isOpen: true, student: studentsList.find(s => s.id === studentId) });
+    } else {
+      updateStudentPayment(studentId, currentMonthKey, undefined);
+    }
+  };
+
+  const handleDescSubmit = () => {
+    const student = showDescModal.student;
+    const paymentData = {
+      paid: true,
+      date: new Date().toISOString().split('T')[0],
+      description: description,
+      month: months[selectedMonth],
+      year: selectedYear
+    };
+    updateStudentPayment(student.id, currentMonthKey, paymentData);
+    setShowDescModal({ isOpen: false, student: null });
+    setDescription('');
+  };
+
+  const getPaymentHistory = (student) => {
+    return Object.entries(student.payments)
+      .filter(([_, payment]) => payment?.paid)
+      .map(([key, payment]) => payment)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('payments')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Track student payment status by month</p>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="card">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+              <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{paidStudents}</p>
+              <p className="text-gray-600 dark:text-gray-400">Paid Students</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+              <Users className="w-6 h-6 text-red-600 dark:text-red-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{unpaidStudents}</p>
+              <p className="text-gray-600 dark:text-gray-400">Unpaid Students</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+              <CreditCard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{filteredStudents.length}</p>
+              <p className="text-gray-600 dark:text-gray-400">Total Students</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="card">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search students..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input-field pl-10"
+            />
+          </div>
+
+          {/* Class Filter */}
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <select
+              value={classFilter}
+              onChange={(e) => setClassFilter(e.target.value)}
+              className="input-field pl-10"
+            >
+              <option value="all">All Classes</option>
+              {classes.map(cls => (
+                <option key={cls} value={cls}>{cls}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Year Filter */}
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              className="input-field pl-10"
+            >
+              {years.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Month Filter */}
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+              className="input-field pl-10"
+            >
+              {months.map((month, index) => (
+                <option key={index} value={index}>{month}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* PDF Buttons */}
+          <div className="flex space-x-2">
+            <button
+              onClick={() => generatePDF('paid')}
+              className="btn-primary flex items-center space-x-1 text-sm px-3 py-2"
+              title="Export Paid Students PDF"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Paid</span>
+            </button>
+            <button
+              onClick={() => generatePDF('unpaid')}
+              className="btn-secondary flex items-center space-x-1 text-sm px-3 py-2"
+              title="Export Unpaid Students PDF"
+            >
+              <Download className="w-4 h-4" />
+              <span>Unpaid</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Payments Table */}
+      <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Student Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  ID Number
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Class
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Payment Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {filteredStudents.map((student) => {
+                const isPaid = student.payments[currentMonthKey]?.paid || false;
+                return (
+                  <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-medium text-primary-600 dark:text-primary-400">
+                            {student.name.charAt(0)}
+                          </span>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{student.name}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {student.id}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                        {student.class}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          checked={isPaid}
+                          onChange={(e) => handlePaymentToggle(student.id, e.target.checked)}
+                          className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                        />
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          isPaid 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' 
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                        }`}>
+                          {isPaid ? 'Paid' : 'Unpaid'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => setShowHistoryModal({ isOpen: true, student })}
+                        className="text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                      >
+                        <History className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Description Modal */}
+      {showDescModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Add Payment Description
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Student: {showDescModal.student?.name} - {months[selectedMonth]} {selectedYear}
+            </p>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter payment description..."
+              className="input-field w-full h-24 resize-none"
+            />
+            <div className="flex space-x-3 mt-4">
+              <button
+                onClick={handleDescSubmit}
+                className="btn-primary flex-1"
+              >
+                Mark as Paid
+              </button>
+              <button
+                onClick={() => {
+                  setShowDescModal({ isOpen: false, student: null });
+                  setDescription('');
+                }}
+                className="btn-secondary flex-1"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal */}
+      {showHistoryModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-96 overflow-y-auto">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Payment History - {showHistoryModal.student?.name}
+            </h3>
+            <div className="space-y-3">
+              {getPaymentHistory(showHistoryModal.student).length > 0 ? (
+                getPaymentHistory(showHistoryModal.student).map((payment, index) => (
+                  <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {payment.month} {payment.year}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Date: {payment.date}
+                        </p>
+                        {payment.description && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Description: {payment.description}
+                          </p>
+                        )}
+                      </div>
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                        Paid
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                  No payment history found
+                </p>
+              )}
+            </div>
+            <div className="mt-4">
+              <button
+                onClick={() => setShowHistoryModal({ isOpen: false, student: null })}
+                className="btn-secondary w-full"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Payments;

@@ -22,8 +22,11 @@ const AddAdmin = () => {
   const availablePermissions = [
     { value: 'dashboard', label: 'Dashboard' },
     { value: 'students', label: 'Students' },
+    { value: 'inactive-students', label: 'Inactive Students' },
     { value: 'teachers', label: 'Teachers' },
-    { value: 'admins', label: 'Admins' }
+    { value: 'admins', label: 'Admins' },
+    { value: 'payments', label: 'Payments' },
+    { value: 'settings', label: 'Settings' }
   ];
 
   const handleChange = (e) => {

@@ -1,22 +1,16 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Eye, Filter, Trash2, Users } from 'lucide-react';
+import { Plus, Search, Eye, Filter, Trash2, Users, UserX } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { useStudents } from '../context/StudentsContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
 
 const Students = () => {
   const { t } = useLanguage();
+  const { studentsList, updateStudentStatus, deleteStudent } = useStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, student: null });
-  const [studentsList, setStudentsList] = useState([
-    { id: 'ST001', name: 'Alice Johnson', phone: '+251911234567', class: 'KG-1' },
-    { id: 'ST002', name: 'Bob Smith', phone: '+251922345678', class: 'KG-2' },
-    { id: 'ST003', name: 'Carol Davis', phone: '+251933456789', class: 'KG-3' },
-    { id: 'ST004', name: 'David Wilson', phone: '+251944567890', class: 'KG-1' },
-    { id: 'ST005', name: 'Eva Brown', phone: '+251955678901', class: 'KG-2' },
-    { id: 'ST006', name: 'Frank Miller', phone: '+251966789012', class: 'KG-3' }
-  ]);
 
   const classes = ['KG-1', 'KG-2', 'KG-3'];
 
@@ -25,7 +19,8 @@ const Students = () => {
                          student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.phone.includes(searchTerm);
     const matchesClass = classFilter === 'all' || student.class === classFilter;
-    return matchesSearch && matchesClass;
+    const isActive = student.status === 'active';
+    return matchesSearch && matchesClass && isActive;
   });
 
   const handleDeleteClick = (student) => {
@@ -33,9 +28,18 @@ const Students = () => {
   };
 
   const handleDeleteConfirm = () => {
-    setStudentsList(prev => prev.filter(s => s.id !== deleteModal.student.id));
+    deleteStudent(deleteModal.student.id);
     setDeleteModal({ isOpen: false, student: null });
   };
+
+  const handleStatusToggle = (studentId) => {
+    const student = studentsList.find(s => s.id === studentId);
+    const newStatus = student.status === 'active' ? 'inactive' : 'active';
+    updateStudentStatus(studentId, newStatus);
+  };
+
+  const activeStudents = studentsList.filter(s => s.status === 'active').length;
+  const inactiveStudents = studentsList.filter(s => s.status === 'inactive').length;
 
   const handleDeleteCancel = () => {
     setDeleteModal({ isOpen: false, student: null });
@@ -58,15 +62,41 @@ const Students = () => {
         </Link>
       </div>
 
-      {/* Count Card */}
-      <div className="card">
-        <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-            <Users className="w-6 h-6 text-blue-600" />
+      {/* Count Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="card">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+              <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{studentsList.length}</p>
+              <p className="text-gray-600 dark:text-gray-400">Total Students</p>
+            </div>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{studentsList.length}</p>
-            <p className="text-gray-600 dark:text-gray-400">Total Students</p>
+        </div>
+        
+        <div className="card">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+              <Users className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{activeStudents}</p>
+              <p className="text-gray-600 dark:text-gray-400">Active Students</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="card">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+              <UserX className="w-6 h-6 text-red-600 dark:text-red-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{inactiveStudents}</p>
+              <p className="text-gray-600 dark:text-gray-400">Inactive Students</p>
+            </div>
           </div>
         </div>
       </div>
@@ -126,6 +156,9 @@ const Students = () => {
                   {t('class')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   {t('actions')}
                 </th>
               </tr>
@@ -161,6 +194,15 @@ const Students = () => {
                       {student.class}
                     </span>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      student.status === 'active' 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                    }`}>
+                      {student.status === 'active' ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-3">
                       <Link
@@ -169,6 +211,13 @@ const Students = () => {
                       >
                         <Eye className="w-5 h-5" />
                       </Link>
+                      <button
+                        onClick={() => handleStatusToggle(student.id)}
+                        className={student.status === 'active' ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
+                        title={student.status === 'active' ? 'Mark as Inactive' : 'Mark as Active'}
+                      >
+                        <UserX className="w-5 h-5" />
+                      </button>
                       <button
                         onClick={() => handleDeleteClick(student)}
                         className="text-red-600 hover:text-red-700"

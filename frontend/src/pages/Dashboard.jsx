@@ -1,5 +1,6 @@
 import React from 'react';
-import { Users, GraduationCap, UserCog } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Users, GraduationCap, UserCog, UserX } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 const Dashboard = () => {
@@ -8,29 +9,44 @@ const Dashboard = () => {
   const stats = [
     {
       title: t('totalStudents'),
-      value: '1,234',
+      value: '6',
       icon: Users,
       color: 'bg-blue-500',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-600'
+      bgColor: 'bg-blue-50 dark:bg-blue-900',
+      textColor: 'text-blue-600 dark:text-blue-400'
+    },
+    {
+      title: 'Active Students',
+      value: '6',
+      icon: Users,
+      color: 'bg-green-500',
+      bgColor: 'bg-green-50 dark:bg-green-900',
+      textColor: 'text-green-600 dark:text-green-400'
+    },
+    {
+      title: 'Inactive Students',
+      value: '0',
+      icon: UserX,
+      color: 'bg-red-500',
+      bgColor: 'bg-red-50 dark:bg-red-900',
+      textColor: 'text-red-600 dark:text-red-400'
     },
     {
       title: t('totalTeachers'),
-      value: '87',
+      value: '5',
       icon: GraduationCap,
       color: 'bg-green-500',
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-600'
+      bgColor: 'bg-green-50 dark:bg-green-900',
+      textColor: 'text-green-600 dark:text-green-400'
     },
     {
       title: t('totalAdmins'),
-      value: '12',
+      value: '3',
       icon: UserCog,
       color: 'bg-purple-500',
-      bgColor: 'bg-purple-50',
-      textColor: 'text-purple-600'
-    },
-
+      bgColor: 'bg-purple-50 dark:bg-purple-900',
+      textColor: 'text-purple-600 dark:text-purple-400'
+    }
   ];
 
   return (
@@ -42,7 +58,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {stats.map((stat, index) => (
           <div key={index} className="card hover:shadow-lg transition-shadow duration-200">
             <div className="flex items-center justify-between">
@@ -64,18 +80,18 @@ const Dashboard = () => {
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200">
+          <Link to="/students/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
             <Users className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add New Student</p>
-          </button>
-          <button className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200">
+          </Link>
+          <Link to="/teachers/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
             <GraduationCap className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add New Teacher</p>
-          </button>
-          <button className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200">
+          </Link>
+          <Link to="/admins/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
             <UserCog className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add New Admin</p>
-          </button>
+          </Link>
         </div>
       </div>
     </div>
