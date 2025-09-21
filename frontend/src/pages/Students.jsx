@@ -8,7 +8,7 @@ import SuccessModal from '../components/SuccessModal.jsx';
 
 const Students = () => {
   const { t } = useLanguage();
-  const { studentsList, updateStudentStatus, deleteStudent, bulkUpdateStudents } = useStudents();
+  const { studentsList, loading, updateStudentStatus, deleteStudent, bulkUpdateStudents } = useStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, student: null });
@@ -34,15 +34,33 @@ const Students = () => {
     setDeleteModal({ isOpen: true, student });
   };
 
-  const handleDeleteConfirm = () => {
-    deleteStudent(deleteModal.student.id);
-    setDeleteModal({ isOpen: false, student: null });
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteStudent(deleteModal.student.id);
+      setDeleteModal({ isOpen: false, student: null });
+      setSuccessModal({
+        isOpen: true,
+        title: 'Student Deleted!',
+        message: `${deleteModal.student.name} has been successfully deleted.`
+      });
+    } catch (error) {
+      alert('Error deleting student: ' + error.message);
+    }
   };
 
-  const handleStatusToggle = (studentId) => {
-    const student = studentsList.find(s => s.id === studentId);
-    const newStatus = student.status === 'active' ? 'inactive' : 'active';
-    updateStudentStatus(studentId, newStatus);
+  const handleStatusToggle = async (studentId) => {
+    try {
+      const student = studentsList.find(s => s.id === studentId);
+      const newStatus = student.status === 'active' ? 'inactive' : 'active';
+      await updateStudentStatus(studentId, newStatus);
+      setSuccessModal({
+        isOpen: true,
+        title: 'Status Updated!',
+        message: `${student.name} has been marked as ${newStatus}.`
+      });
+    } catch (error) {
+      alert('Error updating student status: ' + error.message);
+    }
   };
 
   const activeStudents = studentsList.filter(s => s.status === 'active').length;
@@ -68,26 +86,34 @@ const Students = () => {
     }
   };
 
-  const handleBulkInactive = () => {
-    bulkUpdateStudents(selectedStudents, { status: 'inactive' });
-    setSuccessModal({
-      isOpen: true,
-      title: 'Students Updated!',
-      message: `${selectedStudents.length} students have been marked as inactive.`
-    });
-    setSelectedStudents([]);
-  };
-
-  const handleBulkClassEdit = () => {
-    if (classEditModal.newClass) {
-      bulkUpdateStudents(selectedStudents, { class: classEditModal.newClass });
+  const handleBulkInactive = async () => {
+    try {
+      await bulkUpdateStudents(selectedStudents, { status: 'inactive' });
       setSuccessModal({
         isOpen: true,
-        title: 'Classes Updated!',
-        message: `${selectedStudents.length} students have been moved to ${classEditModal.newClass}.`
+        title: 'Students Updated!',
+        message: `${selectedStudents.length} students have been marked as inactive.`
       });
       setSelectedStudents([]);
-      setClassEditModal({ isOpen: false, newClass: '' });
+    } catch (error) {
+      alert('Error updating students: ' + error.message);
+    }
+  };
+
+  const handleBulkClassEdit = async () => {
+    if (classEditModal.newClass) {
+      try {
+        await bulkUpdateStudents(selectedStudents, { class: classEditModal.newClass });
+        setSuccessModal({
+          isOpen: true,
+          title: 'Classes Updated!',
+          message: `${selectedStudents.length} students have been moved to ${classEditModal.newClass}.`
+        });
+        setSelectedStudents([]);
+        setClassEditModal({ isOpen: false, newClass: '' });
+      } catch (error) {
+        alert('Error updating classes: ' + error.message);
+      }
     }
   };
 
@@ -206,8 +232,19 @@ const Students = () => {
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="card">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="text-gray-500 dark:text-gray-400 mt-4">Loading students...</p>
+          </div>
+        </div>
+      )}
+
       {/* Students Table */}
-      <div className="card overflow-hidden">
+      {!loading && (
+        <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50 dark:bg-gray-700">
@@ -331,12 +368,15 @@ const Students = () => {
             </tbody>
           </table>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Results Count */}
-      <div className="text-sm text-gray-600 dark:text-gray-400">
-        Showing {filteredStudents.length} of {studentsList.length} students
-      </div>
+      {!loading && (
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          Showing {filteredStudents.length} of {studentsList.length} students
+        </div>
+      )}
 
       {/* Delete Modal */}
       <DeleteModal

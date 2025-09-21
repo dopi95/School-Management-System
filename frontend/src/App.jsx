@@ -5,6 +5,7 @@ import { LanguageProvider } from './context/LanguageContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import { StudentsProvider } from './context/StudentsContext.jsx';
 import { EmployeesProvider } from './context/EmployeesContext.jsx';
+import { PaymentsProvider } from './context/PaymentsContext.jsx';
 import { AdminsProvider } from './context/AdminsContext.jsx';
 import Layout from './components/Layout.jsx';
 import Login from './pages/Login.jsx';
@@ -173,13 +174,15 @@ function App() {
         <LanguageProvider>
           <StudentsProvider>
             <EmployeesProvider>
-              <AdminsProvider>
+              <PaymentsProvider>
+                <AdminsProvider>
                 <Router>
                   <div className="App">
                     <AppRoutes />
                   </div>
                 </Router>
-              </AdminsProvider>
+                </AdminsProvider>
+              </PaymentsProvider>
             </EmployeesProvider>
           </StudentsProvider>
         </LanguageProvider>

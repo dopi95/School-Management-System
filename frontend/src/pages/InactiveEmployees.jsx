@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { Search, Eye, Users, UserCheck } from 'lucide-react';
 import { useEmployees } from '../context/EmployeesContext.jsx';
+import SuccessModal from '../components/SuccessModal.jsx';
 
 const InactiveEmployees = () => {
-  const { employeesList, updateEmployeeStatus } = useEmployees();
+  const { employeesList, loading, updateEmployeeStatus } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
+  const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
 
   const inactiveEmployees = employeesList.filter(employee => employee.status === 'inactive');
   
   const filteredEmployees = inactiveEmployees.filter(employee =>
     employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.phone.includes(searchTerm)
+    (employee.position || employee.role || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (employee.phone || '').includes(searchTerm)
   );
 
   return (
@@ -96,11 +98,11 @@ const InactiveEmployees = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
-                        {employee.role}
+                        {employee.position || employee.role || 'N/A'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {employee.role === 'Teacher' && employee.classes.length > 0 ? (
+                      {(employee.position === 'Teacher' || employee.role === 'Teacher') && employee.classes && employee.classes.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {employee.classes.map((cls, index) => (
                             <span key={index} className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
@@ -115,7 +117,18 @@ const InactiveEmployees = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-3">
                         <button
-                          onClick={() => updateEmployeeStatus(employee.id, 'active')}
+                          onClick={async () => {
+                            try {
+                              await updateEmployeeStatus(employee.id, 'active');
+                              setSuccessModal({
+                                isOpen: true,
+                                title: 'Employee Activated!',
+                                message: `${employee.name} has been successfully activated.`
+                              });
+                            } catch (error) {
+                              alert('Error updating employee status: ' + error.message);
+                            }
+                          }}
                           className="text-green-600 hover:text-green-700 dark:text-green-400"
                           title="Activate Employee"
                         >
@@ -142,6 +155,15 @@ const InactiveEmployees = () => {
           Showing {filteredEmployees.length} of {inactiveEmployees.length} inactive employees
         </div>
       )}
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ isOpen: false, title: '', message: '' })}
+        title={successModal.title}
+        message={successModal.message}
+        actionText="Continue"
+      />
     </div>
   );
 };

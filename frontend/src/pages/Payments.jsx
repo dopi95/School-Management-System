@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { History, Check, CreditCard, Calendar, Users, Search, Filter, FileText, Download } from 'lucide-react';
+import { History, Check, CreditCard, Calendar, Users, Search, Filter, FileText, Download, Plus } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
+import { usePayments } from '../context/PaymentsContext.jsx';
 import jsPDF from 'jspdf';
 
 const Payments = () => {
   const { t } = useLanguage();
   const { studentsList, updateStudentPayment } = useStudents();
+  const { paymentsList, loading, addPayment } = usePayments();
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const saved = localStorage.getItem('payments-selected-month');
     return saved !== null ? parseInt(saved) : 0; // Start with September (index 0)
@@ -128,32 +130,65 @@ const Payments = () => {
     doc.save(fileName);
   };
 
-  const handlePaymentToggle = (studentId, isChecked) => {
+  const handlePaymentToggle = async (studentId, isChecked) => {
     if (isChecked) {
       setShowDescModal({ isOpen: true, student: studentsList.find(s => s.id === studentId) });
     } else {
-      updateStudentPayment(studentId, currentMonthKey, undefined);
+      try {
+        // Remove only the current month/year payment, keep other history
+        await updateStudentPayment(studentId, currentMonthKey, null);
+      } catch (error) {
+        alert('Error updating payment: ' + error.message);
+      }
     }
   };
 
-  const handleDescSubmit = () => {
+  const handleDescSubmit = async () => {
     const student = showDescModal.student;
-    const paymentData = {
-      paid: true,
-      date: new Date().toISOString().split('T')[0],
-      description: description,
-      month: months[selectedMonth],
-      year: selectedYear
-    };
-    updateStudentPayment(student.id, currentMonthKey, paymentData);
-    setShowDescModal({ isOpen: false, student: null });
-    setDescription('');
+    try {
+      // Add to payments collection
+      await addPayment({
+        studentId: student.id,
+        studentName: student.name,
+        amount: 500, // Default amount
+        month: months[selectedMonth],
+        year: selectedYear.toString(),
+        description: description
+      });
+
+      // Update student payment record
+      const paymentData = {
+        paid: true,
+        date: new Date().toISOString().split('T')[0],
+        description: description,
+        month: months[selectedMonth],
+        year: selectedYear
+      };
+      await updateStudentPayment(student.id, currentMonthKey, paymentData);
+      
+      setShowDescModal({ isOpen: false, student: null });
+      setDescription('');
+    } catch (error) {
+      alert('Error recording payment: ' + error.message);
+    }
   };
 
   const getPaymentHistory = (student) => {
-    return Object.entries(student.payments)
-      .filter(([_, payment]) => payment?.paid)
-      .map(([key, payment]) => payment)
+    const uniquePayments = new Map();
+    
+    Object.entries(student.payments || {})
+      .filter(([key, payment]) => {
+        // Only show payments that exist and are paid
+        return payment && payment.paid === true;
+      })
+      .forEach(([key, payment]) => {
+        const uniqueKey = `${payment.month}_${payment.year}`;
+        if (!uniquePayments.has(uniqueKey)) {
+          uniquePayments.set(uniqueKey, { ...payment, key });
+        }
+      });
+    
+    return Array.from(uniquePayments.values())
       .sort((a, b) => new Date(b.date) - new Date(a.date));
   };
 
@@ -421,8 +456,8 @@ const Payments = () => {
             </h3>
             <div className="space-y-3">
               {getPaymentHistory(showHistoryModal.student).length > 0 ? (
-                getPaymentHistory(showHistoryModal.student).map((payment, index) => (
-                  <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                getPaymentHistory(showHistoryModal.student).map((payment) => (
+                  <div key={payment.key || `${payment.month}_${payment.year}`} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-medium text-gray-900 dark:text-white">

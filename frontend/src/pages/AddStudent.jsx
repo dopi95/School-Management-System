@@ -9,7 +9,7 @@ const AddStudent = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { studentsList, setStudentsList } = useStudents();
+  const { studentsList, loading, addStudent, updateStudent } = useStudents();
   const isEdit = Boolean(id);
   
   const [formData, setFormData] = useState({
@@ -32,7 +32,7 @@ const AddStudent = () => {
   const classes = ['KG-1', 'KG-2', 'KG-3'];
 
   useEffect(() => {
-    if (isEdit && id) {
+    if (isEdit && id && !loading && studentsList.length > 0) {
       const student = studentsList.find(s => s.id === id);
       if (student) {
         setFormData({
@@ -51,7 +51,7 @@ const AddStudent = () => {
         });
       }
     }
-  }, [isEdit, id, studentsList]);
+  }, [isEdit, id, studentsList, loading]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -74,7 +74,7 @@ const AddStudent = () => {
     return `ST${String(maxId + 1).padStart(3, '0')}`;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Generate ID if not provided
@@ -95,48 +95,25 @@ const AddStudent = () => {
       joinedYear: formData.joinedYear || new Date().getFullYear().toString() // Default to current year if empty
     };
 
-    if (isEdit) {
-      setStudentsList(prev => prev.map(student => 
-        student.id === id ? { ...student, ...studentData } : student
-      ));
-      setSuccessModal({
-        isOpen: true,
-        title: 'Student Updated!',
-        message: `${formData.name || 'Student'} has been successfully updated.`
-      });
-    } else {
-      const newStudent = {
-        ...studentData
-      };
-      
-      // Insert student at the end of their class group
-      setStudentsList(prev => {
-        const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
-        const sortedStudents = [...prev].sort((a, b) => {
-          return classOrder[a.class] - classOrder[b.class];
+    try {
+      if (isEdit) {
+        await updateStudent(id, studentData);
+        setSuccessModal({
+          isOpen: true,
+          title: 'Student Updated!',
+          message: `${formData.name || 'Student'} has been successfully updated.`
         });
-        
-        // Find the last index of the same class
-        const lastIndexOfClass = sortedStudents.findLastIndex(s => s.class === newStudent.class);
-        
-        if (lastIndexOfClass === -1) {
-          // No students in this class yet, insert at appropriate position
-          const insertIndex = sortedStudents.findIndex(s => classOrder[s.class] > classOrder[newStudent.class]);
-          if (insertIndex === -1) {
-            return [...sortedStudents, newStudent];
-          } else {
-            return [...sortedStudents.slice(0, insertIndex), newStudent, ...sortedStudents.slice(insertIndex)];
-          }
-        } else {
-          // Insert after the last student of the same class
-          return [...sortedStudents.slice(0, lastIndexOfClass + 1), newStudent, ...sortedStudents.slice(lastIndexOfClass + 1)];
-        }
-      });
-      setSuccessModal({
-        isOpen: true,
-        title: 'Student Added!',
-        message: `${formData.name || 'New student'} has been successfully added to the system.`
-      });
+      } else {
+        await addStudent(studentData);
+        setSuccessModal({
+          isOpen: true,
+          title: 'Student Added!',
+          message: `${formData.name || 'New student'} has been successfully added to the system.`
+        });
+      }
+    } catch (error) {
+      alert('Error: ' + error.message);
+      return;
     }
   };
 
@@ -144,6 +121,14 @@ const AddStudent = () => {
     setSuccessModal({ isOpen: false, title: '', message: '' });
     navigate('/students');
   };
+
+  if (loading && isEdit) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

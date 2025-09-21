@@ -3,17 +3,23 @@ import { Link } from 'react-router-dom';
 import { Users, GraduationCap, UserCog, UserX } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useEmployees } from '../context/EmployeesContext.jsx';
+import { useStudents } from '../context/StudentsContext.jsx';
 
 const Dashboard = () => {
   const { t } = useLanguage();
   const { employeesList } = useEmployees();
+  const { studentsList } = useStudents();
   
   const activeEmployees = employeesList.filter(e => e.status === 'active').length;
+  const inactiveEmployees = employeesList.filter(e => e.status === 'inactive').length;
+  const activeStudents = studentsList.filter(s => s.status === 'active').length;
+  const inactiveStudents = studentsList.filter(s => s.status === 'inactive').length;
+  const adminEmployees = employeesList.filter(e => e.position === 'Principal' || e.role === 'Principal').length;
 
   const stats = [
     {
       title: 'Total Students',
-      value: '6',
+      value: studentsList.length.toString(),
       icon: Users,
       color: 'bg-blue-500',
       bgColor: 'bg-blue-50 dark:bg-blue-900',
@@ -21,7 +27,7 @@ const Dashboard = () => {
     },
     {
       title: 'Active Students',
-      value: '6',
+      value: activeStudents.toString(),
       icon: Users,
       color: 'bg-green-500',
       bgColor: 'bg-green-50 dark:bg-green-900',
@@ -29,7 +35,7 @@ const Dashboard = () => {
     },
     {
       title: 'Inactive Students',
-      value: '0',
+      value: inactiveStudents.toString(),
       icon: UserX,
       color: 'bg-red-500',
       bgColor: 'bg-red-50 dark:bg-red-900',
@@ -53,7 +59,7 @@ const Dashboard = () => {
     },
     {
       title: 'Total Admins',
-      value: '3',
+      value: adminEmployees.toString(),
       icon: UserCog,
       color: 'bg-purple-500',
       bgColor: 'bg-purple-50 dark:bg-purple-900',

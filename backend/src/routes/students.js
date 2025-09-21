@@ -1,0 +1,137 @@
+import express from 'express';
+import Student from '../models/Student.js';
+
+const router = express.Router();
+
+// Get all students
+router.get('/', async (req, res) => {
+  try {
+    const students = await Student.find().sort({ class: 1, name: 1 });
+    res.json(students);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get student by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const student = await Student.findOne({ id: req.params.id });
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    res.json(student);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Create new student
+router.post('/', async (req, res) => {
+  try {
+    // Generate ID if not provided
+    if (!req.body.id) {
+      const lastStudent = await Student.findOne().sort({ id: -1 });
+      const lastId = lastStudent ? parseInt(lastStudent.id.replace('ST', '')) : 0;
+      req.body.id = `ST${String(lastId + 1).padStart(3, '0')}`;
+    }
+
+    // Check for duplicate ID
+    const existingStudent = await Student.findOne({ id: req.body.id });
+    if (existingStudent) {
+      return res.status(400).json({ message: 'Student ID already exists' });
+    }
+
+    const student = new Student(req.body);
+    const savedStudent = await student.save();
+    res.status(201).json(savedStudent);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Update student
+router.put('/:id', async (req, res) => {
+  try {
+    const student = await Student.findOneAndUpdate(
+      { id: req.params.id },
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    res.json(student);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Update student status
+router.patch('/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const student = await Student.findOneAndUpdate(
+      { id: req.params.id },
+      { status },
+      { new: true }
+    );
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    res.json(student);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Update student payment
+router.patch('/:id/payment', async (req, res) => {
+  try {
+    const { monthKey, paymentData } = req.body;
+    const student = await Student.findOne({ id: req.params.id });
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    
+    if (paymentData === null) {
+      student.payments.delete(monthKey);
+    } else {
+      student.payments.set(monthKey, paymentData);
+    }
+    await student.save();
+    res.json(student);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Bulk update students
+router.patch('/bulk/update', async (req, res) => {
+  try {
+    const { studentIds, updates } = req.body;
+    await Student.updateMany(
+      { id: { $in: studentIds } },
+      updates
+    );
+    const updatedStudents = await Student.find({ id: { $in: studentIds } });
+    res.json(updatedStudents);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Delete student
+router.delete('/:id', async (req, res) => {
+  try {
+    const student = await Student.findOneAndDelete({ id: req.params.id });
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    res.json({ message: 'Student deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+export default router;

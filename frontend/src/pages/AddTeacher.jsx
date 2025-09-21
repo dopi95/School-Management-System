@@ -9,7 +9,7 @@ const AddTeacher = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { employeesList, setEmployeesList } = useEmployees();
+  const { employeesList, loading, addEmployee, updateEmployee } = useEmployees();
   const isEdit = Boolean(id);
   
   const [formData, setFormData] = useState({
@@ -30,14 +30,14 @@ const AddTeacher = () => {
   const availableClasses = ['KG-1', 'KG-2', 'KG-3'];
 
   useEffect(() => {
-    if (isEdit && id) {
+    if (isEdit && id && !loading && employeesList.length > 0) {
       const employee = employeesList.find(e => e.id === id);
       if (employee) {
         setFormData({
           name: employee.name || '',
           email: employee.email || '',
           phone: employee.phone || '',
-          role: employee.role || '',
+          role: employee.position || employee.role || '',
           classes: employee.classes || [],
           qualification: employee.qualification || '',
           experience: employee.experience || '',
@@ -46,11 +46,11 @@ const AddTeacher = () => {
         });
       }
     }
-  }, [isEdit, id, employeesList]);
+  }, [isEdit, id, employeesList, loading]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'role' && value !== 'Teacher') {
+    if (name === 'role' && value !== 'Teacher' && value !== 'Assistant') {
       setFormData({ ...formData, [name]: value, classes: [] });
     } else {
       setFormData({ ...formData, [name]: value });
@@ -83,34 +83,35 @@ const AddTeacher = () => {
     return `E${String(maxId + 1).padStart(3, '0')}`;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     const employeeData = {
       ...formData,
-      status: 'active'
+      status: 'active',
+      position: formData.role,
+      department: formData.role === 'Teacher' ? 'Education' : 'Administration'
     };
 
-    if (isEdit) {
-      setEmployeesList(prev => prev.map(employee => 
-        employee.id === id ? { ...employee, ...employeeData } : employee
-      ));
-      setSuccessModal({
-        isOpen: true,
-        title: 'Employee Updated!',
-        message: `${formData.name || 'Employee'} has been successfully updated.`
-      });
-    } else {
-      const newEmployee = {
-        id: generateId(),
-        ...employeeData
-      };
-      setEmployeesList(prev => [...prev, newEmployee]);
-      setSuccessModal({
-        isOpen: true,
-        title: 'Employee Added!',
-        message: `${formData.name || 'New employee'} has been successfully added to the system.`
-      });
+    try {
+      if (isEdit) {
+        await updateEmployee(id, employeeData);
+        setSuccessModal({
+          isOpen: true,
+          title: 'Employee Updated!',
+          message: `${formData.name || 'Employee'} has been successfully updated.`
+        });
+      } else {
+        await addEmployee(employeeData);
+        setSuccessModal({
+          isOpen: true,
+          title: 'Employee Added!',
+          message: `${formData.name || 'New employee'} has been successfully added to the system.`
+        });
+      }
+    } catch (error) {
+      alert('Error: ' + error.message);
+      return;
     }
   };
 
@@ -118,6 +119,14 @@ const AddTeacher = () => {
     setSuccessModal({ isOpen: false, title: '', message: '' });
     navigate('/teachers');
   };
+
+  if (loading && isEdit) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -264,12 +273,12 @@ const AddTeacher = () => {
               </div>
             </div>
 
-            {/* Classes Teaching - Only for Teachers */}
-            {formData.role === 'Teacher' && (
+            {/* Classes Teaching - Only for Teachers and Assistants */}
+            {(formData.role === 'Teacher' || formData.role === 'Assistant') && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Classes Teaching</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Classes {formData.role === 'Teacher' ? 'Teaching' : 'Assisting'}</h3>
                 <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Select the classes this teacher will teach:</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Select the classes this {formData.role.toLowerCase()} will {formData.role === 'Teacher' ? 'teach' : 'assist in'}:</p>
                   <div className="grid grid-cols-3 gap-3">
                     {availableClasses.map(className => (
                       <label key={className} className="flex items-center space-x-2 cursor-pointer">

@@ -4,39 +4,59 @@ import { Plus, Search, Eye, Trash2, Users, UserX, Edit } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useEmployees } from '../context/EmployeesContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
+import SuccessModal from '../components/SuccessModal.jsx';
 
 const Teachers = () => {
   const { t } = useLanguage();
-  const { employeesList, updateEmployeeStatus, deleteEmployee } = useEmployees();
+  const { employeesList, loading, updateEmployeeStatus, deleteEmployee } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, employee: null });
+  const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
 
   const activeEmployees = employeesList.filter(emp => emp.status === 'active');
   
   const filteredEmployees = activeEmployees.filter(employee =>
     employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.phone.includes(searchTerm)
+    (employee.position || employee.role || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (employee.phone || '').includes(searchTerm)
   );
 
   const handleDeleteClick = (employee) => {
     setDeleteModal({ isOpen: true, employee });
   };
 
-  const handleDeleteConfirm = () => {
-    deleteEmployee(deleteModal.employee.id);
-    setDeleteModal({ isOpen: false, employee: null });
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteEmployee(deleteModal.employee.id);
+      setDeleteModal({ isOpen: false, employee: null });
+      setSuccessModal({
+        isOpen: true,
+        title: 'Employee Deleted!',
+        message: `${deleteModal.employee.name} has been successfully deleted.`
+      });
+    } catch (error) {
+      alert('Error deleting employee: ' + error.message);
+    }
   };
 
   const handleDeleteCancel = () => {
     setDeleteModal({ isOpen: false, employee: null });
   };
 
-  const handleStatusToggle = (employeeId) => {
-    const employee = employeesList.find(e => e.id === employeeId);
-    const newStatus = employee.status === 'active' ? 'inactive' : 'active';
-    updateEmployeeStatus(employeeId, newStatus);
+  const handleStatusToggle = async (employeeId) => {
+    try {
+      const employee = employeesList.find(e => e.id === employeeId);
+      const newStatus = employee.status === 'active' ? 'inactive' : 'active';
+      await updateEmployeeStatus(employeeId, newStatus);
+      setSuccessModal({
+        isOpen: true,
+        title: 'Status Updated!',
+        message: `${employee.name} has been marked as ${newStatus}.`
+      });
+    } catch (error) {
+      alert('Error updating employee status: ' + error.message);
+    }
   };
 
   const activeCount = employeesList.filter(e => e.status === 'active').length;
@@ -152,11 +172,11 @@ const Teachers = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
-                      {employee.role}
+                      {employee.position || employee.role || 'N/A'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {employee.role === 'Teacher' && employee.classes.length > 0 ? (
+                    {((employee.position === 'Teacher' || employee.role === 'Teacher') || (employee.position === 'Assistant' || employee.role === 'Assistant')) && employee.classes && employee.classes.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
                         {employee.classes.map((cls, index) => (
                           <span key={index} className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
@@ -220,6 +240,16 @@ const Teachers = () => {
         Showing {filteredEmployees.length} of {activeEmployees.length} active employees
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="card">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="text-gray-500 dark:text-gray-400 mt-4">Loading employees...</p>
+          </div>
+        </div>
+      )}
+
       {/* Delete Modal */}
       <DeleteModal
         isOpen={deleteModal.isOpen}
@@ -227,6 +257,15 @@ const Teachers = () => {
         onConfirm={handleDeleteConfirm}
         itemName={deleteModal.employee?.name}
         itemType="Employee"
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ isOpen: false, title: '', message: '' })}
+        title={successModal.title}
+        message={successModal.message}
+        actionText="Continue"
       />
     </div>
   );
