@@ -137,12 +137,6 @@ const Login = () => {
               )}
             </button>
           </div>
-
-          <div className="text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Default login: admin@bluelight.com / SuperAdmin123!
-            </p>
-          </div>
         </form>
       </div>
     </div>
