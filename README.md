@@ -2,10 +2,6 @@
 
 A comprehensive full-stack school management system built specifically for **Bluelight Academy**. This modern web application provides complete administrative control over students, employees, payments, and system management with advanced role-based access control.
 
-## 🏫 About Bluelight Academy
-
-This system is designed and developed for Bluelight Academy to streamline their educational administration processes. It provides a centralized platform for managing all aspects of the academy's operations.
-
 ## ✨ Key Features
 
 ### 🔐 Authentication & Authorization
