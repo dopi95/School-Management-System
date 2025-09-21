@@ -55,30 +55,41 @@ This system is designed and developed for Bluelight Academy to streamline their 
 - **Token Management**: Automatic token refresh and validation
 - **Access Control**: Prevent unauthorized access with clear messaging
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 ### Frontend
-- React 18
-- React Router DOM
-- Tailwind CSS
-- Lucide React (icons)
-- Context API for state management
+- **React 18**: Modern React with hooks and context
+- **React Router DOM**: Client-side routing with protected routes
+- **Tailwind CSS**: Utility-first CSS framework with dark mode
+- **Lucide React**: Beautiful and consistent icons
+- **Context API**: State management for authentication and data
+- **Responsive Design**: Mobile-first approach with adaptive layouts
 
 ### Backend
-- Node.js
-- Express.js
-- MongoDB with Mongoose
-- CORS enabled
-- RESTful API design
+- **Node.js**: JavaScript runtime environment
+- **Express.js**: Fast and minimal web framework
+- **MongoDB**: NoSQL database with Mongoose ODM
+- **JWT Authentication**: Secure token-based authentication
+- **bcryptjs**: Password hashing and security
+- **CORS**: Cross-origin resource sharing enabled
+- **RESTful API**: Clean and organized API endpoints
 
-## Setup Instructions
+### Security & Authentication
+- **JWT Tokens**: Access and refresh token system
+- **Password Hashing**: bcrypt with salt rounds
+- **Role-based Permissions**: Granular access control
+- **Route Protection**: Both API and frontend security
+- **Environment Variables**: Secure configuration management
+
+## 🚀 Setup Instructions
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (local or cloud instance)
-- Git
+- **Node.js** (v16 or higher)
+- **MongoDB** (local installation or cloud instance like MongoDB Atlas)
+- **Git** for version control
+- **Modern web browser** (Chrome, Firefox, Safari, Edge)
 
-### Backend Setup
+### 💾 Backend Setup
 
 1. Navigate to backend directory:
 ```bash
@@ -90,44 +101,90 @@ cd backend
 npm install
 ```
 
-3. Create `.env` file with your MongoDB connection:
+3. **Create `.env` file with your configuration:**
 ```env
-MONGODB_URI=mongodb://localhost:27017/school-management
+# Database Configuration
+MONGO_URI=mongodb+srv://your_username:your_password@cluster.mongodb.net/BLAIS?retryWrites=true&w=majority
 PORT=5000
+NODE_ENV=development
+
+# JWT Configuration
+JWT_SECRET=your_super_secret_jwt_key_here_make_it_long_and_random
+JWT_REFRESH_SECRET=your_refresh_token_secret_key
+JWT_EXPIRE=15m
+JWT_REFRESH_EXPIRE=7d
+
+# Email Configuration
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password
+EMAIL_FROM=noreply@bluelight.com
+
+# URLs
+FRONTEND_URL=http://localhost:5173
+BACKEND_URL=http://localhost:5000
 ```
 
-4. Seed the database with sample data:
+4. **Seed the database with sample data:**
 ```bash
 npm run seed
 ```
 
-5. Start the backend server:
+5. **Create the default superadmin account:**
+```bash
+npm run seed-admin
+```
+
+6. **Start the backend server:**
 ```bash
 npm run dev
 ```
 
 The backend will run on `http://localhost:5000`
 
-### Frontend Setup
+### 🎨 Frontend Setup
 
-1. Navigate to frontend directory:
+1. **Navigate to frontend directory:**
 ```bash
 cd frontend
 ```
 
-2. Install dependencies:
+2. **Install dependencies:**
 ```bash
 npm install
 ```
 
-3. Start the development server:
+3. **Create `.env` file:**
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
+```
+
+4. **Start the development server:**
 ```bash
 npm run dev
 ```
 
 The frontend will run on `http://localhost:5173`
 
-## API Endpoints
+### 🔑 Default Login Credentials
+
+After running the seed-admin command, use these credentials to log in:
+
+- **Email**: `admin@bluelight.com`
+- **Password**: `SuperAdmin123!`
+- **Role**: Superadmin (full access to all features)
+
+## 🔌 API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - Admin login
+- `GET /api/auth/profile` - Get current admin profile
+- `PUT /api/auth/profile` - Update admin profile
+- `GET /api/auth/admins` - Get all admins (superadmin only)
+- `POST /api/auth/admins` - Create new admin (superadmin only)
+- `PUT /api/auth/admins/:id` - Update admin (superadmin only)
+- `DELETE /api/auth/admins/:id` - Delete admin (superadmin only)
 
 ### Students
 - `GET /api/students` - Get all students
@@ -139,51 +196,234 @@ The frontend will run on `http://localhost:5173`
 - `PATCH /api/students/bulk/update` - Bulk update students
 - `DELETE /api/students/:id` - Delete student
 
-## Usage
+### Employees
+- `GET /api/employees` - Get all employees
+- `GET /api/employees/:id` - Get employee by ID
+- `POST /api/employees` - Create new employee
+- `PUT /api/employees/:id` - Update employee
+- `PATCH /api/employees/:id/status` - Update employee status
+- `DELETE /api/employees/:id` - Delete employee
 
-1. **Adding Students**: Click "Add Student" button and fill in the form
+### Payments
+- `GET /api/payments` - Get all payments
+- `GET /api/payments/student/:id` - Get student payments
+- `POST /api/payments` - Create payment record
+- `PUT /api/payments/:id` - Update payment
+- `DELETE /api/payments/:id` - Delete payment
+
+## 📚 Usage Guide
+
+### 🔑 Getting Started
+1. **Login**: Use the default superadmin credentials to access the system
+2. **Dashboard**: View system statistics and quick action buttons
+3. **Navigation**: Use the sidebar to access different sections
+
+### 👥 Admin Management (Superadmin Only)
+1. **Create Admins**: Go to Admin Management and click "Add Admin"
+2. **Set Permissions**: Select which sections each admin can access:
+   - Dashboard (always enabled)
+   - Students Management
+   - Inactive Students
+   - Employees Management
+   - Inactive Employees
+   - Payments Management
+   - Admin Management
+   - Settings
+3. **Manage Roles**: Assign roles (admin, manager) with specific permissions
+4. **Edit/Delete**: Update admin information or remove access
+
+### 👨🎓 Student Management
+1. **Adding Students**: Click "Add Student" and fill in the comprehensive form
 2. **Viewing Students**: Click on student ID to view detailed information
-3. **Editing Students**: Click the edit icon or use the edit button in student details
-4. **Managing Status**: Use the status toggle to activate/deactivate students
-5. **Bulk Operations**: Select multiple students and use bulk action buttons
-6. **Search**: Use the search bar to find students by name, ID, or joined year
-7. **Filter**: Use class filter to show students from specific classes
+3. **Editing Students**: Use the edit button in student details or table
+4. **Managing Status**: Toggle between active/inactive status
+5. **Bulk Operations**: Select multiple students for bulk status updates
+6. **Search & Filter**: Find students by name, ID, joined year, or class
+7. **Class Organization**: Organize students in KG-1, KG-2, KG-3 classes
 
-## Project Structure
+### 👨🏫 Employee Management
+1. **Add Employees**: Create records for teachers, assistants, and staff
+2. **Role Assignment**: Set specific roles and responsibilities
+3. **Class Assignment**: Assign teachers to specific classes
+4. **Status Management**: Track active and inactive employees
+5. **Contact Information**: Store phone numbers and addresses
+
+### 💰 Payment Tracking
+1. **Monthly Payments**: Track payments by month and academic year
+2. **Payment Status**: Mark payments as paid/unpaid with timestamps
+3. **Payment History**: View complete payment records with descriptions
+4. **Bulk Updates**: Update multiple student payments at once
+5. **Reports**: Generate payment reports for administrative use
+
+### ⚙️ System Settings
+1. **Theme**: Switch between light and dark modes
+2. **Language**: Toggle between English and Amharic
+3. **Notifications**: Configure system alerts and email notifications
+4. **Security**: Set session timeout and login attempt limits
+5. **Profile**: Update personal information and change passwords
+
+## 📁 Project Structure
 
 ```
-School-Management-System/
+Bluelight-Academy-Management-System/
 ├── backend/
 │   ├── src/
 │   │   ├── config/
-│   │   │   └── db.js
+│   │   │   └── db.js                 # Database connection
 │   │   ├── models/
-│   │   │   └── Student.js
+│   │   │   ├── Admin.js              # Admin user model
+│   │   │   ├── Student.js            # Student model
+│   │   │   ├── Employee.js           # Employee model
+│   │   │   └── Payment.js            # Payment model
 │   │   ├── routes/
-│   │   │   └── students.js
-│   │   └── seedData.js
-│   ├── server.js
-│   └── package.json
+│   │   │   ├── auth.js               # Authentication routes
+│   │   │   ├── students.js           # Student CRUD routes
+│   │   │   ├── employees.js          # Employee CRUD routes
+│   │   │   └── payments.js           # Payment routes
+│   │   ├── middleware/
+│   │   │   ├── auth.js               # JWT authentication
+│   │   │   └── permissions.js        # Role-based permissions
+│   │   ├── seedData.js               # Sample data seeding
+│   │   └── seedAdmin.js              # Superadmin creation
+│   ├── server.js                     # Express server setup
+│   ├── package.json                  # Backend dependencies
+│   └── .env                          # Environment variables
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
+│   │   │   ├── Layout.jsx            # Main layout wrapper
+│   │   │   ├── Sidebar.jsx           # Navigation sidebar
+│   │   │   ├── PermissionGuard.jsx   # Permission-based rendering
+│   │   │   ├── ProtectedRoute.jsx    # Route protection
+│   │   │   └── modals/               # Reusable modal components
 │   │   ├── context/
+│   │   │   ├── AuthContext.jsx       # Authentication state
+│   │   │   ├── StudentsContext.jsx   # Student data management
+│   │   │   ├── EmployeesContext.jsx  # Employee data management
+│   │   │   ├── PaymentsContext.jsx   # Payment data management
+│   │   │   ├── AdminsContext.jsx     # Admin data management
+│   │   │   ├── ThemeContext.jsx      # Dark/Light theme
+│   │   │   └── LanguageContext.jsx   # Multi-language support
 │   │   ├── pages/
+│   │   │   ├── Login.jsx             # Login page
+│   │   │   ├── Dashboard.jsx         # Main dashboard
+│   │   │   ├── Students.jsx          # Student management
+│   │   │   ├── Teachers.jsx          # Employee management
+│   │   │   ├── AdminManagement.jsx   # Admin management
+│   │   │   ├── Payments.jsx          # Payment tracking
+│   │   │   ├── Profile.jsx           # User profile
+│   │   │   ├── Settings.jsx          # System settings
+│   │   │   └── AccessDenied.jsx      # Access denied page
 │   │   ├── services/
-│   │   │   └── api.js
-│   │   └── App.jsx
-│   └── package.json
-└── README.md
+│   │   │   └── api.js                # API service layer
+│   │   ├── App.jsx                   # Main app component
+│   │   └── main.jsx                  # React entry point
+│   ├── package.json                  # Frontend dependencies
+│   ├── .env                          # Frontend environment
+│   ├── tailwind.config.js            # Tailwind CSS config
+│   └── vite.config.js                # Vite build config
+├── README.md                         # Project documentation
+└── .gitignore                        # Git ignore rules
 ```
 
-## Contributing
+## 🔐 Permission System
+
+The system includes a comprehensive role-based access control:
+
+### Available Permissions
+- **Dashboard**: Access to main dashboard (always enabled)
+- **Students Management**: Manage active students
+- **Inactive Students**: Access to inactive student records
+- **Employees Management**: Manage active employees
+- **Inactive Employees**: Access to inactive employee records
+- **Payments Management**: Handle payment tracking
+- **Admin Management**: Create and manage other admins (superadmin only)
+- **Settings**: Access to system configuration
+- **Profile**: Personal profile management (always enabled)
+
+### Role Hierarchy
+1. **Superadmin**: Full access to all features and admin management
+2. **Admin**: Customizable permissions based on assigned access
+3. **Manager**: Customizable permissions with limited administrative access
+
+## 🛡️ Security Features
+
+- **JWT Authentication**: Secure token-based authentication
+- **Password Hashing**: bcrypt with salt rounds for password security
+- **Route Protection**: Both API and frontend route security
+- **Permission Guards**: Component-level access control
+- **Session Management**: Configurable session timeout
+- **Access Logging**: Track admin login activities
+
+## 🌍 Multi-language Support
+
+- **English**: Full system support
+- **Amharic (አማርኛ)**: Complete translation for Ethiopian users
+- **RTL Support**: Right-to-left text support for Amharic
+- **Dynamic Switching**: Change language without page reload
+
+## 🎨 UI/UX Features
+
+- **Dark/Light Theme**: Toggle between themes with system preference detection
+- **Responsive Design**: Mobile-first approach with adaptive layouts
+- **Loading States**: Smooth loading indicators throughout the app
+- **Error Handling**: User-friendly error messages and fallbacks
+- **Accessibility**: WCAG compliant with keyboard navigation support
+
+## 📊 Reporting & Analytics
+
+- **Dashboard Statistics**: Real-time counts and status overview
+- **Payment Reports**: Generate reports for paid/unpaid students
+- **Student Analytics**: Track enrollment and status changes
+- **Employee Reports**: Staff management and assignment tracking
+
+## 🔧 Development
+
+### Available Scripts
+
+**Backend:**
+```bash
+npm run dev          # Start development server
+npm run seed         # Seed sample data
+npm run seed-admin   # Create superadmin account
+```
+
+**Frontend:**
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+```
+
+### Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## License
+### Code Style
 
-This project is licensed under the ISC License.
+- **ESLint**: JavaScript linting
+- **Prettier**: Code formatting
+- **Tailwind CSS**: Utility-first styling
+- **Component Structure**: Organized and reusable components
+
+## 📞 Support
+
+For support and questions about Bluelight Academy Management System:
+
+- **Email**: support@bluelight.com
+- **Documentation**: Refer to this README and inline code comments
+- **Issues**: Create GitHub issues for bugs and feature requests
+
+## 📜 License
+
+This project is developed specifically for **Bluelight Academy** and is licensed under the ISC License.
+
+---
+
+**Built with ❤️ for Bluelight Academy**
+
+*Empowering education through technology*
