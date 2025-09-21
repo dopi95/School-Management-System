@@ -1,4 +1,4 @@
-# Bluelight Academy Management System - Full Stack
+# Bluelight Academy School Management System - Full Stack
 
 A comprehensive full-stack school management system built specifically for **Bluelight Academy**. This modern web application provides complete administrative control over students, employees, payments, and system management with advanced role-based access control.
 
