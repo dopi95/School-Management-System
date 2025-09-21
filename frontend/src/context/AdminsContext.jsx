@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../services/api.js';
 
 const AdminsContext = createContext();
 
@@ -11,20 +12,30 @@ export const useAdmins = () => {
 };
 
 export const AdminsProvider = ({ children }) => {
-  const [adminsList, setAdminsList] = useState([
-    { id: 'A001', name: 'John Smith', email: 'john@school.com', username: 'johnsmith', role: 'super_admin', permissions: ['dashboard', 'students', 'employees', 'admins', 'payments', 'settings'], status: 'active' },
-    { id: 'A002', name: 'Sarah Johnson', email: 'sarah@school.com', username: 'sarahj', role: 'admin', permissions: ['dashboard', 'students', 'payments'], status: 'active' },
-    { id: 'A003', name: 'Mike Wilson', email: 'mike@school.com', username: 'mikew', role: 'admin', permissions: ['dashboard', 'employees', 'settings'], status: 'active' }
-  ]);
+  const [adminsList, setAdminsList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const deleteAdmin = (adminId) => {
-    setAdminsList(prev => prev.filter(admin => admin.id !== adminId));
+  useEffect(() => {
+    fetchAdmins();
+  }, []);
+
+  const fetchAdmins = async () => {
+    try {
+      const response = await api.getAdmins();
+      if (response.success) {
+        setAdminsList(response.admins);
+      }
+    } catch (error) {
+      console.error('Error fetching admins:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const value = {
     adminsList,
-    setAdminsList,
-    deleteAdmin
+    loading,
+    fetchAdmins
   };
 
   return (
@@ -33,5 +44,3 @@ export const AdminsProvider = ({ children }) => {
     </AdminsContext.Provider>
   );
 };
-
-export default AdminsContext;

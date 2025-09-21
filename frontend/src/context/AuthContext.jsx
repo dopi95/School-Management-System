@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../services/api.js';
 
 const AuthContext = createContext();
 
@@ -11,54 +12,77 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Check if user is logged in from localStorage
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setLoading(false);
+    checkAuth();
   }, []);
 
-  const login = async (email, password) => {
-    // Sample login credentials
-    const validCredentials = {
-      'admin@bluelight.edu': 'admin123',
-      'superadmin@bluelight.edu': 'super123'
-    };
+  const checkAuth = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-    // Validate credentials
-    if (!validCredentials[email] || validCredentials[email] !== password) {
-      throw new Error('Invalid email or password');
+      const response = await api.getProfile();
+      if (response.success) {
+        setAdmin(response.admin);
+        setIsAuthenticated(true);
+      }
+    } catch (error) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Mock user data based on email
-    const mockUser = {
-      id: 1,
-      name: email === 'superadmin@bluelight.edu' ? 'Super Admin' : 'John Doe',
-      email: email,
-      role: 'super_admin',
-      isOnline: true
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    return mockUser;
+  const login = async (email, password) => {
+    try {
+      const response = await api.login(email, password);
+      if (response.success) {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('refreshToken', response.refreshToken);
+        setAdmin(response.admin);
+        setIsAuthenticated(true);
+        return { success: true };
+      }
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    setAdmin(null);
+    setIsAuthenticated(false);
+  };
+
+  const updateProfile = async (profileData) => {
+    try {
+      const response = await api.updateProfile(profileData);
+      if (response.success) {
+        setAdmin(response.admin);
+        return { success: true, message: response.message };
+      }
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
   };
 
   const value = {
-    user,
+    admin,
+    loading,
+    isAuthenticated,
     login,
     logout,
-    loading
+    updateProfile,
+    checkAuth
   };
 
   return (

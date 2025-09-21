@@ -4,17 +4,20 @@ import { Users, GraduationCap, UserCog, UserX } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useEmployees } from '../context/EmployeesContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
+import { useAdmins } from '../context/AdminsContext.jsx';
+import PermissionGuard from '../components/PermissionGuard.jsx';
 
 const Dashboard = () => {
   const { t } = useLanguage();
   const { employeesList } = useEmployees();
   const { studentsList } = useStudents();
+  const { adminsList } = useAdmins();
   
   const activeEmployees = employeesList.filter(e => e.status === 'active').length;
   const inactiveEmployees = employeesList.filter(e => e.status === 'inactive').length;
   const activeStudents = studentsList.filter(s => s.status === 'active').length;
   const inactiveStudents = studentsList.filter(s => s.status === 'inactive').length;
-  const adminEmployees = employeesList.filter(e => e.position === 'Principal' || e.role === 'Principal').length;
+  const totalAdmins = adminsList.length;
 
   const stats = [
     {
@@ -59,7 +62,7 @@ const Dashboard = () => {
     },
     {
       title: 'Total Admins',
-      value: adminEmployees.toString(),
+      value: totalAdmins.toString(),
       icon: UserCog,
       color: 'bg-purple-500',
       bgColor: 'bg-purple-50 dark:bg-purple-900',
@@ -98,18 +101,50 @@ const Dashboard = () => {
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link to="/students/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
-            <Users className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add New Student</p>
-          </Link>
-          <Link to="/teachers/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
-            <GraduationCap className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add New Employee</p>
-          </Link>
-          <Link to="/admins/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
-            <UserCog className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add New Admin</p>
-          </Link>
+          <PermissionGuard 
+            permission="students" 
+            fallback={
+              <div className="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-center opacity-50">
+                <Users className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                <p className="text-sm text-gray-400 dark:text-gray-500">No Access to Students</p>
+              </div>
+            }
+          >
+            <Link to="/students/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
+              <Users className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add New Student</p>
+            </Link>
+          </PermissionGuard>
+          
+          <PermissionGuard 
+            permission="employees" 
+            fallback={
+              <div className="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-center opacity-50">
+                <GraduationCap className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                <p className="text-sm text-gray-400 dark:text-gray-500">No Access to Employees</p>
+              </div>
+            }
+          >
+            <Link to="/teachers/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
+              <GraduationCap className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add New Employee</p>
+            </Link>
+          </PermissionGuard>
+          
+          <PermissionGuard 
+            permission="admins" 
+            fallback={
+              <div className="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-center opacity-50">
+                <UserCog className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                <p className="text-sm text-gray-400 dark:text-gray-500">No Access to Admins</p>
+              </div>
+            }
+          >
+            <Link to="/admin-management" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
+              <UserCog className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Manage Admins</p>
+            </Link>
+          </PermissionGuard>
         </div>
       </div>
     </div>

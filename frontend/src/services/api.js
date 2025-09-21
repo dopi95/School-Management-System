@@ -3,9 +3,11 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 class ApiService {
   async request(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
+    const token = localStorage.getItem('token');
     const config = {
       headers: {
         'Content-Type': 'application/json',
+        ...(token && !endpoint.includes('/auth/login') ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
       ...options,
@@ -141,6 +143,49 @@ class ApiService {
 
   async deletePayment(id) {
     return this.request(`/payments/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Auth API methods
+  async login(email, password) {
+    return this.request('/auth/login', {
+      method: 'POST',
+      body: { email, password },
+    });
+  }
+
+  async getProfile() {
+    return this.request('/auth/profile');
+  }
+
+  async updateProfile(profileData) {
+    return this.request('/auth/profile', {
+      method: 'PUT',
+      body: profileData,
+    });
+  }
+
+  async getAdmins() {
+    return this.request('/auth/admins');
+  }
+
+  async createAdmin(adminData) {
+    return this.request('/auth/admins', {
+      method: 'POST',
+      body: adminData,
+    });
+  }
+
+  async updateAdmin(id, adminData) {
+    return this.request(`/auth/admins/${id}`, {
+      method: 'PUT',
+      body: adminData,
+    });
+  }
+
+  async deleteAdmin(id) {
+    return this.request(`/auth/admins/${id}`, {
       method: 'DELETE',
     });
   }

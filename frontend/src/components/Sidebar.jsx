@@ -17,7 +17,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 const Sidebar = () => {
-  const { user, logout } = useAuth();
+  const { admin, logout } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -49,16 +49,21 @@ const Sidebar = () => {
     return englishLabels[key] || key;
   };
 
-  const menuItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: getMenuLabel('dashboard') },
-    { path: '/students', icon: Users, label: getMenuLabel('students') },
-    { path: '/inactive-students', icon: UserX, label: getMenuLabel('inactive-students') },
-    { path: '/teachers', icon: GraduationCap, label: getMenuLabel('employees') },
-    { path: '/inactive-employees', icon: UserX, label: getMenuLabel('inactive-employees') },
-    { path: '/admins', icon: UserCog, label: getMenuLabel('admins') },
-    { path: '/payments', icon: CreditCard, label: getMenuLabel('payments') },
-    { path: '/settings', icon: Settings, label: getMenuLabel('settings') },
+  const allMenuItems = [
+    { path: '/dashboard', icon: LayoutDashboard, label: getMenuLabel('dashboard'), permission: 'dashboard' },
+    { path: '/students', icon: Users, label: getMenuLabel('students'), permission: 'students' },
+    { path: '/inactive-students', icon: UserX, label: getMenuLabel('inactive-students'), permission: 'inactiveStudents' },
+    { path: '/teachers', icon: GraduationCap, label: getMenuLabel('employees'), permission: 'employees' },
+    { path: '/inactive-employees', icon: UserX, label: getMenuLabel('inactive-employees'), permission: 'inactiveEmployees' },
+    { path: '/admin-management', icon: UserCog, label: getMenuLabel('admins'), permission: 'admins' },
+    { path: '/payments', icon: CreditCard, label: getMenuLabel('payments'), permission: 'payments' },
+    { path: '/settings', icon: Settings, label: getMenuLabel('settings'), permission: 'settings' },
   ];
+
+  const menuItems = allMenuItems.filter(item => {
+    if (admin?.role === 'superadmin') return true;
+    return admin?.permissions?.[item.permission] === true;
+  });
 
   return (
     <>
@@ -101,10 +106,10 @@ const Sidebar = () => {
               <User className="w-6 h-6 text-primary-600 dark:text-primary-400" />
             </div>
             <div className="flex-1">
-              <p className="font-medium text-gray-900 dark:text-white">{user?.name}</p>
+              <p className="font-medium text-gray-900 dark:text-white">{admin?.name}</p>
               <div className="flex items-center space-x-2">
-                <span className="text-xs bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-400 px-2 py-1 rounded-full">
-                  Super Admin
+                <span className="text-xs bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-400 px-2 py-1 rounded-full capitalize">
+                  {admin?.role}
                 </span>
                 <div className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>

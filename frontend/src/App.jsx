@@ -9,7 +9,6 @@ import { PaymentsProvider } from './context/PaymentsContext.jsx';
 import { AdminsProvider } from './context/AdminsContext.jsx';
 import Layout from './components/Layout.jsx';
 import Login from './pages/Login.jsx';
-import ForgotPassword from './pages/ForgotPassword.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Students from './pages/Students';
 import StudentDetail from './pages/StudentDetail';
@@ -17,18 +16,16 @@ import AddStudent from './pages/AddStudent';
 import Teachers from './pages/Teachers';
 import TeacherDetail from './pages/TeacherDetail';
 import AddTeacher from './pages/AddTeacher';
-import Admins from './pages/Admins';
-import AddAdmin from './pages/AddAdmin';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
-import AdminDetails from './pages/AdminDetails';
+import AdminManagement from './pages/AdminManagement';
 import Payments from './pages/Payments';
 import InactiveStudents from './pages/InactiveStudents';
 import InactiveEmployees from './pages/InactiveEmployees';
-import AdminDetail from './pages/AdminDetail';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   
   if (loading) {
     return (
@@ -38,16 +35,15 @@ const ProtectedRoute = ({ children }) => {
     );
   }
   
-  return user ? children : <Navigate to="/login" />;
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <Routes>
-      <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
       <Route path="/" element={<Navigate to="/dashboard" />} />
       
       <Route path="/dashboard" element={
@@ -58,13 +54,21 @@ const AppRoutes = () => {
       
       <Route path="/students" element={
         <ProtectedRoute>
-          <Layout><Students /></Layout>
+          <Layout>
+            <ProtectedRoute permission="students" section="student management">
+              <Students />
+            </ProtectedRoute>
+          </Layout>
         </ProtectedRoute>
       } />
       
       <Route path="/students/add" element={
         <ProtectedRoute>
-          <Layout><AddStudent /></Layout>
+          <Layout>
+            <ProtectedRoute permission="students" section="student management">
+              <AddStudent />
+            </ProtectedRoute>
+          </Layout>
         </ProtectedRoute>
       } />
       
@@ -82,13 +86,21 @@ const AppRoutes = () => {
       
       <Route path="/teachers" element={
         <ProtectedRoute>
-          <Layout><Teachers /></Layout>
+          <Layout>
+            <ProtectedRoute permission="employees" section="employee management">
+              <Teachers />
+            </ProtectedRoute>
+          </Layout>
         </ProtectedRoute>
       } />
       
       <Route path="/teachers/add" element={
         <ProtectedRoute>
-          <Layout><AddTeacher /></Layout>
+          <Layout>
+            <ProtectedRoute permission="employees" section="employee management">
+              <AddTeacher />
+            </ProtectedRoute>
+          </Layout>
         </ProtectedRoute>
       } />
       
@@ -104,27 +116,13 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      <Route path="/admins" element={
+      <Route path="/admin-management" element={
         <ProtectedRoute>
-          <Layout><Admins /></Layout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/admins/add" element={
-        <ProtectedRoute>
-          <Layout><AddAdmin /></Layout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/admins/edit/:id" element={
-        <ProtectedRoute>
-          <Layout><AddAdmin /></Layout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/admins/:id" element={
-        <ProtectedRoute>
-          <Layout><AdminDetail /></Layout>
+          <Layout>
+            <ProtectedRoute permission="admins" section="admin management">
+              <AdminManagement />
+            </ProtectedRoute>
+          </Layout>
         </ProtectedRoute>
       } />
       
@@ -140,11 +138,7 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      <Route path="/admins/:id" element={
-        <ProtectedRoute>
-          <Layout><AdminDetails /></Layout>
-        </ProtectedRoute>
-      } />
+
       
       <Route path="/payments" element={
         <ProtectedRoute>
@@ -176,11 +170,11 @@ function App() {
             <EmployeesProvider>
               <PaymentsProvider>
                 <AdminsProvider>
-                <Router>
-                  <div className="App">
-                    <AppRoutes />
-                  </div>
-                </Router>
+                  <Router>
+                    <div className="App">
+                      <AppRoutes />
+                    </div>
+                  </Router>
                 </AdminsProvider>
               </PaymentsProvider>
             </EmployeesProvider>

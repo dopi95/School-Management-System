@@ -5,6 +5,9 @@ import connectDB from "./src/config/db.js";
 import studentRoutes from "./src/routes/students.js";
 import employeeRoutes from "./src/routes/employees.js";
 import paymentRoutes from "./src/routes/payments.js";
+import authRoutes from "./src/routes/auth.js";
+import { protect } from "./src/middleware/auth.js";
+import { checkPermission } from "./src/middleware/permissions.js";
 
 dotenv.config();
 
@@ -19,9 +22,27 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Routes
-app.use('/api/students', studentRoutes);
-app.use('/api/employees', employeeRoutes);
-app.use('/api/payments', paymentRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/students', protect, (req, res, next) => {
+  // Check if accessing inactive students specifically
+  if (req.path.includes('inactive') || req.query.status === 'inactive') {
+    return checkPermission('inactiveStudents')(req, res, next);
+  }
+  return checkPermission('students')(req, res, next);
+}, studentRoutes);
+app.use('/api/employees', protect, (req, res, next) => {
+  // Check if accessing inactive employees specifically
+  if (req.path.includes('inactive') || req.query.status === 'inactive') {
+    return checkPermission('inactiveEmployees')(req, res, next);
+  }
+  return checkPermission('employees')(req, res, next);
+}, employeeRoutes);
+app.use('/api/payments', protect, checkPermission('payments'), paymentRoutes);
+
+// Settings route (protected by settings permission)
+app.get('/api/settings', protect, checkPermission('settings'), (req, res) => {
+  res.json({ success: true, message: 'Settings access granted' });
+});
 
 // Test route
 app.get("/", (req, res) => {
