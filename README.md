@@ -1,16 +1,59 @@
-# School Management System - Full Stack
+# Bluelight Academy Management System - Full Stack
 
-A complete full-stack school management system with React frontend and Node.js/Express backend.
+A comprehensive full-stack school management system built specifically for **Bluelight Academy**. This modern web application provides complete administrative control over students, employees, payments, and system management with advanced role-based access control.
 
-## Features
+## 🏫 About Bluelight Academy
 
-- **Student Management**: Add, edit, view, and manage student records
-- **Dynamic Data**: All data is stored in MongoDB and synced in real-time
-- **Student Status**: Mark students as active/inactive
-- **Bulk Operations**: Update multiple students at once
-- **Payment Tracking**: Track student payments by month
-- **Search & Filter**: Search students by name, ID, or filter by class
-- **Responsive Design**: Works on desktop and mobile devices
+This system is designed and developed for Bluelight Academy to streamline their educational administration processes. It provides a centralized platform for managing all aspects of the academy's operations.
+
+## ✨ Key Features
+
+### 🔐 Authentication & Authorization
+- **Secure Login System**: JWT-based authentication with refresh tokens
+- **Role-Based Access Control**: Granular permissions for different admin roles
+- **Superadmin Management**: Complete system control and admin creation
+- **Profile Management**: Update personal information and change passwords
+
+### 👨‍🎓 Student Management
+- **Complete Student Records**: Add, edit, view, and manage student information
+- **Student Status Control**: Mark students as active/inactive
+- **Bulk Operations**: Update multiple students simultaneously
+- **Advanced Search**: Search by name, ID, joined year, or class
+- **Class Management**: Organize students by classes (KG-1, KG-2, KG-3)
+- **Inactive Student Tracking**: Separate management for inactive students
+
+### 👨‍🏫 Employee Management
+- **Staff Records**: Manage teachers, assistants, and other staff
+- **Role Assignment**: Assign specific roles and responsibilities
+- **Class Assignment**: Assign teachers to specific classes
+- **Employee Status**: Track active and inactive employees
+- **Comprehensive Profiles**: Store contact information and employment details
+
+### 💰 Payment Management
+- **Monthly Payment Tracking**: Track student payments by month and year
+- **Payment History**: Complete payment records with descriptions
+- **Payment Status**: Mark payments as paid/unpaid with timestamps
+- **PDF Reports**: Generate payment reports for paid and unpaid students
+- **Flexible Payment Periods**: Support for academic year payment cycles
+
+### 📊 Dashboard & Analytics
+- **Real-time Statistics**: Live counts of students, employees, and admins
+- **Quick Actions**: Fast access to common tasks
+- **Status Overview**: Visual representation of active/inactive records
+- **Permission-based Display**: Show only accessible sections
+
+### ⚙️ System Settings
+- **Theme Control**: Dark/Light mode toggle
+- **Language Support**: English and Amharic (አማርኛ) support
+- **Notification Settings**: Configure system notifications
+- **Security Settings**: Session timeout and login attempt controls
+- **System Information**: Version and database status
+
+### 🛡️ Advanced Security
+- **Permission System**: 9 different permission levels
+- **Route Protection**: API and frontend route security
+- **Token Management**: Automatic token refresh and validation
+- **Access Control**: Prevent unauthorized access with clear messaging
 
 ## Tech Stack
 
