@@ -22,7 +22,7 @@ import AdminManagement from './pages/AdminManagement';
 import Payments from './pages/Payments';
 import InactiveStudents from './pages/InactiveStudents';
 import InactiveEmployees from './pages/InactiveEmployees';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
+import PermissionRoute from './components/ProtectedRoute.jsx';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -44,7 +44,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
-      <Route path="/" element={<Navigate to="/dashboard" />} />
+      <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
       
       <Route path="/dashboard" element={
         <ProtectedRoute>
@@ -55,9 +55,9 @@ const AppRoutes = () => {
       <Route path="/students" element={
         <ProtectedRoute>
           <Layout>
-            <ProtectedRoute permission="students" section="student management">
+            <PermissionRoute permission="students" section="student management">
               <Students />
-            </ProtectedRoute>
+            </PermissionRoute>
           </Layout>
         </ProtectedRoute>
       } />
@@ -65,9 +65,9 @@ const AppRoutes = () => {
       <Route path="/students/add" element={
         <ProtectedRoute>
           <Layout>
-            <ProtectedRoute permission="students" section="student management">
+            <PermissionRoute permission="students" section="student management">
               <AddStudent />
-            </ProtectedRoute>
+            </PermissionRoute>
           </Layout>
         </ProtectedRoute>
       } />
@@ -87,9 +87,9 @@ const AppRoutes = () => {
       <Route path="/teachers" element={
         <ProtectedRoute>
           <Layout>
-            <ProtectedRoute permission="employees" section="employee management">
+            <PermissionRoute permission="employees" section="employee management">
               <Teachers />
-            </ProtectedRoute>
+            </PermissionRoute>
           </Layout>
         </ProtectedRoute>
       } />
@@ -97,9 +97,9 @@ const AppRoutes = () => {
       <Route path="/teachers/add" element={
         <ProtectedRoute>
           <Layout>
-            <ProtectedRoute permission="employees" section="employee management">
+            <PermissionRoute permission="employees" section="employee management">
               <AddTeacher />
-            </ProtectedRoute>
+            </PermissionRoute>
           </Layout>
         </ProtectedRoute>
       } />
@@ -119,9 +119,9 @@ const AppRoutes = () => {
       <Route path="/admin-management" element={
         <ProtectedRoute>
           <Layout>
-            <ProtectedRoute permission="admins" section="admin management">
+            <PermissionRoute permission="admins" section="admin management">
               <AdminManagement />
-            </ProtectedRoute>
+            </PermissionRoute>
           </Layout>
         </ProtectedRoute>
       } />

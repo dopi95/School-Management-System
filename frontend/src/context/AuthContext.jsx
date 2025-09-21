@@ -24,6 +24,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
+        setAdmin(null);
+        setIsAuthenticated(false);
         setLoading(false);
         return;
       }
@@ -32,10 +34,19 @@ export const AuthProvider = ({ children }) => {
       if (response.success) {
         setAdmin(response.admin);
         setIsAuthenticated(true);
+      } else {
+        // Invalid token
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        setAdmin(null);
+        setIsAuthenticated(false);
       }
     } catch (error) {
+      // API call failed or token invalid
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
+      setAdmin(null);
+      setIsAuthenticated(false);
     } finally {
       setLoading(false);
     }
