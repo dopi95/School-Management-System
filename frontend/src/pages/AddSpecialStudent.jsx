@@ -95,7 +95,8 @@ const AddSpecialStudent = () => {
       phone: formData.fatherPhone, // Use father's phone as main phone
       status: 'active',
       payments: {},
-      joinedYear: formData.joinedYear || new Date().getFullYear().toString() // Default to current year if empty
+      joinedYear: formData.joinedYear || new Date().getFullYear().toString(), // Default to current year if empty
+      section: formData.section || undefined // Convert empty string to undefined
     };
 
     try {

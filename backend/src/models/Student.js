@@ -19,12 +19,7 @@ const studentSchema = new mongoose.Schema({
   section: { 
     type: String, 
     enum: ['A', 'B', 'C', 'D'],
-    validate: {
-      validator: function(v) {
-        return !v || ['A', 'B', 'C', 'D'].includes(v);
-      },
-      message: 'Section must be A, B, C, or D'
-    }
+    required: false
   },
   fatherName: { type: String },
   fatherPhone: { type: String },
@@ -40,7 +35,15 @@ const studentSchema = new mongoose.Schema({
 
 // Pre-save middleware to handle empty section strings
 studentSchema.pre('save', function(next) {
-  if (this.section === '') {
+  if (this.section === '' || this.section === null) {
+    this.section = undefined;
+  }
+  next();
+});
+
+// Pre-validate middleware to handle empty strings before validation
+studentSchema.pre('validate', function(next) {
+  if (this.section === '' || this.section === null) {
     this.section = undefined;
   }
   next();
