@@ -72,16 +72,31 @@ const Sidebar = () => {
       {/* Mobile Header with Bluelight Academy */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 shadow-lg p-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-primary-700 dark:text-primary-400">{t('bluelightAcademy')}</h1>
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg"
-        >
-          {isMobileMenuOpen ? (
-            <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-          ) : (
-            <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+        <div className="flex items-center space-x-2">
+          {/* Mobile Logout Button */}
+          {admin && (
+            <button
+              onClick={() => {
+                logout();
+                setIsMobileMenuOpen(false);
+              }}
+              className="p-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
+              title={language === 'am' ? 'ውጣ' : 'Logout'}
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
           )}
-        </button>
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg"
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+            ) : (
+              <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Overlay */}
@@ -98,7 +113,19 @@ const Sidebar = () => {
       } lg:top-0 top-16`}>
         {/* Desktop Header */}
         <div className="hidden lg:block p-6 border-b border-gray-200 dark:border-gray-700">
-          <h1 className="text-xl font-bold text-primary-700 dark:text-primary-400">{t('bluelightAcademy')}</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-primary-700 dark:text-primary-400">{t('bluelightAcademy')}</h1>
+            {/* Desktop Logout Button */}
+            {admin && (
+              <button
+                onClick={logout}
+                className="p-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
+                title={language === 'am' ? 'ውጣ' : 'Logout'}
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* User Profile */}
@@ -146,19 +173,24 @@ const Sidebar = () => {
           </ul>
         </nav>
 
-        {/* Logout - Always show for all authenticated admins */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            onClick={() => {
-              logout();
-              setIsMobileMenuOpen(false);
-            }}
-            className="flex items-center space-x-2 w-full px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors duration-200"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="text-sm font-medium">{t('logout')}</span>
-          </button>
-        </div>
+        {/* Logout - Always visible for authenticated users */}
+        {admin && (
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 mt-auto">
+            <button
+              onClick={() => {
+                logout();
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex items-center space-x-2 w-full px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors duration-200 font-medium"
+              style={{ minHeight: '40px' }}
+            >
+              <LogOut className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm font-medium">
+                {language === 'am' ? 'ውጣ' : 'Logout'}
+              </span>
+            </button>
+          </div>
+        )}
       </div>
     </>
   );
