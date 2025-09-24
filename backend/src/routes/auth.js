@@ -123,6 +123,7 @@ router.put('/profile', protect, async (req, res) => {
         name: admin.name,
         email: admin.email,
         role: admin.role,
+        permissions: admin.permissions,
         status: admin.status
       }
     });
@@ -174,6 +175,8 @@ router.post('/admins', protect, authorize('superadmin'), async (req, res) => {
         employees: false,
         inactiveEmployees: false,
         payments: false,
+        specialStudents: false,
+        specialPayments: false,
         admins: false,
         profile: true,
         settings: false
@@ -181,9 +184,37 @@ router.post('/admins', protect, authorize('superadmin'), async (req, res) => {
       createdBy: req.admin._id
     });
 
+    // Send welcome email with login credentials
+    try {
+      await sendEmail({
+        email: admin.email,
+        subject: 'Welcome to Bluelight Academy Management System',
+        message: `Welcome ${name}! Your admin account has been created. Email: ${email}, Password: ${password}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Welcome to Bluelight Academy</h2>
+            <p>Hello ${name},</p>
+            <p>Your admin account has been created successfully by the superadmin.</p>
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+              <h3 style="color: #007bff; margin: 0 0 15px 0;">Your Login Credentials</h3>
+              <p><strong>Email:</strong> ${email}</p>
+              <p><strong>Password:</strong> ${password}</p>
+              <p><strong>Role:</strong> ${role || 'admin'}</p>
+            </div>
+            <p><strong>Important:</strong> Please change your password after your first login for security.</p>
+            <p>You can access the system at: <a href="${process.env.FRONTEND_URL}/login">${process.env.FRONTEND_URL}/login</a></p>
+            <hr style="margin: 30px 0;">
+            <p style="color: #666; font-size: 12px;">Bluelight Academy Management System</p>
+          </div>
+        `
+      });
+    } catch (emailError) {
+      console.log('Failed to send welcome email:', emailError.message);
+    }
+
     res.status(201).json({
       success: true,
-      message: 'Admin created successfully',
+      message: 'Admin created successfully and welcome email sent',
       admin: {
         id: admin._id,
         name: admin.name,
