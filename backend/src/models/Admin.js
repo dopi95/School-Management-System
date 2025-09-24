@@ -29,6 +29,8 @@ const adminSchema = new mongoose.Schema({
     default: 'active' 
   },
   lastLogin: { type: Date },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' }
 }, {
   timestamps: true

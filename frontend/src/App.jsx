@@ -11,6 +11,7 @@ import { SpecialPaymentsProvider } from './context/SpecialPaymentsContext.jsx';
 import { AdminsProvider } from './context/AdminsContext.jsx';
 import Layout from './components/Layout.jsx';
 import Login from './pages/Login.jsx';
+import ResetPassword from './pages/ResetPassword.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Students from './pages/Students';
 import StudentDetail from './pages/StudentDetail';
@@ -50,6 +51,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
+      <Route path="/reset-password/:token" element={isAuthenticated ? <Navigate to="/dashboard" /> : <ResetPassword />} />
       <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
       
       <Route path="/dashboard" element={

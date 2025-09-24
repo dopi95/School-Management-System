@@ -1,7 +1,12 @@
 import React from 'react';
 import Sidebar from './Sidebar.jsx';
+import useAutoRefresh from '../hooks/useAutoRefresh.js';
 
 const Layout = ({ children }) => {
+  useAutoRefresh(() => {
+    window.location.reload();
+  });
+
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar />
