@@ -15,6 +15,11 @@ const Login = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetMessage, setResetMessage] = useState('');
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: New Password
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
@@ -60,10 +65,89 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setResetMessage('Password reset instructions sent to your email.');
-        setForgotEmail('');
+        setResetMessage('OTP sent to your email address successfully');
+        setStep(2);
       } else {
-        setError(data.message || 'Failed to send reset email');
+        setError(data.message || 'Failed to send OTP');
+      }
+    } catch (error) {
+      setError('Network error. Please try again.');
+    }
+
+    setIsLoading(false);
+  };
+
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/verify-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: forgotEmail, otp }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStep(3);
+        setResetMessage('OTP verified successfully. Please set your new password.');
+      } else {
+        setError(data.message || 'Invalid OTP');
+      }
+    } catch (error) {
+      setError('Network error. Please try again.');
+    }
+
+    setIsLoading(false);
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: forgotEmail, otp, password: newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setResetMessage('Password reset successfully! You can now login with your new password.');
+        setTimeout(() => {
+          setShowForgotPassword(false);
+          setStep(1);
+          setForgotEmail('');
+          setOtp('');
+          setNewPassword('');
+          setConfirmPassword('');
+          setError('');
+          setResetMessage('');
+        }, 3000);
+      } else {
+        setError(data.message || 'Failed to reset password');
       }
     } catch (error) {
       setError('Network error. Please try again.');
@@ -188,7 +272,7 @@ const Login = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Reset Password
+              {step === 1 ? 'Reset Password' : step === 2 ? 'Verify OTP' : 'Set New Password'}
             </h3>
             
             {resetMessage && (
@@ -203,43 +287,132 @@ const Login = () => {
               </div>
             )}
             
-            <form onSubmit={handleForgotPassword}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={forgotEmail}
-                  onChange={(e) => setForgotEmail(e.target.value)}
-                  className="input-field"
-                  placeholder="Enter your email address"
-                  required
-                />
-              </div>
-              
-              <div className="flex space-x-3">
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="btn-primary flex-1"
-                >
-                  {isLoading ? 'Sending...' : 'Send Reset Link'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForgotPassword(false);
-                    setForgotEmail('');
-                    setError('');
-                    setResetMessage('');
-                  }}
-                  className="btn-secondary flex-1"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+            {step === 1 && (
+              <form onSubmit={handleForgotPassword}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="input-field"
+                    placeholder="Enter your email address"
+                    required
+                  />
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="btn-primary flex-1"
+                  >
+                    {isLoading ? 'Sending...' : 'Send OTP'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setStep(1);
+                      setForgotEmail('');
+                      setError('');
+                      setResetMessage('');
+                    }}
+                    className="btn-secondary flex-1"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+            
+            {step === 2 && (
+              <form onSubmit={handleVerifyOTP}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Enter OTP
+                  </label>
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="input-field text-center text-2xl tracking-widest"
+                    placeholder="000000"
+                    maxLength="6"
+                    required
+                  />
+                  <p className="text-sm text-gray-500 mt-2">Check your email for the 6-digit OTP</p>
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="btn-primary flex-1"
+                  >
+                    {isLoading ? 'Verifying...' : 'Verify OTP'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="btn-secondary flex-1"
+                  >
+                    Back
+                  </button>
+                </div>
+              </form>
+            )}
+            
+            {step === 3 && (
+              <form onSubmit={handleResetPassword}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="input-field"
+                    placeholder="Enter new password"
+                    required
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="input-field"
+                    placeholder="Confirm new password"
+                    required
+                  />
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="btn-primary flex-1"
+                  >
+                    {isLoading ? 'Resetting...' : 'Reset Password'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="btn-secondary flex-1"
+                  >
+                    Back
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

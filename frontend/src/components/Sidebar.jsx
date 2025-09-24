@@ -146,21 +146,19 @@ const Sidebar = () => {
           </ul>
         </nav>
 
-        {/* Logout - Always show for authenticated users */}
-        {admin && (
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <button
-              onClick={() => {
-                logout();
-                setIsMobileMenuOpen(false);
-              }}
-              className="flex items-center space-x-2 w-full px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors duration-200"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="text-sm font-medium">{t('logout')}</span>
-            </button>
-          </div>
-        )}
+        {/* Logout - Always show for all authenticated admins */}
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => {
+              logout();
+              setIsMobileMenuOpen(false);
+            }}
+            className="flex items-center space-x-2 w-full px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors duration-200"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm font-medium">{t('logout')}</span>
+          </button>
+        </div>
       </div>
     </>
   );

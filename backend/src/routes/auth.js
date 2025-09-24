@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import Admin from '../models/Admin.js';
 import { protect, authorize } from '../middleware/auth.js';
+import sendEmail from '../utils/sendEmail.js';
 
 const router = express.Router();
 
@@ -256,7 +257,7 @@ router.delete('/admins/:id', protect, authorize('superadmin'), async (req, res) 
   }
 });
 
-// @desc    Forgot password
+// @desc    Forgot password - Send OTP
 // @route   POST /api/auth/forgot-password
 // @access  Public
 router.post('/forgot-password', async (req, res) => {
@@ -272,55 +273,108 @@ router.post('/forgot-password', async (req, res) => {
       return res.status(404).json({ message: 'No admin found with this email address' });
     }
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-    admin.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    admin.resetPasswordExpire = resetTokenExpire;
+    admin.resetOTP = otp;
+    admin.resetOTPExpire = otpExpire;
     await admin.save();
 
-    // In a real application, you would send an email here
-    // For now, we'll return the token in the response (not recommended for production)
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    // Send OTP via email
+    try {
+      await sendEmail({
+        email: admin.email,
+        subject: 'Password Reset OTP - Bluelight Academy',
+        message: `Your password reset OTP is: ${otp}. This OTP will expire in 10 minutes.`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Password Reset Request</h2>
+            <p>Hello ${admin.name},</p>
+            <p>You have requested to reset your password for Bluelight Academy Management System.</p>
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
+              <h3 style="color: #007bff; margin: 0;">Your OTP Code</h3>
+              <h1 style="color: #007bff; font-size: 32px; letter-spacing: 5px; margin: 10px 0;">${otp}</h1>
+            </div>
+            <p><strong>This OTP will expire in 10 minutes.</strong></p>
+            <p>If you did not request this password reset, please ignore this email.</p>
+            <hr style="margin: 30px 0;">
+            <p style="color: #666; font-size: 12px;">Bluelight Academy Management System</p>
+          </div>
+        `
+      });
+
+      res.json({
+        success: true,
+        message: 'OTP sent to your email address successfully'
+      });
+    } catch (emailError) {
+      admin.resetOTP = undefined;
+      admin.resetOTPExpire = undefined;
+      await admin.save();
+      
+      res.status(500).json({ message: 'Failed to send email. Please try again.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Verify OTP
+// @route   POST /api/auth/verify-otp
+// @access  Public
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'Please provide email and OTP' });
+    }
+
+    const admin = await Admin.findOne({
+      email,
+      resetOTP: otp,
+      resetOTPExpire: { $gt: Date.now() }
+    });
+
+    if (!admin) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
 
     res.json({
       success: true,
-      message: 'Password reset token generated successfully',
-      resetUrl // Remove this in production and send via email instead
+      message: 'OTP verified successfully'
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// @desc    Reset password
-// @route   POST /api/auth/reset-password/:token
+// @desc    Reset password with OTP
+// @route   POST /api/auth/reset-password
 // @access  Public
-router.post('/reset-password/:token', async (req, res) => {
+router.post('/reset-password', async (req, res) => {
   try {
-    const { password } = req.body;
+    const { email, otp, password } = req.body;
 
-    if (!password) {
-      return res.status(400).json({ message: 'Please provide new password' });
+    if (!email || !otp || !password) {
+      return res.status(400).json({ message: 'Please provide email, OTP and new password' });
     }
 
-    // Hash the token from URL
-    const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
-
     const admin = await Admin.findOne({
-      resetPasswordToken,
-      resetPasswordExpire: { $gt: Date.now() }
+      email,
+      resetOTP: otp,
+      resetOTPExpire: { $gt: Date.now() }
     });
 
     if (!admin) {
-      return res.status(400).json({ message: 'Invalid or expired reset token' });
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
 
     // Set new password
     admin.password = password;
-    admin.resetPasswordToken = undefined;
-    admin.resetPasswordExpire = undefined;
+    admin.resetOTP = undefined;
+    admin.resetOTPExpire = undefined;
     await admin.save();
 
     res.json({
