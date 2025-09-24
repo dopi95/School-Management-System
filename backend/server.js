@@ -5,6 +5,8 @@ import connectDB from "./src/config/db.js";
 import studentRoutes from "./src/routes/students.js";
 import employeeRoutes from "./src/routes/employees.js";
 import paymentRoutes from "./src/routes/payments.js";
+import specialStudentRoutes from "./src/routes/specialStudents.js";
+import specialPaymentRoutes from "./src/routes/specialPayments.js";
 import authRoutes from "./src/routes/auth.js";
 import { protect } from "./src/middleware/auth.js";
 import { checkPermission } from "./src/middleware/permissions.js";
@@ -46,6 +48,8 @@ app.use('/api/employees', protect, (req, res, next) => {
   return checkPermission('employees')(req, res, next);
 }, employeeRoutes);
 app.use('/api/payments', protect, checkPermission('payments'), paymentRoutes);
+app.use('/api/special-students', protect, checkPermission('specialStudents'), specialStudentRoutes);
+app.use('/api/special-payments', protect, checkPermission('specialPayments'), specialPaymentRoutes);
 
 // Settings route (protected by settings permission)
 app.get('/api/settings', protect, checkPermission('settings'), (req, res) => {

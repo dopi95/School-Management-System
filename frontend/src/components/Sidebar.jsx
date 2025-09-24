@@ -52,11 +52,13 @@ const Sidebar = () => {
   const allMenuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: getMenuLabel('dashboard'), permission: 'dashboard' },
     { path: '/students', icon: Users, label: getMenuLabel('students'), permission: 'students' },
+    { path: '/special-students', icon: Users, label: 'SP Students', permission: 'specialStudents' },
     { path: '/inactive-students', icon: UserX, label: getMenuLabel('inactive-students'), permission: 'inactiveStudents' },
     { path: '/teachers', icon: GraduationCap, label: getMenuLabel('employees'), permission: 'employees' },
     { path: '/inactive-employees', icon: UserX, label: getMenuLabel('inactive-employees'), permission: 'inactiveEmployees' },
     { path: '/admin-management', icon: UserCog, label: getMenuLabel('admins'), permission: 'admins' },
     { path: '/payments', icon: CreditCard, label: getMenuLabel('payments'), permission: 'payments' },
+    { path: '/special-payments', icon: CreditCard, label: 'SP Payments', permission: 'specialPayments' },
     { path: '/settings', icon: Settings, label: getMenuLabel('settings'), permission: 'settings' },
   ];
 

@@ -4,8 +4,10 @@ import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { LanguageProvider } from './context/LanguageContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import { StudentsProvider } from './context/StudentsContext.jsx';
+import { SpecialStudentsProvider } from './context/SpecialStudentsContext.jsx';
 import { EmployeesProvider } from './context/EmployeesContext.jsx';
 import { PaymentsProvider } from './context/PaymentsContext.jsx';
+import { SpecialPaymentsProvider } from './context/SpecialPaymentsContext.jsx';
 import { AdminsProvider } from './context/AdminsContext.jsx';
 import Layout from './components/Layout.jsx';
 import Login from './pages/Login.jsx';
@@ -13,6 +15,10 @@ import Dashboard from './pages/Dashboard.jsx';
 import Students from './pages/Students';
 import StudentDetail from './pages/StudentDetail';
 import AddStudent from './pages/AddStudent';
+import SpecialStudents from './pages/SpecialStudents';
+import SpecialStudentDetail from './pages/SpecialStudentDetail';
+import AddSpecialStudent from './pages/AddSpecialStudent';
+import SpecialPayments from './pages/SpecialPayments';
 import Teachers from './pages/Teachers';
 import TeacherDetail from './pages/TeacherDetail';
 import AddTeacher from './pages/AddTeacher';
@@ -84,6 +90,38 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
+      <Route path="/special-students" element={
+        <ProtectedRoute>
+          <Layout>
+            <PermissionRoute permission="specialStudents" section="special student management">
+              <SpecialStudents />
+            </PermissionRoute>
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/special-students/add" element={
+        <ProtectedRoute>
+          <Layout>
+            <PermissionRoute permission="specialStudents" section="special student management">
+              <AddSpecialStudent />
+            </PermissionRoute>
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/special-students/edit/:id" element={
+        <ProtectedRoute>
+          <Layout><AddSpecialStudent /></Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/special-students/:id" element={
+        <ProtectedRoute>
+          <Layout><SpecialStudentDetail /></Layout>
+        </ProtectedRoute>
+      } />
+      
       <Route path="/teachers" element={
         <ProtectedRoute>
           <Layout>
@@ -146,6 +184,16 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
+      <Route path="/special-payments" element={
+        <ProtectedRoute>
+          <Layout>
+            <PermissionRoute permission="specialPayments" section="special payments management">
+              <SpecialPayments />
+            </PermissionRoute>
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
       <Route path="/inactive-students" element={
         <ProtectedRoute>
           <Layout><InactiveStudents /></Layout>
@@ -167,17 +215,21 @@ function App() {
       <AuthProvider>
         <LanguageProvider>
           <StudentsProvider>
-            <EmployeesProvider>
-              <PaymentsProvider>
-                <AdminsProvider>
+            <SpecialStudentsProvider>
+              <EmployeesProvider>
+                <PaymentsProvider>
+                  <SpecialPaymentsProvider>
+                    <AdminsProvider>
                   <Router>
                     <div className="App">
                       <AppRoutes />
                     </div>
                   </Router>
-                </AdminsProvider>
-              </PaymentsProvider>
-            </EmployeesProvider>
+                    </AdminsProvider>
+                  </SpecialPaymentsProvider>
+                </PaymentsProvider>
+              </EmployeesProvider>
+            </SpecialStudentsProvider>
           </StudentsProvider>
         </LanguageProvider>
       </AuthProvider>

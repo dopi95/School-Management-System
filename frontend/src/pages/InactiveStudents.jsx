@@ -2,16 +2,20 @@ import React, { useState } from 'react';
 import { Search, Eye, Users, UserCheck, History } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
+import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
 
 const InactiveStudents = () => {
   const { t } = useLanguage();
   const { studentsList, loading, updateStudentStatus } = useStudents();
+  const { specialStudentsList, updateSpecialStudentStatus } = useSpecialStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [showHistoryModal, setShowHistoryModal] = useState({ isOpen: false, student: null });
   const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
 
-  const inactiveStudents = studentsList.filter(student => student.status === 'inactive');
+  const inactiveRegularStudents = studentsList.filter(student => student.status === 'inactive');
+  const inactiveSpecialStudents = specialStudentsList.filter(student => student.status === 'inactive');
+  const inactiveStudents = [...inactiveRegularStudents, ...inactiveSpecialStudents];
   
   const filteredStudents = inactiveStudents.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -21,8 +25,16 @@ const InactiveStudents = () => {
 
   const handleStatusToggle = async (studentId) => {
     try {
-      const student = studentsList.find(s => s.id === studentId);
-      await updateStudentStatus(studentId, 'active');
+      const regularStudent = studentsList.find(s => s.id === studentId);
+      const specialStudent = specialStudentsList.find(s => s.id === studentId);
+      const student = regularStudent || specialStudent;
+      
+      if (regularStudent) {
+        await updateStudentStatus(studentId, 'active');
+      } else if (specialStudent) {
+        await updateSpecialStudentStatus(studentId, 'active');
+      }
+      
       setSuccessModal({
         isOpen: true,
         title: 'Student Activated!',
@@ -120,8 +132,16 @@ const InactiveStudents = () => {
                   <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          student.id.startsWith('SP') 
+                            ? 'bg-purple-100 dark:bg-purple-900' 
+                            : 'bg-red-100 dark:bg-red-900'
+                        }`}>
+                          <span className={`text-sm font-medium ${
+                            student.id.startsWith('SP') 
+                              ? 'text-purple-600 dark:text-purple-400' 
+                              : 'text-red-600 dark:text-red-400'
+                          }`}>
                             {student.name.charAt(0)}
                           </span>
                         </div>
@@ -130,8 +150,15 @@ const InactiveStudents = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {student.id}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-900 dark:text-white">{student.id}</span>
+                        {student.id.startsWith('SP') && (
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+                            Special
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {student.phone}

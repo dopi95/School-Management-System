@@ -147,6 +147,85 @@ class ApiService {
     });
   }
 
+  // Special Student API methods
+  async getSpecialStudents() {
+    return this.request('/special-students');
+  }
+
+  async getSpecialStudent(id) {
+    return this.request(`/special-students/${id}`);
+  }
+
+  async createSpecialStudent(studentData) {
+    return this.request('/special-students', {
+      method: 'POST',
+      body: studentData,
+    });
+  }
+
+  async updateSpecialStudent(id, studentData) {
+    return this.request(`/special-students/${id}`, {
+      method: 'PUT',
+      body: studentData,
+    });
+  }
+
+  async updateSpecialStudentStatus(id, status) {
+    return this.request(`/special-students/${id}/status`, {
+      method: 'PATCH',
+      body: { status },
+    });
+  }
+
+  async updateSpecialStudentPayment(id, monthKey, paymentData) {
+    return this.request(`/special-students/${id}/payment`, {
+      method: 'PATCH',
+      body: { monthKey, paymentData },
+    });
+  }
+
+  async bulkUpdateSpecialStudents(studentIds, updates) {
+    return this.request('/special-students/bulk/update', {
+      method: 'PATCH',
+      body: { studentIds, updates },
+    });
+  }
+
+  async deleteSpecialStudent(id) {
+    return this.request(`/special-students/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Special Payment API methods
+  async getSpecialPayments() {
+    return this.request('/special-payments');
+  }
+
+  async getSpecialStudentPayments(studentId) {
+    return this.request(`/special-payments/student/${studentId}`);
+  }
+
+  async createSpecialPayment(paymentData) {
+    return this.request('/special-payments', {
+      method: 'POST',
+      body: paymentData,
+    });
+  }
+
+  async updateSpecialPayment(id, paymentData) {
+    return this.request(`/special-payments/${id}`, {
+      method: 'PUT',
+      body: paymentData,
+    });
+  }
+
+  async deleteSpecialPayment(id) {
+    return this.request(`/special-payments/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Auth API methods
   async login(email, password) {
     return this.request('/auth/login', {

@@ -17,6 +17,8 @@ const adminSchema = new mongoose.Schema({
     employees: { type: Boolean, default: false },
     inactiveEmployees: { type: Boolean, default: false },
     payments: { type: Boolean, default: false },
+    specialStudents: { type: Boolean, default: false },
+    specialPayments: { type: Boolean, default: false },
     admins: { type: Boolean, default: false },
     profile: { type: Boolean, default: true },
     settings: { type: Boolean, default: false }

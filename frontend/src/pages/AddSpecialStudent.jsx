@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { useStudents } from '../context/StudentsContext.jsx';
+import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
 
-const AddStudent = () => {
+const AddSpecialStudent = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { studentsList, loading, addStudent, updateStudent } = useStudents();
+  const { specialStudentsList, loading, addSpecialStudent, updateSpecialStudent } = useSpecialStudents();
   const isEdit = Boolean(id);
   
   const [formData, setFormData] = useState({
@@ -34,8 +34,8 @@ const AddStudent = () => {
   const sections = ['A', 'B', 'C', 'D'];
 
   useEffect(() => {
-    if (isEdit && id && !loading && studentsList.length > 0) {
-      const student = studentsList.find(s => s.id === id);
+    if (isEdit && id && !loading && specialStudentsList.length > 0) {
+      const student = specialStudentsList.find(s => s.id === id);
       if (student) {
         setFormData({
           id: student.id || '',
@@ -54,7 +54,7 @@ const AddStudent = () => {
         });
       }
     }
-  }, [isEdit, id, studentsList, loading]);
+  }, [isEdit, id, specialStudentsList, loading]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -72,9 +72,9 @@ const AddStudent = () => {
   };
 
   const generateId = () => {
-    const existingIds = studentsList.map(s => parseInt(s.id.replace('ST', '')));
+    const existingIds = specialStudentsList.map(s => parseInt(s.id.replace('SP', '')));
     const maxId = Math.max(...existingIds, 0);
-    return `ST${String(maxId + 1).padStart(3, '0')}`;
+    return `SP${String(maxId + 1).padStart(3, '0')}`;
   };
 
   const handleSubmit = async (e) => {
@@ -84,8 +84,8 @@ const AddStudent = () => {
     const finalId = formData.id.trim() || generateId();
     
     // Check for duplicate ID when adding new student
-    if (!isEdit && studentsList.some(s => s.id === finalId)) {
-      alert('Student ID already exists. Please use a different ID.');
+    if (!isEdit && specialStudentsList.some(s => s.id === finalId)) {
+      alert('Special Student ID already exists. Please use a different ID.');
       return;
     }
     
@@ -100,18 +100,18 @@ const AddStudent = () => {
 
     try {
       if (isEdit) {
-        await updateStudent(id, studentData);
+        await updateSpecialStudent(id, studentData);
         setSuccessModal({
           isOpen: true,
-          title: 'Student Updated!',
-          message: `${formData.name || 'Student'} has been successfully updated.`
+          title: 'Special Student Updated!',
+          message: `${formData.name || 'Special Student'} has been successfully updated.`
         });
       } else {
-        await addStudent(studentData);
+        await addSpecialStudent(studentData);
         setSuccessModal({
           isOpen: true,
-          title: 'Student Added!',
-          message: `${formData.name || 'New student'} has been successfully added to the system.`
+          title: 'Special Student Added!',
+          message: `${formData.name || 'New special student'} has been successfully added to the system.`
         });
       }
     } catch (error) {
@@ -122,7 +122,7 @@ const AddStudent = () => {
 
   const handleSuccessClose = () => {
     setSuccessModal({ isOpen: false, title: '', message: '' });
-    navigate('/students');
+    navigate('/special-students');
   };
 
   if (loading && isEdit) {
@@ -136,15 +136,15 @@ const AddStudent = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
-        <Link to="/students" className="p-2 hover:bg-gray-100 rounded-lg">
+        <Link to="/special-students" className="p-2 hover:bg-gray-100 rounded-lg">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {isEdit ? 'Edit Student' : 'Add Student'}
+            {isEdit ? 'Edit Special Student' : 'Add Special Student'}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            {isEdit ? 'Update student information' : 'Add new student to the system'}
+            {isEdit ? 'Update special student information' : 'Add new special student to the system'}
           </p>
         </div>
       </div>
@@ -153,7 +153,7 @@ const AddStudent = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Student Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Student Information</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Special Student Information</h3>
             
             {/* Photo Upload */}
             <div className="flex items-center space-x-6">
@@ -190,7 +190,7 @@ const AddStudent = () => {
                   value={formData.id}
                   onChange={handleChange}
                   className="input-field"
-                  placeholder="e.g., ST001 (optional - auto-generated if empty)"
+                  placeholder="e.g., SP001 (optional - auto-generated if empty)"
                 />
               </div>
 
@@ -357,9 +357,9 @@ const AddStudent = () => {
           <div className="flex space-x-4">
             <button type="submit" className="btn-primary flex items-center space-x-2">
               <Save className="w-5 h-5" />
-              <span>{isEdit ? 'Update Student' : 'Save Student'}</span>
+              <span>{isEdit ? 'Update Special Student' : 'Save Special Student'}</span>
             </button>
-            <Link to="/students" className="btn-secondary">
+            <Link to="/special-students" className="btn-secondary">
               Cancel
             </Link>
           </div>
@@ -372,10 +372,10 @@ const AddStudent = () => {
         onClose={handleSuccessClose}
         title={successModal.title}
         message={successModal.message}
-        actionText="View Students"
+        actionText="View Special Students"
       />
     </div>
   );
 };
 
-export default AddStudent;
+export default AddSpecialStudent;

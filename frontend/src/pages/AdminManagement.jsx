@@ -101,6 +101,8 @@ const AdminManagement = () => {
         employees: false,
         inactiveEmployees: false,
         payments: false,
+        specialStudents: false,
+        specialPayments: false,
         admins: false,
         profile: true,
         settings: false
@@ -140,6 +142,8 @@ const AdminManagement = () => {
         employees: false,
         inactiveEmployees: false,
         payments: false,
+        specialStudents: false,
+        specialPayments: false,
         admins: false,
         profile: true,
         settings: false
@@ -434,6 +438,8 @@ const AdminManagement = () => {
                     { key: 'employees', label: 'Employees Management' },
                     { key: 'inactiveEmployees', label: 'Inactive Employees' },
                     { key: 'payments', label: 'Payments Management' },
+                    { key: 'specialStudents', label: 'SP Students' },
+                    { key: 'specialPayments', label: 'SP Payments' },
                     { key: 'admins', label: 'Admin Management' },
                     { key: 'settings', label: 'Settings' }
                   ].map(permission => (

@@ -8,7 +8,9 @@
     "dev": "nodemon server.js",
     "seed": "node src/seedData.js",
     "seed-admin": "node src/seedAdmin.js",
-    "migrate-sections": "node src/migrateSections.js"
+    "seed-special": "node src/seedSpecialData.js",
+    "migrate-sections": "node src/migrateSections.js",
+    "migrate-permissions": "node src/migrations/addSpecialPermissions.js"
   },
   "keywords": [],
   "author": "",
