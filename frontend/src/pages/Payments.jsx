@@ -20,6 +20,9 @@ const Payments = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [sectionFilter, setSectionFilter] = useState('all');
+  const [dateFromFilter, setDateFromFilter] = useState('');
+  const [dateToFilter, setDateToFilter] = useState('');
+  const [showPaidOnly, setShowPaidOnly] = useState(false);
   const [showDescModal, setShowDescModal] = useState({ isOpen: false, student: null });
   const [showHistoryModal, setShowHistoryModal] = useState({ isOpen: false, student: null });
   const [description, setDescription] = useState('');
@@ -40,6 +43,29 @@ const Payments = () => {
                          student.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClass = classFilter === 'all' || student.class === classFilter;
     const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
+    
+    // Date range filter for paid students only
+    if (showPaidOnly && (dateFromFilter || dateToFilter)) {
+      const hasPaidInRange = Object.values(student.payments || {}).some(payment => {
+        if (!payment?.paid || !payment?.date) return false;
+        
+        const paymentDate = new Date(payment.date);
+        const fromDate = dateFromFilter ? new Date(dateFromFilter) : null;
+        const toDate = dateToFilter ? new Date(dateToFilter) : null;
+        
+        if (fromDate && toDate) {
+          return paymentDate >= fromDate && paymentDate <= toDate;
+        } else if (fromDate) {
+          return paymentDate >= fromDate;
+        } else if (toDate) {
+          return paymentDate <= toDate;
+        }
+        return true;
+      });
+      
+      if (!hasPaidInRange) return false;
+    }
+    
     return matchesSearch && matchesClass && matchesSection;
   }).sort((a, b) => {
     const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
@@ -249,6 +275,7 @@ const Payments = () => {
 
       {/* Filters */}
       <div className="card">
+        <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           {/* Search */}
           <div className="relative">
@@ -347,6 +374,59 @@ const Payments = () => {
               <span>Unpaid</span>
             </button>
           </div>
+        </div>
+        
+        {/* Date Range Filter */}
+        <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="showPaidOnly"
+              checked={showPaidOnly}
+              onChange={(e) => setShowPaidOnly(e.target.checked)}
+              className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+            />
+            <label htmlFor="showPaidOnly" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Filter by payment date range
+            </label>
+          </div>
+          
+          {showPaidOnly && (
+            <>
+              <div className="flex items-center space-x-2">
+                <label className="text-sm text-gray-600 dark:text-gray-400">From:</label>
+                <input
+                  type="date"
+                  value={dateFromFilter}
+                  onChange={(e) => setDateFromFilter(e.target.value)}
+                  className="input-field text-sm px-2 py-1"
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <label className="text-sm text-gray-600 dark:text-gray-400">To:</label>
+                <input
+                  type="date"
+                  value={dateToFilter}
+                  onChange={(e) => setDateToFilter(e.target.value)}
+                  className="input-field text-sm px-2 py-1"
+                />
+              </div>
+              
+              {(dateFromFilter || dateToFilter) && (
+                <button
+                  onClick={() => {
+                    setDateFromFilter('');
+                    setDateToFilter('');
+                  }}
+                  className="text-sm text-red-600 hover:text-red-700 dark:text-red-400"
+                >
+                  Clear dates
+                </button>
+              )}
+            </>
+          )}
+        </div>
         </div>
       </div>
 
