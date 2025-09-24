@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "seed": "node src/seedData.js",
-    "seed-admin": "node src/seedAdmin.js"
+    "seed-admin": "node src/seedAdmin.js",
+    "migrate-sections": "node src/migrateSections.js"
   },
   "keywords": [],
   "author": "",

@@ -19,6 +19,7 @@ const Payments = () => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
+  const [sectionFilter, setSectionFilter] = useState('all');
   const [showDescModal, setShowDescModal] = useState({ isOpen: false, student: null });
   const [showHistoryModal, setShowHistoryModal] = useState({ isOpen: false, student: null });
   const [description, setDescription] = useState('');
@@ -29,6 +30,7 @@ const Payments = () => {
   ];
 
   const classes = ['KG-1', 'KG-2', 'KG-3'];
+  const sections = ['A', 'B', 'C', 'D'];
   const years = Array.from({ length: 34 }, (_, i) => 2017 + i); // 2017 to 2050
 
   const activeStudentsList = studentsList.filter(student => student.status === 'active');
@@ -37,10 +39,14 @@ const Payments = () => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClass = classFilter === 'all' || student.class === classFilter;
-    return matchesSearch && matchesClass;
+    const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
+    return matchesSearch && matchesClass && matchesSection;
   }).sort((a, b) => {
     const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
-    return classOrder[a.class] - classOrder[b.class];
+    const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
+    const classComparison = classOrder[a.class || ''] - classOrder[b.class || ''];
+    if (classComparison !== 0) return classComparison;
+    return (sectionOrder[a.section || ''] || 0) - (sectionOrder[b.section || ''] || 0);
   });
 
   const currentMonthKey = `${selectedYear}-${selectedMonth}`;
@@ -243,7 +249,7 @@ const Payments = () => {
 
       {/* Filters */}
       <div className="card">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -267,6 +273,21 @@ const Payments = () => {
               <option value="all">All Classes</option>
               {classes.map(cls => (
                 <option key={cls} value={cls}>{cls}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Section Filter */}
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <select
+              value={sectionFilter}
+              onChange={(e) => setSectionFilter(e.target.value)}
+              className="input-field pl-10"
+            >
+              <option value="all">All Sections</option>
+              {sections.map(section => (
+                <option key={section} value={section}>Section {section}</option>
               ))}
             </select>
           </div>
@@ -345,6 +366,9 @@ const Payments = () => {
                   Class
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Section
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Payment Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -375,6 +399,11 @@ const Payments = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
                         {student.class}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+                        {student.section || 'N/A'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

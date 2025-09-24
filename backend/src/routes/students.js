@@ -6,7 +6,7 @@ const router = express.Router();
 // Get all students
 router.get('/', async (req, res) => {
   try {
-    const students = await Student.find().sort({ class: 1, name: 1 });
+    const students = await Student.find().sort({ class: 1, section: 1, name: 1 });
     res.json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });

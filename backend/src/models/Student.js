@@ -16,6 +16,16 @@ const studentSchema = new mongoose.Schema({
   joinedYear: { type: String },
   address: { type: String },
   class: { type: String, required: true },
+  section: { 
+    type: String, 
+    enum: ['A', 'B', 'C', 'D'],
+    validate: {
+      validator: function(v) {
+        return !v || ['A', 'B', 'C', 'D'].includes(v);
+      },
+      message: 'Section must be A, B, C, or D'
+    }
+  },
   fatherName: { type: String },
   fatherPhone: { type: String },
   motherName: { type: String },
@@ -26,6 +36,14 @@ const studentSchema = new mongoose.Schema({
   payments: { type: Map, of: paymentSchema }
 }, {
   timestamps: true
+});
+
+// Pre-save middleware to handle empty section strings
+studentSchema.pre('save', function(next) {
+  if (this.section === '') {
+    this.section = undefined;
+  }
+  next();
 });
 
 export default mongoose.model('Student', studentSchema);

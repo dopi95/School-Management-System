@@ -7,12 +7,12 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const seedStudents = [
-  { id: 'ST001', name: 'Alice Johnson', phone: '+251911234567', fatherPhone: '+251911234567', class: 'KG-1', status: 'active', payments: {} },
-  { id: 'ST002', name: 'Bob Smith', phone: '+251922345678', fatherPhone: '+251922345678', class: 'KG-2', status: 'active', payments: {} },
-  { id: 'ST003', name: 'Carol Davis', phone: '+251933456789', fatherPhone: '+251933456789', class: 'KG-3', status: 'active', payments: {} },
-  { id: 'ST004', name: 'David Wilson', phone: '+251944567890', fatherPhone: '+251944567890', class: 'KG-1', status: 'active', payments: {} },
-  { id: 'ST005', name: 'Eva Brown', phone: '+251955678901', fatherPhone: '+251955678901', class: 'KG-2', status: 'active', payments: {} },
-  { id: 'ST006', name: 'Frank Miller', phone: '+251966789012', fatherPhone: '+251966789012', class: 'KG-3', status: 'inactive', payments: {} }
+  { id: 'ST001', name: 'Alice Johnson', phone: '+251911234567', fatherPhone: '+251911234567', class: 'KG-1', section: 'A', status: 'active', payments: {} },
+  { id: 'ST002', name: 'Bob Smith', phone: '+251922345678', fatherPhone: '+251922345678', class: 'KG-2', section: 'B', status: 'active', payments: {} },
+  { id: 'ST003', name: 'Carol Davis', phone: '+251933456789', fatherPhone: '+251933456789', class: 'KG-3', section: 'A', status: 'active', payments: {} },
+  { id: 'ST004', name: 'David Wilson', phone: '+251944567890', fatherPhone: '+251944567890', class: 'KG-1', section: 'B', status: 'active', payments: {} },
+  { id: 'ST005', name: 'Eva Brown', phone: '+251955678901', fatherPhone: '+251955678901', class: 'KG-2', section: 'A', status: 'active', payments: {} },
+  { id: 'ST006', name: 'Frank Miller', phone: '+251966789012', fatherPhone: '+251966789012', class: 'KG-3', section: 'C', status: 'inactive', payments: {} }
 ];
 
 const seedEmployees = [

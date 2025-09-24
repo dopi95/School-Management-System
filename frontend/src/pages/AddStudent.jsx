@@ -20,6 +20,7 @@ const AddStudent = () => {
     joinedYear: '',
     address: '',
     class: '',
+    section: '',
     fatherName: '',
     fatherPhone: '',
     motherName: '',
@@ -30,6 +31,7 @@ const AddStudent = () => {
   const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
 
   const classes = ['KG-1', 'KG-2', 'KG-3'];
+  const sections = ['A', 'B', 'C', 'D'];
 
   useEffect(() => {
     if (isEdit && id && !loading && studentsList.length > 0) {
@@ -43,6 +45,7 @@ const AddStudent = () => {
           joinedYear: student.joinedYear || '',
           address: student.address || '',
           class: student.class || '',
+          section: student.section || '',
           fatherName: student.fatherName || '',
           fatherPhone: student.fatherPhone || student.phone || '',
           motherName: student.motherName || '',
@@ -257,6 +260,23 @@ const AddStudent = () => {
                   <option value="">Select Class</option>
                   {classes.map(cls => (
                     <option key={cls} value={cls}>{cls}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Section
+                </label>
+                <select
+                  name="section"
+                  value={formData.section}
+                  onChange={handleChange}
+                  className="input-field"
+                >
+                  <option value="">Select Section</option>
+                  {sections.map(section => (
+                    <option key={section} value={section}>{section}</option>
                   ))}
                 </select>
               </div>

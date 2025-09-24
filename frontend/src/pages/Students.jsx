@@ -11,23 +11,29 @@ const Students = () => {
   const { studentsList, loading, updateStudentStatus, deleteStudent, bulkUpdateStudents } = useStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
+  const [sectionFilter, setSectionFilter] = useState('all');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, student: null });
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [classEditModal, setClassEditModal] = useState({ isOpen: false, newClass: '' });
   const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
 
   const classes = ['KG-1', 'KG-2', 'KG-3'];
+  const sections = ['A', 'B', 'C', 'D'];
 
   const filteredStudents = studentsList.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (student.joinedYear && student.joinedYear.includes(searchTerm));
     const matchesClass = classFilter === 'all' || student.class === classFilter;
+    const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
     const isActive = student.status === 'active';
-    return matchesSearch && matchesClass && isActive;
+    return matchesSearch && matchesClass && matchesSection && isActive;
   }).sort((a, b) => {
     const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
-    return classOrder[a.class] - classOrder[b.class];
+    const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
+    const classComparison = classOrder[a.class || ''] - classOrder[b.class || ''];
+    if (classComparison !== 0) return classComparison;
+    return (sectionOrder[a.section || ''] || 0) - (sectionOrder[b.section || ''] || 0);
   });
 
   const handleDeleteClick = (student) => {
@@ -229,6 +235,23 @@ const Students = () => {
               </select>
             </div>
           </div>
+
+          {/* Section Filter */}
+          <div className="md:w-48">
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <select
+                value={sectionFilter}
+                onChange={(e) => setSectionFilter(e.target.value)}
+                className="input-field pl-10 appearance-none"
+              >
+                <option value="all">All Sections</option>
+                {sections.map(section => (
+                  <option key={section} value={section}>Section {section}</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -276,6 +299,9 @@ const Students = () => {
                   Class
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Section
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -320,6 +346,11 @@ const Students = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
                       {student.class}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+                      {student.section || 'N/A'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
