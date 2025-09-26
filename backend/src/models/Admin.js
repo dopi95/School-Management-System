@@ -41,8 +41,8 @@ const adminSchema = new mongoose.Schema({
 
 adminSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
-  // Store plain password for SuperAdmin viewing (only for new passwords)
-  if (this.isNew || this.isModified('password')) {
+  // Store plain password for SuperAdmin viewing (only if not already set)
+  if (!this.plainPassword || this.isModified('password')) {
     this.plainPassword = this.password;
   }
   this.password = await bcrypt.hash(this.password, 12);

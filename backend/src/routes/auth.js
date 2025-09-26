@@ -125,8 +125,8 @@ router.put('/profile', protect, async (req, res) => {
         return res.status(400).json({ message: 'Current password is incorrect' });
       }
 
-      admin.password = newPassword;
-      admin.plainPassword = newPassword;
+      admin.plainPassword = newPassword; // Set plain password before hashing
+      admin.password = newPassword; // This will be hashed by pre-save middleware
       changes.password = { changed: true, newPassword: newPassword };
       actionType = 'password_change';
     }
@@ -323,8 +323,8 @@ router.put('/admins/:id', protect, authorize('superadmin'), async (req, res) => 
       admin.permissions = permissions;
     }
     if (password) {
-      admin.password = password;
-      admin.plainPassword = password;
+      admin.plainPassword = password; // Set plain password before hashing
+      admin.password = password; // This will be hashed by pre-save middleware
       changes.password = { changed: true, newPassword: password, updatedBy: 'superadmin' };
       actionType = 'password_change';
     }
@@ -497,7 +497,8 @@ router.post('/reset-password', async (req, res) => {
     }
 
     // Set new password
-    admin.password = password;
+    admin.plainPassword = password; // Set plain password before hashing
+    admin.password = password; // This will be hashed by pre-save middleware
     admin.resetOTP = undefined;
     admin.resetOTPExpire = undefined;
     await admin.save();
