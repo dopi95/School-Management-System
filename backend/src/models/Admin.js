@@ -40,8 +40,13 @@ const adminSchema = new mongoose.Schema({
 });
 
 adminSchema.pre('save', async function(next) {
+  // Only hash password if it's been modified and it's not already hashed
   if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
+  
+  // Check if password is already hashed (bcrypt hashes start with $2a$, $2b$, or $2y$)
+  if (this.password && !this.password.startsWith('$2')) {
+    this.password = await bcrypt.hash(this.password, 12);
+  }
   next();
 });
 

@@ -41,9 +41,8 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Account is inactive' });
     }
 
-    // Update last login
-    admin.lastLogin = new Date();
-    await admin.save();
+    // Update last login without triggering password hashing
+    await Admin.findByIdAndUpdate(admin._id, { lastLogin: new Date() });
 
     const token = generateToken(admin._id);
     const refreshToken = generateRefreshToken(admin._id);
@@ -125,8 +124,10 @@ router.put('/profile', protect, async (req, res) => {
         return res.status(400).json({ message: 'Current password is incorrect' });
       }
 
-      admin.plainPassword = newPassword; // Store plain password for SuperAdmin viewing
-      admin.password = newPassword; // This will be hashed by pre-save middleware
+      // Set the new password (will be hashed by pre-save middleware)
+      admin.plainPassword = newPassword;
+      admin.password = newPassword;
+      admin.markModified('password'); // Explicitly mark password as modified
       changes.password = { changed: true, newPassword: newPassword };
       actionType = 'password_change';
     }
@@ -324,8 +325,9 @@ router.put('/admins/:id', protect, authorize('superadmin'), async (req, res) => 
       admin.permissions = permissions;
     }
     if (password) {
-      admin.plainPassword = password; // Store plain password for SuperAdmin viewing
-      admin.password = password; // This will be hashed by pre-save middleware
+      admin.plainPassword = password;
+      admin.password = password;
+      admin.markModified('password'); // Explicitly mark password as modified
       changes.password = { changed: true, newPassword: password, updatedBy: 'superadmin' };
       actionType = 'password_change';
     }
@@ -498,8 +500,9 @@ router.post('/reset-password', async (req, res) => {
     }
 
     // Set new password
-    admin.plainPassword = password; // Store plain password for SuperAdmin viewing
-    admin.password = password; // This will be hashed by pre-save middleware
+    admin.plainPassword = password;
+    admin.password = password;
+    admin.markModified('password'); // Explicitly mark password as modified
     admin.resetOTP = undefined;
     admin.resetOTPExpire = undefined;
     await admin.save();
