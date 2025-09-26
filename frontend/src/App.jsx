@@ -26,6 +26,7 @@ import AddTeacher from './pages/AddTeacher';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import AdminManagement from './pages/AdminManagement';
+import AdminProfiles from './pages/AdminProfiles';
 import Payments from './pages/Payments';
 import InactiveStudents from './pages/InactiveStudents';
 import InactiveEmployees from './pages/InactiveEmployees';
@@ -163,6 +164,12 @@ const AppRoutes = () => {
               <AdminManagement />
             </PermissionRoute>
           </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/admin-profiles" element={
+        <ProtectedRoute>
+          <Layout><AdminProfiles /></Layout>
         </ProtectedRoute>
       } />
       

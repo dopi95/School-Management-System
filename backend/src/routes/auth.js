@@ -147,6 +147,18 @@ router.get('/admins', protect, authorize('superadmin'), async (req, res) => {
   }
 });
 
+// @desc    Get all admin profiles with passwords (SuperAdmin only)
+// @route   GET /api/auth/admins/profiles
+// @access  Private (superadmin only)
+router.get('/admins/profiles', protect, authorize('superadmin'), async (req, res) => {
+  try {
+    const admins = await Admin.find().select('+password').populate('createdBy', 'name email');
+    res.json({ success: true, admins });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // @desc    Create new admin
 // @route   POST /api/auth/admins
 // @access  Private (superadmin only)

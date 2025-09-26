@@ -268,6 +268,10 @@ class ApiService {
       method: 'DELETE',
     });
   }
+
+  async getAdminProfiles() {
+    return this.request('/auth/admins/profiles');
+  }
 }
 
 export default new ApiService();

@@ -57,12 +57,16 @@ const Sidebar = () => {
     { path: '/teachers', icon: GraduationCap, label: getMenuLabel('employees'), permission: 'employees' },
     { path: '/inactive-employees', icon: UserX, label: getMenuLabel('inactive-employees'), permission: 'inactiveEmployees' },
     { path: '/admin-management', icon: UserCog, label: getMenuLabel('admins'), permission: 'admins' },
+    { path: '/admin-profiles', icon: User, label: 'Admin Profiles', permission: 'superadmin', superAdminOnly: true },
     { path: '/payments', icon: CreditCard, label: getMenuLabel('payments'), permission: 'payments' },
     { path: '/special-payments', icon: CreditCard, label: 'SP Payments', permission: 'specialPayments' },
     { path: '/settings', icon: Settings, label: getMenuLabel('settings'), permission: 'settings' },
   ];
 
   const menuItems = allMenuItems.filter(item => {
+    if (item.superAdminOnly) {
+      return admin?.role === 'superadmin';
+    }
     if (admin?.role === 'superadmin') return true;
     return admin?.permissions?.[item.permission] === true;
   });

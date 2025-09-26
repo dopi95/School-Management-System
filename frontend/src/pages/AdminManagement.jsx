@@ -280,9 +280,11 @@ const AdminManagement = () => {
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       adminItem.role === 'superadmin' 
                         ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300'
-                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+                        : adminItem.role === 'admin'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+                        : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
                     }`}>
-                      {adminItem.role}
+                      {adminItem.role === 'superadmin' ? 'SuperAdministrator' : adminItem.role === 'admin' ? 'Admin' : 'User'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -408,8 +410,9 @@ const AdminManagement = () => {
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   className="input-field"
                 >
+                  <option value="superadmin">SuperAdministrator</option>
                   <option value="admin">Admin</option>
-                  <option value="manager">Manager</option>
+                  <option value="user">User</option>
                 </select>
               </div>
               <div>
@@ -426,42 +429,54 @@ const AdminManagement = () => {
                 </select>
               </div>
               
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Permissions
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {[
-                    { key: 'dashboard', label: 'Dashboard' },
-                    { key: 'students', label: 'Students Management' },
-                    { key: 'inactiveStudents', label: 'Inactive Students' },
-                    { key: 'employees', label: 'Employees Management' },
-                    { key: 'inactiveEmployees', label: 'Inactive Employees' },
-                    { key: 'payments', label: 'Payments Management' },
-                    { key: 'specialStudents', label: 'SP Students' },
-                    { key: 'specialPayments', label: 'SP Payments' },
-                    { key: 'admins', label: 'Admin Management' },
-                    { key: 'settings', label: 'Settings' }
-                  ].map(permission => (
-                    <label key={permission.key} className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.permissions?.[permission.key] || false}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          permissions: {
-                            ...formData.permissions,
-                            profile: true,
-                            [permission.key]: e.target.checked
-                          }
-                        })}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{permission.label}</span>
-                    </label>
-                  ))}
+              {formData.role !== 'superadmin' && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Permissions {formData.role === 'user' && '(Users can only view selected sections)'}
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {[
+                      { key: 'dashboard', label: 'Dashboard' },
+                      { key: 'students', label: 'Students Management' },
+                      { key: 'inactiveStudents', label: 'Inactive Students' },
+                      { key: 'employees', label: 'Employees Management' },
+                      { key: 'inactiveEmployees', label: 'Inactive Employees' },
+                      { key: 'payments', label: 'Payments Management' },
+                      { key: 'specialStudents', label: 'SP Students' },
+                      { key: 'specialPayments', label: 'SP Payments' },
+                      { key: 'admins', label: 'Admin Management' },
+                      { key: 'settings', label: 'Settings' }
+                    ].map(permission => (
+                      <label key={permission.key} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.permissions?.[permission.key] || false}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            permissions: {
+                              ...formData.permissions,
+                              profile: true,
+                              [permission.key]: e.target.checked
+                            }
+                          })}
+                          className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                          {permission.label}
+                          {formData.role === 'user' && ' (View Only)'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+              {formData.role === 'superadmin' && (
+                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <p className="text-sm text-purple-700 dark:text-purple-300">
+                    SuperAdministrators have full access to all features and can view/modify everything including other admin profiles and passwords.
+                  </p>
+                </div>
+              )}
                 <div className="flex space-x-3 pt-4">
                   <button type="submit" className="btn-primary flex-1">
                     {editingAdmin ? 'Update' : 'Create'} Admin

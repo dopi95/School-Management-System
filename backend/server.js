@@ -9,7 +9,7 @@ import specialStudentRoutes from "./src/routes/specialStudents.js";
 import specialPaymentRoutes from "./src/routes/specialPayments.js";
 import authRoutes from "./src/routes/auth.js";
 import { protect } from "./src/middleware/auth.js";
-import { checkPermission } from "./src/middleware/permissions.js";
+import { checkPermission, checkWritePermission } from "./src/middleware/permissions.js";
 
 dotenv.config();
 
@@ -37,20 +37,54 @@ app.use('/api/auth', authRoutes);
 app.use('/api/students', protect, (req, res, next) => {
   // Check if accessing inactive students specifically
   if (req.path.includes('inactive') || req.query.status === 'inactive') {
+    const writeActions = ['POST', 'PUT', 'PATCH', 'DELETE'];
+    if (writeActions.includes(req.method)) {
+      return checkWritePermission('inactiveStudents')(req, res, next);
+    }
     return checkPermission('inactiveStudents')(req, res, next);
+  }
+  const writeActions = ['POST', 'PUT', 'PATCH', 'DELETE'];
+  if (writeActions.includes(req.method)) {
+    return checkWritePermission('students')(req, res, next);
   }
   return checkPermission('students')(req, res, next);
 }, studentRoutes);
 app.use('/api/employees', protect, (req, res, next) => {
   // Check if accessing inactive employees specifically
   if (req.path.includes('inactive') || req.query.status === 'inactive') {
+    const writeActions = ['POST', 'PUT', 'PATCH', 'DELETE'];
+    if (writeActions.includes(req.method)) {
+      return checkWritePermission('inactiveEmployees')(req, res, next);
+    }
     return checkPermission('inactiveEmployees')(req, res, next);
+  }
+  const writeActions = ['POST', 'PUT', 'PATCH', 'DELETE'];
+  if (writeActions.includes(req.method)) {
+    return checkWritePermission('employees')(req, res, next);
   }
   return checkPermission('employees')(req, res, next);
 }, employeeRoutes);
-app.use('/api/payments', protect, checkPermission('payments'), paymentRoutes);
-app.use('/api/special-students', protect, checkPermission('specialStudents'), specialStudentRoutes);
-app.use('/api/special-payments', protect, checkPermission('specialPayments'), specialPaymentRoutes);
+app.use('/api/payments', protect, (req, res, next) => {
+  const writeActions = ['POST', 'PUT', 'PATCH', 'DELETE'];
+  if (writeActions.includes(req.method)) {
+    return checkWritePermission('payments')(req, res, next);
+  }
+  return checkPermission('payments')(req, res, next);
+}, paymentRoutes);
+app.use('/api/special-students', protect, (req, res, next) => {
+  const writeActions = ['POST', 'PUT', 'PATCH', 'DELETE'];
+  if (writeActions.includes(req.method)) {
+    return checkWritePermission('specialStudents')(req, res, next);
+  }
+  return checkPermission('specialStudents')(req, res, next);
+}, specialStudentRoutes);
+app.use('/api/special-payments', protect, (req, res, next) => {
+  const writeActions = ['POST', 'PUT', 'PATCH', 'DELETE'];
+  if (writeActions.includes(req.method)) {
+    return checkWritePermission('specialPayments')(req, res, next);
+  }
+  return checkPermission('specialPayments')(req, res, next);
+}, specialPaymentRoutes);
 
 // Settings route (protected by settings permission)
 app.get('/api/settings', protect, checkPermission('settings'), (req, res) => {
