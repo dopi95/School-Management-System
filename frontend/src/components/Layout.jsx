@@ -1,5 +1,6 @@
 import React from 'react';
 import Sidebar from './Sidebar.jsx';
+import SessionWarning from './SessionWarning.jsx';
 import useAutoRefresh from '../hooks/useAutoRefresh.js';
 
 const Layout = ({ children }) => {
@@ -11,6 +12,7 @@ const Layout = ({ children }) => {
       <main className="flex-1 lg:ml-64 p-8 pt-24 lg:pt-8">
         {children}
       </main>
+      <SessionWarning />
     </div>
   );
 };

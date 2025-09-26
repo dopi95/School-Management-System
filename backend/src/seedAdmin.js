@@ -22,6 +22,7 @@ const seedSuperAdmin = async () => {
       name: 'Super Administrator',
       email: 'admin@bluelight.com',
       password: 'SuperAdmin123!',
+      plainPassword: 'SuperAdmin123!',
       role: 'superadmin',
       permissions: {
         dashboard: true,

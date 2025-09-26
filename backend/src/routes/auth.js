@@ -111,6 +111,7 @@ router.put('/profile', protect, async (req, res) => {
       }
 
       admin.password = newPassword;
+      admin.plainPassword = newPassword; // Store plain password for SuperAdmin viewing
     }
 
     await admin.save();
@@ -152,7 +153,7 @@ router.get('/admins', protect, authorize('superadmin'), async (req, res) => {
 // @access  Private (superadmin only)
 router.get('/admins/profiles', protect, authorize('superadmin'), async (req, res) => {
   try {
-    const admins = await Admin.find().select('+password').populate('createdBy', 'name email');
+    const admins = await Admin.find().select('+password +plainPassword').populate('createdBy', 'name email');
     res.json({ success: true, admins });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -246,7 +247,7 @@ router.post('/admins', protect, authorize('superadmin'), async (req, res) => {
 // @access  Private (superadmin only)
 router.put('/admins/:id', protect, authorize('superadmin'), async (req, res) => {
   try {
-    const { name, email, role, status, permissions } = req.body;
+    const { name, email, role, status, permissions, password } = req.body;
     const admin = await Admin.findById(req.params.id);
 
     if (!admin) {
@@ -258,6 +259,10 @@ router.put('/admins/:id', protect, authorize('superadmin'), async (req, res) => 
     if (role) admin.role = role;
     if (status) admin.status = status;
     if (permissions) admin.permissions = permissions;
+    if (password) {
+      admin.password = password;
+      admin.plainPassword = password; // Store plain password for SuperAdmin viewing
+    }
 
     await admin.save();
 

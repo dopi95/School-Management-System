@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const Login = () => {
-  const { login, isAuthenticated, loading } = useAuth();
+  const { login, isAuthenticated, loading, logout } = useAuth();
+  
+  useEffect(() => {
+    // Clear any existing session when login page loads
+    logout();
+  }, []);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -21,9 +26,10 @@ const Login = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: New Password
 
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  // Don't redirect if authenticated on login page - force fresh login
+  // if (isAuthenticated) {
+  //   return <Navigate to="/dashboard" replace />;
+  // }
 
   const handleChange = (e) => {
     setFormData({

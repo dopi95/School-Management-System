@@ -135,7 +135,9 @@ const AdminProfiles = () => {
                 </label>
                 <div className="relative">
                   <p className="text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 p-2 rounded pr-10">
-                    {showPasswords[adminItem._id] ? adminItem.password : '••••••••••••'}
+                    {showPasswords[adminItem._id] ? (
+                      adminItem.plainPassword || 'Password not available (encrypted)'
+                    ) : '••••••••••••'}
                   </p>
                   <button
                     onClick={() => togglePasswordVisibility(adminItem._id)}
@@ -148,6 +150,11 @@ const AdminProfiles = () => {
                     )}
                   </button>
                 </div>
+                {showPasswords[adminItem._id] && !adminItem.plainPassword && (
+                  <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                    Note: Passwords are encrypted for security. Only newly created admin passwords are visible.
+                  </p>
+                )}
               </div>
 
               <div>

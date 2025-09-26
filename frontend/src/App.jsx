@@ -33,7 +33,14 @@ import InactiveEmployees from './pages/InactiveEmployees';
 import PermissionRoute from './components/ProtectedRoute.jsx';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, checkAuth } = useAuth();
+  
+  React.useEffect(() => {
+    // Check auth status when component mounts
+    if (!loading) {
+      checkAuth();
+    }
+  }, []);
   
   if (loading) {
     return (
@@ -43,7 +50,7 @@ const ProtectedRoute = ({ children }) => {
     );
   }
   
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
 const AppRoutes = () => {
