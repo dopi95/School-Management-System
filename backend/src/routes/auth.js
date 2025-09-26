@@ -294,10 +294,6 @@ router.delete('/admins/:id', protect, authorize('superadmin'), async (req, res) 
       return res.status(404).json({ message: 'Admin not found' });
     }
 
-    if (admin.role === 'superadmin') {
-      return res.status(400).json({ message: 'Cannot delete superadmin' });
-    }
-
     await Admin.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Admin deleted successfully' });
   } catch (error) {

@@ -76,31 +76,16 @@ const Sidebar = () => {
       {/* Mobile Header with Bluelight Academy */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 shadow-lg p-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-primary-700 dark:text-primary-400">{t('bluelightAcademy')}</h1>
-        <div className="flex items-center space-x-2">
-          {/* Mobile Logout Button */}
-          {admin && (
-            <button
-              onClick={() => {
-                logout();
-                setIsMobileMenuOpen(false);
-              }}
-              className="p-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
-              title={language === 'am' ? 'ውጣ' : 'Logout'}
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg"
+        >
+          {isMobileMenuOpen ? (
+            <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+          ) : (
+            <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
           )}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg"
-          >
-            {isMobileMenuOpen ? (
-              <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-            ) : (
-              <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-            )}
-          </button>
-        </div>
+        </button>
       </div>
 
       {/* Mobile Overlay */}
@@ -112,24 +97,12 @@ const Sidebar = () => {
       )}
 
       {/* Sidebar */}
-      <div className={`bg-white dark:bg-gray-800 shadow-lg h-screen w-64 fixed left-0 z-40 transform transition-transform duration-300 ease-in-out flex flex-col ${
+      <div className={`bg-white dark:bg-gray-800 shadow-lg w-64 fixed left-0 z-40 transform transition-transform duration-300 ease-in-out flex flex-col ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      } lg:top-0 top-16`}>
+      } lg:top-0 lg:h-screen top-16 h-[calc(100vh-4rem)]`}>
         {/* Desktop Header */}
         <div className="hidden lg:block p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-primary-700 dark:text-primary-400">{t('bluelightAcademy')}</h1>
-            {/* Desktop Logout Button */}
-            {admin && (
-              <button
-                onClick={logout}
-                className="p-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
-                title={language === 'am' ? 'ውጣ' : 'Logout'}
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+          <h1 className="text-xl font-bold text-primary-700 dark:text-primary-400">{t('bluelightAcademy')}</h1>
         </div>
 
         {/* User Profile */}
@@ -154,15 +127,15 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 flex-1">
-          <ul className="space-y-1">
+        <nav className="p-4 flex-1 overflow-y-auto">
+          <ul className="space-y-0.5">
             {menuItems.map((item) => (
               <li key={item.path}>
                 <NavLink
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                    `flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-colors duration-200 ${
                       isActive
                         ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-400 border-r-4 border-primary-600'
                         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
@@ -170,7 +143,7 @@ const Sidebar = () => {
                   }
                 >
                   <item.icon className="w-4 h-4" />
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <span className="text-xs font-medium">{item.label}</span>
                 </NavLink>
               </li>
             ))}
@@ -179,17 +152,16 @@ const Sidebar = () => {
 
         {/* Logout - Always visible for authenticated users */}
         {admin && (
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700 mt-auto">
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
             <button
               onClick={() => {
                 logout();
                 setIsMobileMenuOpen(false);
               }}
               className="flex items-center space-x-2 w-full px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors duration-200 font-medium"
-              style={{ minHeight: '40px' }}
             >
               <LogOut className="w-4 h-4 flex-shrink-0" />
-              <span className="text-sm font-medium">
+              <span className="text-xs font-medium">
                 {language === 'am' ? 'ውጣ' : 'Logout'}
               </span>
             </button>

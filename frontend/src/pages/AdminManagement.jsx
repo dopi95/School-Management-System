@@ -323,15 +323,13 @@ const AdminManagement = () => {
                       >
                         <Edit className="w-5 h-5" />
                       </button>
-                      {adminItem.role !== 'superadmin' && (
-                        <button
-                          onClick={() => setDeleteModal({ isOpen: true, admin: adminItem })}
-                          className="text-red-600 hover:text-red-700"
-                          title="Delete Admin"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => setDeleteModal({ isOpen: true, admin: adminItem })}
+                        className="text-red-600 hover:text-red-700"
+                        title="Delete Admin"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
                     </div>
                   </td>
                 </tr>
