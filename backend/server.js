@@ -24,7 +24,8 @@ app.use(cors({
     process.env.FRONTEND_URL || 'http://localhost:5173',
     'http://localhost:5173',
     'http://localhost:3000',
-    'https://school-mnagement-system-frontend.onrender.com'
+    'https://school-mnagement-system-frontend.onrender.com',
+    /\.vercel\.app$/  // Allow all Vercel domains
   ],
   credentials: true
 }));
