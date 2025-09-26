@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import Admin from '../models/Admin.js';
+import AdminActivityLog from '../models/AdminActivityLog.js';
 import { protect, authorize } from '../middleware/auth.js';
 import sendEmail from '../utils/sendEmail.js';
 
@@ -96,9 +97,23 @@ router.put('/profile', protect, async (req, res) => {
   try {
     const { name, email, currentPassword, newPassword } = req.body;
     const admin = await Admin.findById(req.admin._id).select('+password');
+    
+    const originalData = {
+      name: admin.name,
+      email: admin.email
+    };
+    
+    const changes = {};
+    let actionType = 'profile_update';
 
-    if (name) admin.name = name;
-    if (email) admin.email = email;
+    if (name && name !== admin.name) {
+      changes.name = { from: admin.name, to: name };
+      admin.name = name;
+    }
+    if (email && email !== admin.email) {
+      changes.email = { from: admin.email, to: email };
+      admin.email = email;
+    }
 
     if (newPassword) {
       if (!currentPassword) {
@@ -111,10 +126,25 @@ router.put('/profile', protect, async (req, res) => {
       }
 
       admin.password = newPassword;
-      admin.plainPassword = newPassword; // Store plain password for SuperAdmin viewing
+      admin.plainPassword = newPassword;
+      changes.password = { changed: true, newPassword: newPassword };
+      actionType = 'password_change';
     }
 
     await admin.save();
+    
+    // Log the activity if there were changes
+    if (Object.keys(changes).length > 0) {
+      await AdminActivityLog.create({
+        adminId: admin._id,
+        adminName: admin.name,
+        adminEmail: admin.email,
+        actionType,
+        changes,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+    }
 
     res.json({
       success: true,
@@ -155,6 +185,21 @@ router.get('/admins/profiles', protect, authorize('superadmin'), async (req, res
   try {
     const admins = await Admin.find().select('+password +plainPassword').populate('createdBy', 'name email');
     res.json({ success: true, admins });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Get admin activity logs (SuperAdmin only)
+// @route   GET /api/auth/admins/activity-logs
+// @access  Private (superadmin only)
+router.get('/admins/activity-logs', protect, authorize('superadmin'), async (req, res) => {
+  try {
+    const logs = await AdminActivityLog.find()
+      .populate('adminId', 'name email role')
+      .sort({ createdAt: -1 })
+      .limit(100);
+    res.json({ success: true, logs });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -254,17 +299,53 @@ router.put('/admins/:id', protect, authorize('superadmin'), async (req, res) => 
       return res.status(404).json({ message: 'Admin not found' });
     }
 
-    if (name) admin.name = name;
-    if (email) admin.email = email;
-    if (role) admin.role = role;
-    if (status) admin.status = status;
-    if (permissions) admin.permissions = permissions;
+    const changes = {};
+    let actionType = 'profile_update';
+
+    if (name && name !== admin.name) {
+      changes.name = { from: admin.name, to: name };
+      admin.name = name;
+    }
+    if (email && email !== admin.email) {
+      changes.email = { from: admin.email, to: email };
+      admin.email = email;
+    }
+    if (role && role !== admin.role) {
+      changes.role = { from: admin.role, to: role };
+      admin.role = role;
+    }
+    if (status && status !== admin.status) {
+      changes.status = { from: admin.status, to: status };
+      admin.status = status;
+    }
+    if (permissions) {
+      changes.permissions = { updated: true };
+      admin.permissions = permissions;
+    }
     if (password) {
       admin.password = password;
-      admin.plainPassword = password; // Store plain password for SuperAdmin viewing
+      admin.plainPassword = password;
+      changes.password = { changed: true, newPassword: password, updatedBy: 'superadmin' };
+      actionType = 'password_change';
     }
 
     await admin.save();
+
+    // Log the activity if there were changes
+    if (Object.keys(changes).length > 0) {
+      await AdminActivityLog.create({
+        adminId: admin._id,
+        adminName: admin.name,
+        adminEmail: admin.email,
+        actionType,
+        changes: {
+          ...changes,
+          updatedBy: req.admin.name + ' (SuperAdmin)'
+        },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+    }
 
     res.json({
       success: true,

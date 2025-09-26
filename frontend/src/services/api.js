@@ -272,6 +272,10 @@ class ApiService {
   async getAdminProfiles() {
     return this.request('/auth/admins/profiles');
   }
+
+  async getAdminActivityLogs() {
+    return this.request('/auth/admins/activity-logs');
+  }
 }
 
 export default new ApiService();
