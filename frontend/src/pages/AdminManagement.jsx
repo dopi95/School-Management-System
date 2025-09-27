@@ -33,7 +33,7 @@ const AdminManagement = () => {
       payments: false,
       admins: false,
       profile: true,
-      settings: false
+      settings: true
     }
   });
 
@@ -123,7 +123,7 @@ const AdminManagement = () => {
         specialPayments: false,
         admins: false,
         profile: true,
-        settings: false
+        settings: true
       }
     });
     setShowModal(true);
@@ -164,7 +164,7 @@ const AdminManagement = () => {
         specialPayments: false,
         admins: false,
         profile: true,
-        settings: false
+        settings: true
       }
     });
     setEditingAdmin(null);

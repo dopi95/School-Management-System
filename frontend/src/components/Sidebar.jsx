@@ -31,6 +31,7 @@ const Sidebar = () => {
         'inactive-employees': 'Inactive ሰራተኞች',
         admins: 'አስተዳዳሪዎች',
         payments: 'ክፍያዎች',
+        profile: 'የእኔ መገለጫ',
         settings: 'ሴቲንግ'
       };
       return amharicLabels[key] || key;
@@ -44,6 +45,7 @@ const Sidebar = () => {
       'inactive-employees': 'Inactive Employees',
       admins: 'Admins',
       payments: 'Payments',
+      profile: 'My Profile',
       settings: 'Settings'
     };
     return englishLabels[key] || key;
@@ -56,10 +58,11 @@ const Sidebar = () => {
     { path: '/inactive-students', icon: UserX, label: getMenuLabel('inactive-students'), permission: 'inactiveStudents' },
     { path: '/teachers', icon: GraduationCap, label: getMenuLabel('employees'), permission: 'employees' },
     { path: '/inactive-employees', icon: UserX, label: getMenuLabel('inactive-employees'), permission: 'inactiveEmployees' },
-    { path: '/admin-management', icon: UserCog, label: getMenuLabel('admins'), permission: 'admins' },
-    { path: '/admin-profiles', icon: User, label: 'Admin Profiles', permission: 'superadmin', superAdminOnly: true },
     { path: '/payments', icon: CreditCard, label: getMenuLabel('payments'), permission: 'payments' },
     { path: '/special-payments', icon: CreditCard, label: 'SP Payments', permission: 'specialPayments' },
+    { path: '/admin-management', icon: UserCog, label: getMenuLabel('admins'), permission: 'admins' },
+    { path: '/admin-profiles', icon: User, label: 'Admin Profiles', permission: 'superadmin', superAdminOnly: true },
+    { path: '/profile', icon: User, label: getMenuLabel('profile'), permission: 'profile' },
     { path: '/settings', icon: Settings, label: getMenuLabel('settings'), permission: 'settings' },
   ];
 
@@ -127,7 +130,7 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 flex-1 overflow-y-auto">
+        <nav className="p-4 flex-1">
           <ul className="space-y-0.5">
             {menuItems.map((item) => (
               <li key={item.path}>

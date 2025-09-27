@@ -20,6 +20,7 @@ const Payments = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [sectionFilter, setSectionFilter] = useState('all');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
   const [dateFromFilter, setDateFromFilter] = useState('');
   const [dateToFilter, setDateToFilter] = useState('');
   const [showPaidOnly, setShowPaidOnly] = useState(false);
@@ -44,6 +45,12 @@ const Payments = () => {
     const matchesClass = classFilter === 'all' || student.class === classFilter;
     const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
     
+    // Payment status filter for current month/year
+    const isPaidCurrentMonth = student.payments[currentMonthKey]?.paid || false;
+    const matchesPaymentStatus = paymentStatusFilter === 'all' || 
+      (paymentStatusFilter === 'paid' && isPaidCurrentMonth) ||
+      (paymentStatusFilter === 'unpaid' && !isPaidCurrentMonth);
+    
     // Date range filter for paid students only
     if (showPaidOnly && (dateFromFilter || dateToFilter)) {
       const hasPaidInRange = Object.values(student.payments || {}).some(payment => {
@@ -66,7 +73,7 @@ const Payments = () => {
       if (!hasPaidInRange) return false;
     }
     
-    return matchesSearch && matchesClass && matchesSection;
+    return matchesSearch && matchesClass && matchesSection && matchesPaymentStatus;
   }).sort((a, b) => {
     const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
     const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
@@ -276,105 +283,121 @@ const Payments = () => {
       {/* Filters */}
       <div className="card">
         <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search students..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-field pl-10"
-            />
+          {/* Year and Month Selection - Top Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-4 border-b border-gray-200 dark:border-gray-600">
+            {/* Year Filter */}
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <select
+                value={selectedYear}
+                onChange={(e) => {
+                  const year = parseInt(e.target.value);
+                  setSelectedYear(year);
+                  localStorage.setItem('payments-selected-year', year.toString());
+                }}
+                className="input-field pl-10"
+              >
+                {years.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Month Filter */}
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <select
+                value={selectedMonth}
+                onChange={(e) => {
+                  const month = parseInt(e.target.value);
+                  setSelectedMonth(month);
+                  localStorage.setItem('payments-selected-month', month.toString());
+                }}
+                className="input-field pl-10"
+              >
+                {months.map((month, index) => (
+                  <option key={index} value={index}>{month}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Payment Status Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <select
+                value={paymentStatusFilter}
+                onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                className="input-field pl-10"
+              >
+                <option value="all">All Students</option>
+                <option value="paid">Paid Students</option>
+                <option value="unpaid">Unpaid Students</option>
+              </select>
+            </div>
+
+            {/* Download Links */}
+            <div className="flex flex-col space-y-2">
+              <button
+                onClick={() => generatePDF('paid')}
+                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm underline decoration-2 underline-offset-2 hover:decoration-blue-800 dark:hover:decoration-blue-300 transition-colors duration-200"
+                title="Download Paid Students PDF"
+              >
+                Download Paid Students
+              </button>
+              <button
+                onClick={() => generatePDF('unpaid')}
+                className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium text-sm underline decoration-2 underline-offset-2 hover:decoration-red-800 dark:hover:decoration-red-300 transition-colors duration-200"
+                title="Download Unpaid Students PDF"
+              >
+                Download Unpaid Students
+              </button>
+            </div>
           </div>
 
-          {/* Class Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <select
-              value={classFilter}
-              onChange={(e) => setClassFilter(e.target.value)}
-              className="input-field pl-10"
-            >
-              <option value="all">All Classes</option>
-              {classes.map(cls => (
-                <option key={cls} value={cls}>{cls}</option>
-              ))}
-            </select>
-          </div>
+          {/* Search and Other Filters - Second Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search students..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input-field pl-10"
+              />
+            </div>
 
-          {/* Section Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <select
-              value={sectionFilter}
-              onChange={(e) => setSectionFilter(e.target.value)}
-              className="input-field pl-10"
-            >
-              <option value="all">All Sections</option>
-              {sections.map(section => (
-                <option key={section} value={section}>Section {section}</option>
-              ))}
-            </select>
-          </div>
+            {/* Class Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <select
+                value={classFilter}
+                onChange={(e) => setClassFilter(e.target.value)}
+                className="input-field pl-10"
+              >
+                <option value="all">All Classes</option>
+                {classes.map(cls => (
+                  <option key={cls} value={cls}>{cls}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Year Filter */}
-          <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <select
-              value={selectedYear}
-              onChange={(e) => {
-                const year = parseInt(e.target.value);
-                setSelectedYear(year);
-                localStorage.setItem('payments-selected-year', year.toString());
-              }}
-              className="input-field pl-10"
-            >
-              {years.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
+            {/* Section Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <select
+                value={sectionFilter}
+                onChange={(e) => setSectionFilter(e.target.value)}
+                className="input-field pl-10"
+              >
+                <option value="all">All Sections</option>
+                {sections.map(section => (
+                  <option key={section} value={section}>Section {section}</option>
+                ))}
+              </select>
+            </div>
           </div>
-
-          {/* Month Filter */}
-          <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <select
-              value={selectedMonth}
-              onChange={(e) => {
-                const month = parseInt(e.target.value);
-                setSelectedMonth(month);
-                localStorage.setItem('payments-selected-month', month.toString());
-              }}
-              className="input-field pl-10"
-            >
-              {months.map((month, index) => (
-                <option key={index} value={index}>{month}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* PDF Buttons */}
-          <div className="flex space-x-2">
-            <button
-              onClick={() => generatePDF('paid')}
-              className="btn-primary flex items-center space-x-1 text-sm px-3 py-2"
-              title="Export Paid Students PDF"
-            >
-              <FileText className="w-4 h-4" />
-              <span>Paid</span>
-            </button>
-            <button
-              onClick={() => generatePDF('unpaid')}
-              className="btn-secondary flex items-center space-x-1 text-sm px-3 py-2"
-              title="Export Unpaid Students PDF"
-            >
-              <Download className="w-4 h-4" />
-              <span>Unpaid</span>
-            </button>
-          </div>
-        </div>
         
         {/* Date Range Filter */}
         <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-gray-200 dark:border-gray-600">

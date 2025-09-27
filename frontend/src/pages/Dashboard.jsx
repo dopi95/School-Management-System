@@ -5,10 +5,12 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 import { useEmployees } from '../context/EmployeesContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
 import { useAdmins } from '../context/AdminsContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import PermissionGuard from '../components/PermissionGuard.jsx';
 
 const Dashboard = () => {
   const { t } = useLanguage();
+  const { admin } = useAuth();
   const { employeesList } = useEmployees();
   const { studentsList } = useStudents();
   const { adminsList } = useAdmins();
@@ -19,14 +21,21 @@ const Dashboard = () => {
   const inactiveStudents = studentsList.filter(s => s.status === 'inactive').length;
   const totalAdmins = adminsList.length;
 
-  const stats = [
+  // Check permissions for stats display
+  const hasStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.students;
+  const hasInactiveStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.inactiveStudents;
+  const hasEmployeesAccess = admin?.role === 'superadmin' || admin?.permissions?.employees;
+  const hasAdminsAccess = admin?.role === 'superadmin' || admin?.permissions?.admins;
+
+  const allStats = [
     {
       title: 'Total Students',
       value: studentsList.length.toString(),
       icon: Users,
       color: 'bg-blue-500',
       bgColor: 'bg-blue-50 dark:bg-blue-900',
-      textColor: 'text-blue-600 dark:text-blue-400'
+      textColor: 'text-blue-600 dark:text-blue-400',
+      permission: hasStudentsAccess
     },
     {
       title: 'Active Students',
@@ -34,7 +43,8 @@ const Dashboard = () => {
       icon: Users,
       color: 'bg-green-500',
       bgColor: 'bg-green-50 dark:bg-green-900',
-      textColor: 'text-green-600 dark:text-green-400'
+      textColor: 'text-green-600 dark:text-green-400',
+      permission: hasStudentsAccess
     },
     {
       title: 'Inactive Students',
@@ -42,7 +52,8 @@ const Dashboard = () => {
       icon: UserX,
       color: 'bg-red-500',
       bgColor: 'bg-red-50 dark:bg-red-900',
-      textColor: 'text-red-600 dark:text-red-400'
+      textColor: 'text-red-600 dark:text-red-400',
+      permission: hasInactiveStudentsAccess
     },
     {
       title: 'Total Employees',
@@ -50,7 +61,8 @@ const Dashboard = () => {
       icon: GraduationCap,
       color: 'bg-purple-500',
       bgColor: 'bg-purple-50 dark:bg-purple-900',
-      textColor: 'text-purple-600 dark:text-purple-400'
+      textColor: 'text-purple-600 dark:text-purple-400',
+      permission: hasEmployeesAccess
     },
     {
       title: 'Active Employees',
@@ -58,7 +70,8 @@ const Dashboard = () => {
       icon: GraduationCap,
       color: 'bg-green-500',
       bgColor: 'bg-green-50 dark:bg-green-900',
-      textColor: 'text-green-600 dark:text-green-400'
+      textColor: 'text-green-600 dark:text-green-400',
+      permission: hasEmployeesAccess
     },
     {
       title: 'Total Admins',
@@ -66,9 +79,13 @@ const Dashboard = () => {
       icon: UserCog,
       color: 'bg-purple-500',
       bgColor: 'bg-purple-50 dark:bg-purple-900',
-      textColor: 'text-purple-600 dark:text-purple-400'
+      textColor: 'text-purple-600 dark:text-purple-400',
+      permission: hasAdminsAccess
     }
   ];
+
+  // Filter stats based on permissions
+  const stats = allStats.filter(stat => stat.permission);
 
   return (
     <div className="space-y-8">
@@ -79,21 +96,27 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-        {stats.map((stat, index) => (
-          <div key={index} className="card hover:shadow-lg transition-shadow duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.title}</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{stat.value}</p>
-              </div>
-              <div className={`${stat.bgColor} p-3 rounded-full`}>
-                <stat.icon className={`w-6 h-6 ${stat.textColor}`} />
+      {stats.length > 0 ? (
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${stats.length <= 3 ? 'xl:grid-cols-3' : 'xl:grid-cols-6'}`}>
+          {stats.map((stat, index) => (
+            <div key={index} className="card hover:shadow-lg transition-shadow duration-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.title}</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{stat.value}</p>
+                </div>
+                <div className={`${stat.bgColor} p-3 rounded-full`}>
+                  <stat.icon className={`w-6 h-6 ${stat.textColor}`} />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="card text-center py-8">
+          <p className="text-gray-500 dark:text-gray-400">No statistics available based on your current permissions.</p>
+        </div>
+      )}
 
 
 
