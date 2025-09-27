@@ -47,11 +47,23 @@ const SpecialStudentDetail = () => {
                 </span>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{student.name}</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {student.firstName && student.middleName && student.lastName 
+                    ? `${student.firstName} ${student.middleName} ${student.lastName}`
+                    : student.name
+                  }
+                </h2>
                 <p className="text-gray-600 dark:text-gray-400">{student.id}</p>
-                <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 mt-2">
-                  {student.status}
-                </span>
+                <div className="flex items-center space-x-2 mt-2">
+                  <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                    {student.status}
+                  </span>
+                  {student.gender && (
+                    <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                      {student.gender === 'male' ? 'Male' : 'Female'}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -115,19 +127,17 @@ const SpecialStudentDetail = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3">
-                  <User className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      student.status === 'active' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-                    }`}>
-                      {student.status === 'active' ? 'Active' : 'Inactive'}
-                    </span>
+                {student.gender && (
+                  <div className="flex items-center space-x-3">
+                    <User className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Gender</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {student.gender === 'male' ? 'Male' : 'Female'}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

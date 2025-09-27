@@ -324,11 +324,16 @@ const Students = () => {
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
                         <span className="text-sm font-medium text-primary-600">
-                          {student.name.charAt(0)}
+                          {(student.firstName || student.name).charAt(0)}
                         </span>
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">{student.name}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          {student.firstName && student.middleName 
+                            ? `${student.firstName} ${student.middleName}`
+                            : student.name
+                          }
+                        </div>
                       </div>
                     </div>
                   </td>

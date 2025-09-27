@@ -14,7 +14,11 @@ const AddStudent = () => {
   
   const [formData, setFormData] = useState({
     id: '',
-    name: '',
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    gender: '',
+    name: '', // Keep for backward compatibility
     email: '',
     dateOfBirth: '',
     joinedYear: '',
@@ -39,6 +43,10 @@ const AddStudent = () => {
       if (student) {
         setFormData({
           id: student.id || '',
+          firstName: student.firstName || '',
+          middleName: student.middleName || '',
+          lastName: student.lastName || '',
+          gender: student.gender || '',
           name: student.name || '',
           email: student.email || '',
           dateOfBirth: student.dateOfBirth || '',
@@ -197,15 +205,61 @@ const AddStudent = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Student Name
+                  First Name *
                 </label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="firstName"
+                  value={formData.firstName}
                   onChange={handleChange}
                   className="input-field"
+                  required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Middle Name (Father Name) *
+                </label>
+                <input
+                  type="text"
+                  name="middleName"
+                  value={formData.middleName}
+                  onChange={handleChange}
+                  className="input-field"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Last Name *
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="input-field"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Gender *
+                </label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="input-field"
+                  required
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
               </div>
 
               <div>

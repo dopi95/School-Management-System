@@ -10,7 +10,11 @@ const paymentSchema = new mongoose.Schema({
 
 const studentSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
-  name: { type: String, required: true },
+  name: { type: String, required: true }, // Keep for backward compatibility
+  firstName: { type: String, required: true },
+  middleName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  gender: { type: String, enum: ['male', 'female'], required: true },
   email: { type: String },
   dateOfBirth: { type: String },
   joinedYear: { type: String },

@@ -42,6 +42,11 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Special student ID already exists' });
     }
 
+    // Combine name fields for backward compatibility
+    if (req.body.firstName && req.body.middleName && req.body.lastName) {
+      req.body.name = `${req.body.firstName} ${req.body.middleName} ${req.body.lastName}`;
+    }
+
     const student = new SpecialStudent(req.body);
     const savedStudent = await student.save();
     res.status(201).json(savedStudent);
@@ -53,6 +58,11 @@ router.post('/', async (req, res) => {
 // Update special student
 router.put('/:id', async (req, res) => {
   try {
+    // Combine name fields for backward compatibility
+    if (req.body.firstName && req.body.middleName && req.body.lastName) {
+      req.body.name = `${req.body.firstName} ${req.body.middleName} ${req.body.lastName}`;
+    }
+    
     const student = await SpecialStudent.findOneAndUpdate(
       { id: req.params.id },
       req.body,
