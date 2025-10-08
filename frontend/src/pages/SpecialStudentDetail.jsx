@@ -6,7 +6,7 @@ import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
 
 const SpecialStudentDetail = () => {
   const { id } = useParams();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { specialStudentsList } = useSpecialStudents();
 
   const student = specialStudentsList.find(s => s.id === id);
@@ -48,7 +48,9 @@ const SpecialStudentDetail = () => {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {student.firstName && student.middleName && student.lastName 
+                  {language === 'am' && student.firstNameAm && student.middleNameAm
+                    ? `${student.firstNameAm} ${student.middleNameAm} ${student.lastNameAm || ''}`
+                    : student.firstName && student.middleName && student.lastName 
                     ? `${student.firstName} ${student.middleName} ${student.lastName}`
                     : student.name
                   }
@@ -126,6 +128,16 @@ const SpecialStudentDetail = () => {
                     <p className="font-medium text-gray-900 dark:text-white">{student.section || 'Not assigned'}</p>
                   </div>
                 </div>
+
+                {student.paymentCode && (
+                  <div className="flex items-center space-x-3">
+                    <User className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Payment Code</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{student.paymentCode}</p>
+                    </div>
+                  </div>
+                )}
 
                 {student.gender && (
                   <div className="flex items-center space-x-3">

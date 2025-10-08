@@ -6,7 +6,7 @@ import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
 
 const InactiveStudents = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { studentsList, loading, updateStudentStatus } = useStudents();
   const { specialStudentsList, updateSpecialStudentStatus } = useSpecialStudents();
   const [searchTerm, setSearchTerm] = useState('');
@@ -146,7 +146,14 @@ const InactiveStudents = () => {
                           </span>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">{student.name}</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {language === 'am' && student.firstNameAm && student.middleNameAm
+                              ? `${student.firstNameAm} ${student.middleNameAm}`
+                              : student.firstName && student.middleName 
+                              ? `${student.firstName} ${student.middleName}`
+                              : student.name
+                            }
+                          </div>
                         </div>
                       </div>
                     </td>

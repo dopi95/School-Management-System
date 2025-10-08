@@ -11,7 +11,8 @@ import {
   Menu,
   X,
   CreditCard,
-  UserX
+  UserX,
+  Send
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -31,6 +32,7 @@ const Sidebar = () => {
         'inactive-employees': 'Inactive ሰራተኞች',
         admins: 'አስተዳዳሪዎች',
         payments: 'ክፍያዎች',
+        notifications: 'ማሳወቂያዎች',
         profile: 'የእኔ መገለጫ',
         settings: 'ሴቲንግ'
       };
@@ -45,6 +47,7 @@ const Sidebar = () => {
       'inactive-employees': 'Inactive Employees',
       admins: 'Admins',
       payments: 'Payments',
+      notifications: 'Send Notifications',
       profile: 'My Profile',
       settings: 'Settings'
     };
@@ -60,6 +63,7 @@ const Sidebar = () => {
     { path: '/inactive-employees', icon: UserX, label: getMenuLabel('inactive-employees'), permission: 'inactiveEmployees' },
     { path: '/payments', icon: CreditCard, label: getMenuLabel('payments'), permission: 'payments' },
     { path: '/special-payments', icon: CreditCard, label: 'SP Payments', permission: 'specialPayments' },
+    { path: '/notifications', icon: Send, label: getMenuLabel('notifications'), permission: 'notifications' },
     { path: '/admin-management', icon: UserCog, label: getMenuLabel('admins'), permission: 'admins' },
     { path: '/admin-profiles', icon: User, label: 'Admin Profiles', permission: 'superadmin', superAdminOnly: true },
     { path: '/profile', icon: User, label: getMenuLabel('profile'), permission: 'profile' },

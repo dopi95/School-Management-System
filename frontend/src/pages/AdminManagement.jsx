@@ -31,6 +31,7 @@ const AdminManagement = () => {
       employees: false,
       inactiveEmployees: false,
       payments: false,
+      notifications: false,
       admins: false,
       profile: true,
       settings: true
@@ -121,6 +122,7 @@ const AdminManagement = () => {
         payments: false,
         specialStudents: false,
         specialPayments: false,
+        notifications: false,
         admins: false,
         profile: true,
         settings: true
@@ -162,6 +164,7 @@ const AdminManagement = () => {
         payments: false,
         specialStudents: false,
         specialPayments: false,
+        notifications: false,
         admins: false,
         profile: true,
         settings: true
@@ -567,6 +570,7 @@ const AdminManagement = () => {
                       { key: 'payments', label: 'Payments Management' },
                       { key: 'specialStudents', label: 'SP Students' },
                       { key: 'specialPayments', label: 'SP Payments' },
+                      { key: 'notifications', label: 'Send Notifications' },
                       { key: 'admins', label: 'Admin Management' },
                       { key: 'settings', label: 'Settings' }
                     ].map(permission => (

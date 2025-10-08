@@ -7,7 +7,7 @@ import DeleteModal from '../components/DeleteModal.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
 
 const Students = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { studentsList, loading, updateStudentStatus, deleteStudent, bulkUpdateStudents } = useStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
@@ -329,7 +329,9 @@ const Students = () => {
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {student.firstName && student.middleName 
+                          {language === 'am' && student.firstNameAm && student.middleNameAm
+                            ? `${student.firstNameAm} ${student.middleNameAm}`
+                            : student.firstName && student.middleName 
                             ? `${student.firstName} ${student.middleName}`
                             : student.name
                           }

@@ -7,6 +7,7 @@ import employeeRoutes from "./src/routes/employees.js";
 import paymentRoutes from "./src/routes/payments.js";
 import specialStudentRoutes from "./src/routes/specialStudents.js";
 import specialPaymentRoutes from "./src/routes/specialPayments.js";
+import notificationRoutes from "./src/routes/notifications.js";
 import authRoutes from "./src/routes/auth.js";
 import { protect } from "./src/middleware/auth.js";
 import { checkPermission, checkWritePermission } from "./src/middleware/permissions.js";
@@ -85,6 +86,13 @@ app.use('/api/special-payments', protect, (req, res, next) => {
   }
   return checkPermission('specialPayments')(req, res, next);
 }, specialPaymentRoutes);
+app.use('/api/notifications', protect, (req, res, next) => {
+  const writeActions = ['POST', 'PUT', 'PATCH', 'DELETE'];
+  if (writeActions.includes(req.method)) {
+    return checkWritePermission('notifications')(req, res, next);
+  }
+  return checkPermission('notifications')(req, res, next);
+}, notificationRoutes);
 
 // Settings route (protected by settings permission)
 app.get('/api/settings', protect, checkPermission('settings'), (req, res) => {

@@ -17,6 +17,9 @@ const AddSpecialStudent = () => {
     firstName: '',
     middleName: '',
     lastName: '',
+    firstNameAm: '',
+    middleNameAm: '',
+    lastNameAm: '',
     gender: '',
     name: '', // Keep for backward compatibility
     email: '',
@@ -46,6 +49,9 @@ const AddSpecialStudent = () => {
           firstName: student.firstName || '',
           middleName: student.middleName || '',
           lastName: student.lastName || '',
+          firstNameAm: student.firstNameAm || '',
+          middleNameAm: student.middleNameAm || '',
+          lastNameAm: student.lastNameAm || '',
           gender: student.gender || '',
           name: student.name || '',
           email: student.email || '',
@@ -242,6 +248,48 @@ const AddSpecialStudent = () => {
                   onChange={handleChange}
                   className="input-field"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  First Name (Amharic)
+                </label>
+                <input
+                  type="text"
+                  name="firstNameAm"
+                  value={formData.firstNameAm}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="የመጀመሪያ ስም"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Middle Name (Amharic)
+                </label>
+                <input
+                  type="text"
+                  name="middleNameAm"
+                  value={formData.middleNameAm}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="የአባት ስም"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Last Name (Amharic)
+                </label>
+                <input
+                  type="text"
+                  name="lastNameAm"
+                  value={formData.lastNameAm}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="የአያት ስም"
                 />
               </div>
 

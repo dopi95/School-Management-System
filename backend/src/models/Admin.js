@@ -20,6 +20,7 @@ const adminSchema = new mongoose.Schema({
     payments: { type: Boolean, default: false },
     specialStudents: { type: Boolean, default: false },
     specialPayments: { type: Boolean, default: false },
+    notifications: { type: Boolean, default: false },
     admins: { type: Boolean, default: false },
     profile: { type: Boolean, default: true },
     settings: { type: Boolean, default: false }

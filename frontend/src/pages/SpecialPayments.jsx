@@ -6,9 +6,9 @@ import { useSpecialPayments } from '../context/SpecialPaymentsContext.jsx';
 import jsPDF from 'jspdf';
 
 const SpecialPayments = () => {
-  const { t } = useLanguage();
-  const { specialStudentsList, updateSpecialStudentPayment } = useSpecialStudents();
-  const { specialPaymentsList, loading, addSpecialPayment } = useSpecialPayments();
+  const { t, language } = useLanguage();
+  const { specialStudentsList = [], updateSpecialStudentPayment } = useSpecialStudents() || {};
+  const { specialPaymentsList = [], loading = false, addSpecialPayment } = useSpecialPayments() || {};
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const saved = localStorage.getItem('special-payments-selected-month');
     return saved !== null ? parseInt(saved) : 0; // Start with September (index 0)
@@ -37,6 +37,7 @@ const SpecialPayments = () => {
   const sections = ['A', 'B', 'C', 'D'];
   const years = Array.from({ length: 34 }, (_, i) => 2017 + i); // 2017 to 2050
 
+  const currentMonthKey = `${selectedYear}-${selectedMonth}`;
   const activeSpecialStudentsList = specialStudentsList.filter(student => student.status === 'active');
   
   const filteredStudents = activeSpecialStudentsList.filter(student => {
@@ -82,7 +83,6 @@ const SpecialPayments = () => {
     return (sectionOrder[a.section || ''] || 0) - (sectionOrder[b.section || ''] || 0);
   });
 
-  const currentMonthKey = `${selectedYear}-${selectedMonth}`;
   const paidStudents = filteredStudents.filter(student => student.payments[currentMonthKey]?.paid).length;
   const unpaidStudents = filteredStudents.length - paidStudents;
 
@@ -146,7 +146,12 @@ const SpecialPayments = () => {
       }
       
       doc.text((index + 1).toString(), margin, yPos);
-      doc.text(student.name, margin + 20, yPos);
+      const studentName = language === 'am' && student.firstNameAm && student.middleNameAm
+        ? `${student.firstNameAm} ${student.middleNameAm}`
+        : student.firstName && student.middleName 
+        ? `${student.firstName} ${student.middleName}`
+        : student.name;
+      doc.text(studentName, margin + 20, yPos);
       doc.text(student.id, margin + 80, yPos);
       doc.text(student.class, margin + 120, yPos);
       doc.text(student.section || 'N/A', margin + 150, yPos);
@@ -191,7 +196,11 @@ const SpecialPayments = () => {
       // Add to special payments collection
       await addSpecialPayment({
         studentId: student.id,
-        studentName: student.name,
+        studentName: language === 'am' && student.firstNameAm && student.middleNameAm
+          ? `${student.firstNameAm} ${student.middleNameAm}`
+          : student.firstName && student.middleName 
+          ? `${student.firstName} ${student.middleName}`
+          : student.name,
         amount: 500, // Default amount
         month: months[selectedMonth],
         year: selectedYear.toString(),
@@ -495,7 +504,14 @@ const SpecialPayments = () => {
                           </span>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">{student.name}</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {language === 'am' && student.firstNameAm && student.middleNameAm
+                              ? `${student.firstNameAm} ${student.middleNameAm}`
+                              : student.firstName && student.middleName 
+                              ? `${student.firstName} ${student.middleName}`
+                              : student.name
+                            }
+                          </div>
                         </div>
                       </div>
                     </td>
