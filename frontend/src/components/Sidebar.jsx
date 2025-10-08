@@ -106,14 +106,14 @@ const Sidebar = () => {
       {/* Sidebar */}
       <div className={`bg-white dark:bg-gray-800 shadow-lg w-64 fixed left-0 z-40 transform transition-transform duration-300 ease-in-out flex flex-col ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      } lg:top-0 lg:h-screen top-16 h-[calc(100vh-4rem)]`}>
+      } lg:top-0 lg:h-screen top-16 h-[calc(100vh-4rem)] overflow-hidden`}>
         {/* Desktop Header */}
-        <div className="hidden lg:block p-6 border-b border-gray-200 dark:border-gray-700">
-          <h1 className="text-xl font-bold text-primary-700 dark:text-primary-400">{t('bluelightAcademy')}</h1>
+        <div className="hidden lg:block p-3 border-b border-gray-200 dark:border-gray-700">
+          <h1 className="text-lg font-bold text-primary-700 dark:text-primary-400">{t('bluelightAcademy')}</h1>
         </div>
 
         {/* User Profile */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 lg:mt-0">
+        <div className="p-3 border-b border-gray-200 dark:border-gray-700 lg:mt-0">
           <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors">
             <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
               <User className="w-6 h-6 text-primary-600 dark:text-primary-400" />
@@ -134,7 +134,7 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 flex-1">
+        <nav className="p-2 flex-1">
           <ul className="space-y-0.5">
             {menuItems.map((item) => (
               <li key={item.path}>
@@ -159,7 +159,7 @@ const Sidebar = () => {
 
         {/* Logout - Always visible for authenticated users */}
         {admin && (
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <div className="p-2 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
             <button
               onClick={() => {
                 logout();
