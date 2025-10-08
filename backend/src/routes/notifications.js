@@ -2,6 +2,7 @@ import express from 'express';
 import Notification from '../models/Notification.js';
 import Student from '../models/Student.js';
 import SpecialStudent from '../models/SpecialStudent.js';
+import { logActivity } from '../utils/activityLogger.js';
 
 const router = express.Router();
 
@@ -78,6 +79,7 @@ router.post('/send', async (req, res) => {
     });
 
     await notification.save();
+    await logActivity(req, 'NOTIFICATION_SEND', 'System', null, null, `Notification sent to ${recipients.length} recipients: ${title}`);
     res.status(201).json({ message: 'Notification sent successfully', notification });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -9,6 +9,7 @@ import specialStudentRoutes from "./src/routes/specialStudents.js";
 import specialPaymentRoutes from "./src/routes/specialPayments.js";
 import notificationRoutes from "./src/routes/notifications.js";
 import authRoutes from "./src/routes/auth.js";
+import activityLogRoutes from "./src/routes/activityLogs.js";
 import { protect } from "./src/middleware/auth.js";
 import { checkPermission, checkWritePermission } from "./src/middleware/permissions.js";
 
@@ -93,6 +94,7 @@ app.use('/api/notifications', protect, (req, res, next) => {
   }
   return checkPermission('notifications')(req, res, next);
 }, notificationRoutes);
+app.use('/api/activity-logs', activityLogRoutes);
 
 // Settings route (protected by settings permission)
 app.get('/api/settings', protect, checkPermission('settings'), (req, res) => {

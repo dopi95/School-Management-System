@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Send, Users, MessageSquare, CheckSquare, Square, ChevronDown } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import Toast from '../components/Toast';
 
 const Notifications = () => {
   const { language } = useLanguage();
@@ -11,6 +12,7 @@ const Notifications = () => {
   const [loading, setLoading] = useState(false);
   const [studentTypeFilter, setStudentTypeFilter] = useState('all');
   const [showVariableDropdown, setShowVariableDropdown] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
   useEffect(() => {
     fetchStudents();
@@ -56,7 +58,7 @@ const Notifications = () => {
 
   const handleSendNotification = async () => {
     if (!title.trim() || !message.trim() || selectedStudents.length === 0) {
-      alert('Please fill in all fields and select at least one student');
+      setToast({ show: true, message: 'Please fill in all fields and select at least one student', type: 'error' });
       return;
     }
 
@@ -95,16 +97,20 @@ const Notifications = () => {
       });
 
       if (response.ok) {
-        alert('Notification sent successfully!');
+        setToast({ 
+          show: true, 
+          message: `Notification sent successfully to ${selectedStudents.length} student${selectedStudents.length > 1 ? 's' : ''}!`, 
+          type: 'success' 
+        });
         setTitle('');
         setMessage('');
         setSelectedStudents([]);
       } else {
-        alert('Failed to send notification');
+        setToast({ show: true, message: 'Failed to send notification. Please try again.', type: 'error' });
       }
     } catch (error) {
       console.error('Error sending notification:', error);
-      alert('Error sending notification');
+      setToast({ show: true, message: 'Error sending notification. Please check your connection.', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -307,6 +313,14 @@ const Notifications = () => {
           )}
         </div>
       </div>
+      
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.show}
+        onClose={() => setToast({ ...toast, show: false })}
+        duration={5000}
+      />
     </div>
   );
 };

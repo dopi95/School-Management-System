@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import Admin from '../models/Admin.js';
 import AdminActivityLog from '../models/AdminActivityLog.js';
 import { protect, authorize } from '../middleware/auth.js';
+import { logActivity } from '../utils/activityLogger.js';
 import sendEmail from '../utils/sendEmail.js';
 
 const router = express.Router();
@@ -43,6 +44,10 @@ router.post('/login', async (req, res) => {
 
     // Update last login without triggering password hashing
     await Admin.findByIdAndUpdate(admin._id, { lastLogin: new Date() });
+
+    // Log login activity
+    const mockReq = { admin, ip: req.ip, get: req.get.bind(req), connection: req.connection, socket: req.socket, headers: req.headers };
+    await logActivity(mockReq, 'LOGIN', 'System', null, null, 'Admin logged in');
 
     const token = generateToken(admin._id);
     const refreshToken = generateRefreshToken(admin._id);
@@ -136,15 +141,8 @@ router.put('/profile', protect, async (req, res) => {
     
     // Log the activity if there were changes
     if (Object.keys(changes).length > 0) {
-      await AdminActivityLog.create({
-        adminId: admin._id,
-        adminName: admin.name,
-        adminEmail: admin.email,
-        actionType,
-        changes,
-        ipAddress: req.ip,
-        userAgent: req.get('User-Agent')
-      });
+      const action = newPassword ? 'PASSWORD_CHANGE' : 'PROFILE_UPDATE';
+      await logActivity(req, action, 'Profile', admin._id, admin.name, `Profile updated: ${Object.keys(changes).join(', ')}`);
     }
 
     res.json({
@@ -272,6 +270,8 @@ router.post('/admins', protect, authorize('superadmin'), async (req, res) => {
       console.log('Failed to send welcome email:', emailError.message);
     }
 
+    await logActivity(req, 'ADMIN_CREATE', 'Admin', admin._id, admin.name, `New admin created: ${admin.name}`);
+
     res.status(201).json({
       success: true,
       message: 'Admin created successfully and welcome email sent',
@@ -336,18 +336,8 @@ router.put('/admins/:id', protect, authorize('superadmin'), async (req, res) => 
 
     // Log the activity if there were changes
     if (Object.keys(changes).length > 0) {
-      await AdminActivityLog.create({
-        adminId: admin._id,
-        adminName: admin.name,
-        adminEmail: admin.email,
-        actionType,
-        changes: {
-          ...changes,
-          updatedBy: req.admin.name + ' (SuperAdmin)'
-        },
-        ipAddress: req.ip,
-        userAgent: req.get('User-Agent')
-      });
+      const action = password ? 'PASSWORD_CHANGE' : 'ADMIN_UPDATE';
+      await logActivity(req, action, 'Admin', admin._id, admin.name, `Admin updated by ${req.admin.name}: ${Object.keys(changes).join(', ')}`);
     }
 
     res.json({
@@ -378,6 +368,7 @@ router.delete('/admins/:id', protect, authorize('superadmin'), async (req, res) 
       return res.status(404).json({ message: 'Admin not found' });
     }
 
+    await logActivity(req, 'ADMIN_DELETE', 'Admin', admin._id, admin.name, `Admin deleted: ${admin.name}`);
     await Admin.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Admin deleted successfully' });
   } catch (error) {

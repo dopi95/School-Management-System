@@ -30,6 +30,7 @@ import AdminProfiles from './pages/AdminProfiles';
 import Payments from './pages/Payments';
 import TestPayments from './pages/TestPayments';
 import Notifications from './pages/Notifications';
+import ActivityLogs from './pages/ActivityLogs';
 import InactiveStudents from './pages/InactiveStudents';
 import InactiveEmployees from './pages/InactiveEmployees';
 import PermissionRoute from './components/ProtectedRoute.jsx';
@@ -225,6 +226,16 @@ const AppRoutes = () => {
       <Route path="/inactive-employees" element={
         <ProtectedRoute>
           <Layout><InactiveEmployees /></Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/activity-logs" element={
+        <ProtectedRoute>
+          <Layout>
+            <PermissionRoute permission="admins" section="admin management">
+              <ActivityLogs />
+            </PermissionRoute>
+          </Layout>
         </ProtectedRoute>
       } />
     </Routes>

@@ -1,5 +1,6 @@
 import express from 'express';
 import Student from '../models/Student.js';
+import { logActivity } from '../utils/activityLogger.js';
 
 const router = express.Router();
 
@@ -49,6 +50,7 @@ router.post('/', async (req, res) => {
 
     const student = new Student(req.body);
     const savedStudent = await student.save();
+    await logActivity(req, 'STUDENT_CREATE', 'Student', savedStudent.id, savedStudent.name, `Student created: ${savedStudent.name}`);
     res.status(201).json(savedStudent);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -71,6 +73,7 @@ router.put('/:id', async (req, res) => {
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
+    await logActivity(req, 'STUDENT_UPDATE', 'Student', student.id, student.name, `Student updated: ${student.name}`);
     res.json(student);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -89,6 +92,7 @@ router.patch('/:id/status', async (req, res) => {
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
+    await logActivity(req, 'STUDENT_STATUS_CHANGE', 'Student', student.id, student.name, `Student status changed to ${status}: ${student.name}`);
     res.json(student);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -110,6 +114,7 @@ router.patch('/:id/payment', async (req, res) => {
       student.payments.set(monthKey, paymentData);
     }
     await student.save();
+    await logActivity(req, 'STUDENT_PAYMENT_UPDATE', 'Student', student.id, student.name, `Payment updated for ${monthKey}: ${student.name}`);
     res.json(student);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -138,6 +143,7 @@ router.delete('/:id', async (req, res) => {
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
+    await logActivity(req, 'STUDENT_DELETE', 'Student', student.id, student.name, `Student deleted: ${student.name}`);
     res.json({ message: 'Student deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });

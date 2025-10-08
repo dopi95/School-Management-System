@@ -1,5 +1,6 @@
 import express from 'express';
 import Employee from '../models/Employee.js';
+import { logActivity } from '../utils/activityLogger.js';
 
 const router = express.Router();
 
@@ -42,6 +43,7 @@ router.post('/', async (req, res) => {
 
     const employee = new Employee(req.body);
     const savedEmployee = await employee.save();
+    await logActivity(req, 'EMPLOYEE_CREATE', 'Employee', savedEmployee.id, savedEmployee.name, `Employee created: ${savedEmployee.name}`);
     res.status(201).json(savedEmployee);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -59,6 +61,7 @@ router.put('/:id', async (req, res) => {
     if (!employee) {
       return res.status(404).json({ message: 'Employee not found' });
     }
+    await logActivity(req, 'EMPLOYEE_UPDATE', 'Employee', employee.id, employee.name, `Employee updated: ${employee.name}`);
     res.json(employee);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -77,6 +80,7 @@ router.patch('/:id/status', async (req, res) => {
     if (!employee) {
       return res.status(404).json({ message: 'Employee not found' });
     }
+    await logActivity(req, 'EMPLOYEE_STATUS_CHANGE', 'Employee', employee.id, employee.name, `Employee status changed to ${status}: ${employee.name}`);
     res.json(employee);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -90,6 +94,7 @@ router.delete('/:id', async (req, res) => {
     if (!employee) {
       return res.status(404).json({ message: 'Employee not found' });
     }
+    await logActivity(req, 'EMPLOYEE_DELETE', 'Employee', employee.id, employee.name, `Employee deleted: ${employee.name}`);
     res.json({ message: 'Employee deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });

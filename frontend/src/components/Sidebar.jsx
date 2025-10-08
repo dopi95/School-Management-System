@@ -12,7 +12,8 @@ import {
   X,
   CreditCard,
   UserX,
-  Send
+  Send,
+  Activity
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -65,6 +66,7 @@ const Sidebar = () => {
     { path: '/special-payments', icon: CreditCard, label: 'SP Payments', permission: 'specialPayments' },
     { path: '/notifications', icon: Send, label: getMenuLabel('notifications'), permission: 'notifications' },
     { path: '/admin-management', icon: UserCog, label: getMenuLabel('admins'), permission: 'admins' },
+    { path: '/activity-logs', icon: Activity, label: 'Activity Logs', permission: 'admins' },
     { path: '/admin-profiles', icon: User, label: 'Admin Profiles', permission: 'superadmin', superAdminOnly: true },
     { path: '/profile', icon: User, label: getMenuLabel('profile'), permission: 'profile' },
     { path: '/settings', icon: Settings, label: getMenuLabel('settings'), permission: 'settings' },
