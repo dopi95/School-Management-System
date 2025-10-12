@@ -72,6 +72,7 @@ const Dashboard = () => {
   const hasStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.students;
   const hasInactiveStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.inactiveStudents;
   const hasEmployeesAccess = admin?.role === 'superadmin' || admin?.permissions?.employees;
+  const hasInactiveEmployeesAccess = admin?.role === 'superadmin' || admin?.permissions?.inactiveEmployees;
   const hasAdminsAccess = admin?.role === 'superadmin' || admin?.permissions?.admins;
 
   const allStats = [
@@ -82,24 +83,6 @@ const Dashboard = () => {
       color: 'bg-blue-500',
       bgColor: 'bg-blue-50 dark:bg-blue-900',
       textColor: 'text-blue-600 dark:text-blue-400',
-      permission: hasStudentsAccess
-    },
-    {
-      title: 'Male Students',
-      value: maleStudents.toString(),
-      icon: User,
-      color: 'bg-cyan-500',
-      bgColor: 'bg-cyan-50 dark:bg-cyan-900',
-      textColor: 'text-cyan-600 dark:text-cyan-400',
-      permission: hasStudentsAccess
-    },
-    {
-      title: 'Female Students',
-      value: femaleStudents.toString(),
-      icon: UserCheck,
-      color: 'bg-pink-500',
-      bgColor: 'bg-pink-50 dark:bg-pink-900',
-      textColor: 'text-pink-600 dark:text-pink-400',
       permission: hasStudentsAccess
     },
     {
@@ -128,6 +111,24 @@ const Dashboard = () => {
       bgColor: 'bg-purple-50 dark:bg-purple-900',
       textColor: 'text-purple-600 dark:text-purple-400',
       permission: hasEmployeesAccess
+    },
+    {
+      title: 'Inactive Employees',
+      value: inactiveEmployees.toString(),
+      icon: UserX,
+      color: 'bg-orange-500',
+      bgColor: 'bg-orange-50 dark:bg-orange-900',
+      textColor: 'text-orange-600 dark:text-orange-400',
+      permission: hasEmployeesAccess
+    },
+    {
+      title: 'Total Admins',
+      value: totalAdmins.toString(),
+      icon: UserCog,
+      color: 'bg-indigo-500',
+      bgColor: 'bg-indigo-50 dark:bg-indigo-900',
+      textColor: 'text-indigo-600 dark:text-indigo-400',
+      permission: hasAdminsAccess
     }
   ];
 

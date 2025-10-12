@@ -82,7 +82,7 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* Mobile Header with Bluelight Academy */}
+      {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 shadow-lg p-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-primary-700 dark:text-primary-400">{t('bluelightAcademy')}</h1>
         <button
@@ -108,7 +108,7 @@ const Sidebar = () => {
       {/* Sidebar */}
       <div className={`bg-white dark:bg-gray-800 shadow-lg w-64 fixed left-0 z-40 transform transition-transform duration-300 ease-in-out flex flex-col ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      } lg:top-0 lg:h-screen top-16 h-[calc(100vh-4rem)] overflow-hidden`}>
+      } top-0 h-screen lg:top-0 lg:h-screen overflow-hidden`}>
         {/* Desktop Header */}
         <div className="hidden lg:block p-3 border-b border-gray-200 dark:border-gray-700">
           <h1 className="text-lg font-bold text-primary-700 dark:text-primary-400">{t('bluelightAcademy')}</h1>

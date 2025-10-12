@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Users, MessageSquare, CheckSquare, Square, ChevronDown } from 'lucide-react';
+import { Send, Users, MessageSquare, CheckSquare, Square, ChevronDown, Search } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import Toast from '../components/Toast';
 
@@ -11,6 +11,7 @@ const Notifications = () => {
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const [studentTypeFilter, setStudentTypeFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showVariableDropdown, setShowVariableDropdown] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
@@ -34,10 +35,21 @@ const Notifications = () => {
   };
 
   const filteredStudents = students.filter(student => {
-    if (studentTypeFilter === 'all') return true;
-    if (studentTypeFilter === 'students') return student.type === 'Students';
-    if (studentTypeFilter === 'sp-students') return student.type === 'SP Students';
-    return true;
+    // Filter by type
+    let matchesType = true;
+    if (studentTypeFilter === 'students') matchesType = student.type === 'Students';
+    else if (studentTypeFilter === 'sp-students') matchesType = student.type === 'SP Students';
+    
+    // Filter by search query
+    let matchesSearch = true;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const studentName = (student.name || '').toLowerCase();
+      const amharicName = `${student.firstNameAm || ''} ${student.middleNameAm || ''}`.toLowerCase();
+      matchesSearch = studentName.includes(query) || amharicName.includes(query) || student.id.toLowerCase().includes(query);
+    }
+    
+    return matchesType && matchesSearch;
   });
 
   const handleSelectAll = () => {
@@ -204,9 +216,6 @@ const Notifications = () => {
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               placeholder="Write your message here..."
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Variables: {'{'}{'{'} studentName {'}'}{'}'},  {'{'}{'{'} studentClass {'}'}{'}'},  {'{'}{'{'} studentId {'}'}{'}'},  {'{'}{'{'} studentType {'}'}{'}'},  {'{'}{'{'} paymentCode {'}'}{'}'}  
-            </p>
           </div>
 
           {/* Send Button */}
@@ -234,17 +243,40 @@ const Notifications = () => {
             </span>
           </div>
 
-          {/* Student Type Filter */}
+          {/* Filters */}
           <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-            <select
-              value={studentTypeFilter}
-              onChange={(e) => setStudentTypeFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white mb-4"
-            >
-              <option value="all">All Students</option>
-              <option value="students">Students</option>
-              <option value="sp-students">SP Students</option>
-            </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Filter by Type
+                </label>
+                <select
+                  value={studentTypeFilter}
+                  onChange={(e) => setStudentTypeFilter(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="all">All Students</option>
+                  <option value="students">Students</option>
+                  <option value="sp-students">SP Students</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Search Students
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by name or ID..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+              </div>
+            </div>
             
             <button
               onClick={handleSelectAll}
