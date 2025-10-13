@@ -226,7 +226,7 @@ const Payments = () => {
           : student.firstName && student.middleName 
           ? `${student.firstName} ${student.middleName}`
           : student.name,
-        amount: parseFloat(amount) || 500,
+        amount: amount || '500',
         month: months[selectedMonth],
         year: selectedYear.toString(),
         description: description
@@ -237,7 +237,7 @@ const Payments = () => {
         paid: true,
         date: new Date().toISOString().split('T')[0],
         description: description,
-        amount: parseFloat(amount) || 500,
+        amount: amount || '500',
         month: months[selectedMonth],
         year: selectedYear
       };
@@ -364,7 +364,7 @@ const Payments = () => {
           month: months[selectedMonth],
           year: selectedYear.toString(),
           description: bulkDescription,
-          amount: parseFloat(bulkAmount) || 500
+          amount: bulkAmount || '500'
         })
       });
       
@@ -377,7 +377,7 @@ const Payments = () => {
             paid: true,
             date: new Date().toISOString().split('T')[0],
             description: bulkDescription,
-            amount: parseFloat(bulkAmount) || 500,
+            amount: bulkAmount || '500',
             month: months[selectedMonth],
             year: selectedYear
           };
@@ -759,12 +759,10 @@ const Payments = () => {
                   Amount (ETB) <span className="text-gray-500 text-xs">(Optional)</span>
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="Enter amount..."
-                  min="0"
-                  step="0.01"
                   className="input-field w-full"
                 />
               </div>
@@ -821,11 +819,9 @@ const Payments = () => {
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           Date: {payment.date}
                         </p>
-                        {payment.amount !== undefined && payment.amount !== null && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            Amount: {payment.amount} ETB
-                          </p>
-                        )}
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          Amount: {payment.amount || '500'} ETB
+                        </p>
                         {payment.description && (
                           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                             Description: {payment.description}

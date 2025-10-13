@@ -21,8 +21,10 @@ const SpecialStudents = () => {
   const sections = ['A', 'B', 'C', 'D'];
 
   const filteredStudents = specialStudentsList.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const studentName = student.name || student.firstName || '';
+    const studentId = student.id || '';
+    const matchesSearch = studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (student.joinedYear && student.joinedYear.includes(searchTerm));
     const matchesClass = classFilter === 'all' || student.class === classFilter;
     const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;

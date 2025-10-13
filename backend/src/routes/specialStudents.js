@@ -1,5 +1,7 @@
 import express from 'express';
 import SpecialStudent from '../models/SpecialStudent.js';
+import { logActivity } from '../utils/activityLogger.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -99,7 +101,7 @@ router.patch('/:id/status', async (req, res) => {
 });
 
 // Update special student payment
-router.patch('/:id/payment', async (req, res) => {
+router.patch('/:id/payment', protect, async (req, res) => {
   try {
     const decodedId = decodeURIComponent(req.params.id);
     const { monthKey, paymentData } = req.body;
@@ -110,8 +112,10 @@ router.patch('/:id/payment', async (req, res) => {
     
     if (paymentData === null) {
       student.payments.delete(monthKey);
+      await logActivity(req, 'SPECIAL_PAYMENT_MARKED_UNPAID', 'special_student', student.id, student.name, `Special payment marked as unpaid for ${monthKey}`);
     } else {
       student.payments.set(monthKey, paymentData);
+      await logActivity(req, 'SPECIAL_PAYMENT_MARKED_PAID', 'special_student', student.id, student.name, `Special payment marked as paid for ${paymentData.month} ${paymentData.year}`);
     }
     await student.save();
     res.json(student);
