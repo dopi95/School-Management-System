@@ -29,8 +29,9 @@ const SpecialPayments = () => {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [bulkDescription, setBulkDescription] = useState('');
-  const [bulkAmount, setBulkAmount] = useState(500);
+  const [bulkAmount, setBulkAmount] = useState('500');
   const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState('500');
 
   const months = [
     'September', 'October', 'November', 'December', 'January', 'February',
@@ -226,7 +227,7 @@ const SpecialPayments = () => {
           : student.firstName && student.middleName 
           ? `${student.firstName} ${student.middleName}`
           : student.name,
-        amount: 500, // Default amount
+        amount: parseFloat(amount) || 500
         month: months[selectedMonth],
         year: selectedYear.toString(),
         description: description
@@ -237,6 +238,7 @@ const SpecialPayments = () => {
         paid: true,
         date: new Date().toISOString().split('T')[0],
         description: description,
+        amount: parseFloat(amount) || 500,
         month: months[selectedMonth],
         year: selectedYear
       };
@@ -244,6 +246,7 @@ const SpecialPayments = () => {
       
       setShowDescModal({ isOpen: false, student: null });
       setDescription('');
+      setAmount('500');
     } catch (error) {
       alert('Error recording payment: ' + error.message);
     }
@@ -358,7 +361,7 @@ const SpecialPayments = () => {
         body: JSON.stringify({
           studentIds: selectedStudents,
           description: bulkDescription,
-          amount: bulkAmount
+          amount: parseFloat(bulkAmount) || 500
         })
       });
       
@@ -371,6 +374,7 @@ const SpecialPayments = () => {
             paid: true,
             date: new Date().toISOString().split('T')[0],
             description: bulkDescription,
+            amount: parseFloat(bulkAmount) || 500,
             month: months[selectedMonth],
             year: selectedYear
           };
@@ -388,7 +392,7 @@ const SpecialPayments = () => {
     setShowBulkModal(false);
     setSelectedStudents([]);
     setBulkDescription('');
-    setBulkAmount(500);
+    setBulkAmount('500');
   };
 
   return (
@@ -500,10 +504,11 @@ const SpecialPayments = () => {
               <button
                 onClick={() => setShowBulkModal(true)}
                 disabled={selectedStudents.length === 0}
-                className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-2 py-1 rounded text-sm font-medium transition-colors w-fit self-start"
+                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors w-fit self-start flex items-center space-x-2"
                 title="Mark Selected as Paid"
               >
-                Mark Selected as Paid ({selectedStudents.length})
+                <Check className="w-4 h-4" />
+                <span>Mark Selected as Paid ({selectedStudents.length})</span>
               </button>
               <button
                 onClick={() => generatePDF('paid')}
@@ -745,12 +750,33 @@ const SpecialPayments = () => {
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               Special Student: {showDescModal.student?.name} - {months[selectedMonth]} {selectedYear}
             </p>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter payment description..."
-              className="input-field w-full h-24 resize-none"
-            />
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Amount (ETB)
+                </label>
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Enter amount..."
+                  min="0"
+                  step="0.01"
+                  className="input-field w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter payment description..."
+                  className="input-field w-full h-24 resize-none"
+                />
+              </div>
+            </div>
             <div className="flex space-x-3 mt-4">
               <button
                 onClick={handleDescSubmit}
@@ -762,6 +788,7 @@ const SpecialPayments = () => {
                 onClick={() => {
                   setShowDescModal({ isOpen: false, student: null });
                   setDescription('');
+                  setAmount('500');
                 }}
                 className="btn-secondary flex-1"
               >
@@ -791,6 +818,11 @@ const SpecialPayments = () => {
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           Date: {payment.date}
                         </p>
+                        {payment.amount && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Amount: {payment.amount} ETB
+                          </p>
+                        )}
                         {payment.description && (
                           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                             Description: {payment.description}
@@ -840,16 +872,18 @@ const SpecialPayments = () => {
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               {selectedStudents.length} special students selected
             </p>
-            <div className="space-y-4">
+            <div className="space-y-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Amount
+                  Amount per Student (ETB)
                 </label>
                 <input
                   type="number"
                   value={bulkAmount}
-                  onChange={(e) => setBulkAmount(Number(e.target.value))}
-                  placeholder="Enter amount"
+                  onChange={(e) => setBulkAmount(e.target.value)}
+                  placeholder="Enter amount per student..."
+                  min="0"
+                  step="0.01"
                   className="input-field w-full"
                 />
               </div>
@@ -876,7 +910,7 @@ const SpecialPayments = () => {
                 onClick={() => {
                   setShowBulkModal(false);
                   setBulkDescription('');
-                  setBulkAmount(500);
+                  setBulkAmount('500');
                 }}
                 className="btn-secondary flex-1"
               >
