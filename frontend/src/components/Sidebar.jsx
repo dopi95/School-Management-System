@@ -105,10 +105,17 @@ const Sidebar = () => {
       {/* Sidebar */}
       <div className={`bg-white dark:bg-gray-800 shadow-lg w-64 fixed left-0 z-40 transform transition-transform duration-300 ease-in-out flex flex-col ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      } top-0 h-screen overflow-y-auto`}>
+      } top-0 h-screen overflow-hidden`}>
         {/* Header */}
         <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <h1 className="text-lg font-bold text-primary-700 dark:text-primary-400">{t('bluelightAcademy')}</h1>
+          <div className="flex items-center space-x-2">
+            <img
+              src="/src/assets/lo.png"
+              alt="Logo"
+              className="h-10 w-16"
+            />
+            <h1 className="text-sm font-bold text-primary-700 dark:text-primary-400 whitespace-nowrap">{t('bluelightAcademy')}</h1>
+          </div>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
             className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"

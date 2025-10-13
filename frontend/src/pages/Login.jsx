@@ -171,18 +171,26 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-start justify-center bg-gray-50 dark:bg-gray-900 pt-4 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full">
+        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 space-y-8">
         <div>
+          <div className="flex flex-col items-center mb-6">
+            <img
+              src="/src/assets/logo.png"
+              alt="Bluelight Academy Logo"
+              className="h-24 w-24 mb-4"
+            />
+            <h1 className="text-lg sm:text-xl font-bold text-blue-500 dark:text-white text-center px-4">
+              School Management System
+            </h1>
+          </div>
           <div className="mx-auto h-12 w-12 bg-primary-600 rounded-full flex items-center justify-center">
             <Lock className="h-6 w-6 text-white" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
             Sign in to your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Bluelight Academy Management System
-          </p>
         </div>
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -271,6 +279,7 @@ const Login = () => {
             </button>
           </div>
         </form>
+        </div>
       </div>
 
       {/* Forgot Password Modal */}
