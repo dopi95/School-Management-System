@@ -1,17 +1,19 @@
-// Alternative email service using Brevo API (more reliable on Render)
 const sendEmailAPI = async (options) => {
   try {
-    // Use BREVO_API_KEY directly - it should be the correct format
-    let apiKey = process.env.BREVO_API_KEY;
+    const apiKey = process.env.BREVO_API_KEY;
     
-    // If no BREVO_API_KEY, don't try to convert EMAIL_PASS
+    console.log('Environment check:', {
+      hasApiKey: !!apiKey,
+      keyPrefix: apiKey ? apiKey.substring(0, 15) : 'none',
+      nodeEnv: process.env.NODE_ENV
+    });
+    
     if (!apiKey) {
       throw new Error('BREVO_API_KEY not found in environment variables');
     }
     
-    // Validate API key format
     if (!apiKey.startsWith('xkeysib-')) {
-      throw new Error('Invalid Brevo API key format. Must start with xkeysib-');
+      throw new Error(`Invalid Brevo API key format. Got: ${apiKey.substring(0, 15)}...`);
     }
     
     console.log('Sending email via Brevo API to:', options.email);

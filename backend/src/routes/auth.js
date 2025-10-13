@@ -8,7 +8,6 @@ import Admin from '../models/Admin.js';
 import AdminActivityLog from '../models/AdminActivityLog.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { logActivity } from '../utils/activityLogger.js';
-import sendEmail from '../utils/sendEmail.js';
 import sendEmailAPI from '../utils/sendEmailAPI.js';
 
 const router = express.Router();
@@ -282,7 +281,7 @@ router.post('/admins', protect, authorize('superadmin'), async (req, res) => {
 
     // Send welcome email with login credentials
     try {
-      await sendEmail({
+      await sendEmailAPI({
         email: admin.email,
         subject: 'Welcome to Bluelight Academy Management System',
         message: `Welcome ${name}! Your admin account has been created. Email: ${email}, Password: ${password}`,
@@ -460,42 +459,18 @@ router.post('/forgot-password', async (req, res) => {
       `
     };
 
-    let emailSent = false;
-    let lastError = null;
-    
-    // Try SMTP first (since it works locally)
     try {
-      console.log('Attempting to send OTP email via SMTP to:', admin.email);
-      await sendEmail(emailData);
-      console.log('OTP email sent successfully via SMTP');
-      emailSent = true;
-    } catch (smtpError) {
-      console.log('SMTP failed:', smtpError.message);
-      lastError = smtpError;
-      
-      // Try Brevo API as fallback only if API key is valid
-      if (process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.startsWith('xkeysib-')) {
-        try {
-          console.log('Attempting to send OTP email via Brevo API to:', admin.email);
-          await sendEmailAPI(emailData);
-          console.log('OTP email sent successfully via Brevo API');
-          emailSent = true;
-        } catch (apiError) {
-          console.error('Both SMTP and API failed:', apiError.message);
-          lastError = apiError;
-        }
-      } else {
-        console.log('Skipping Brevo API (invalid or missing API key)');
-      }
-    }
-    
-    if (!emailSent) {
+      console.log('Sending OTP email via Brevo API to:', admin.email);
+      await sendEmailAPI(emailData);
+      console.log('OTP email sent successfully via Brevo API');
+    } catch (error) {
+      console.error('Failed to send OTP email:', error.message);
       admin.resetOTP = undefined;
       admin.resetOTPExpire = undefined;
       await admin.save();
       
       return res.status(500).json({ 
-        message: `Failed to send email: ${lastError.message}. Please contact administrator.` 
+        message: `Failed to send email: ${error.message}. Please try again later.` 
       });
     }
 
