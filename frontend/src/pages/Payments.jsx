@@ -756,7 +756,7 @@ const Payments = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Amount (ETB)
+                  Amount (ETB) <span className="text-gray-500 text-xs">(Optional)</span>
                 </label>
                 <input
                   type="number"
@@ -770,7 +770,7 @@ const Payments = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Description
+                  Description <span className="text-gray-500 text-xs">(Optional)</span>
                 </label>
                 <textarea
                   value={description}
@@ -878,7 +878,7 @@ const Payments = () => {
             <div className="space-y-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Amount per Student (ETB)
+                  Amount per Student (ETB) <span className="text-gray-500 text-xs">(Optional)</span>
                 </label>
                 <input
                   type="number"
@@ -892,7 +892,7 @@ const Payments = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Description
+                  Description <span className="text-gray-500 text-xs">(Optional)</span>
                 </label>
                 <textarea
                   value={bulkDescription}
