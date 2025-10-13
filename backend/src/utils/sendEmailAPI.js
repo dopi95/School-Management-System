@@ -1,24 +1,35 @@
 // Alternative email service using Brevo API (more reliable on Render)
 const sendEmailAPI = async (options) => {
   try {
-    // Use EMAIL_PASS as API key if BREVO_API_KEY is not set or invalid
+    // Use BREVO_API_KEY directly - it should be the correct format
     let apiKey = process.env.BREVO_API_KEY;
     
-    // If BREVO_API_KEY is not set or doesn't start with xkeysib-, use EMAIL_PASS
-    if (!apiKey || !apiKey.startsWith('xkeysib-')) {
-      // Convert SMTP password to API key format
-      apiKey = process.env.EMAIL_PASS;
-      if (apiKey && apiKey.startsWith('xsmtpsib-')) {
-        apiKey = apiKey.replace('xsmtpsib-', 'xkeysib-');
-      }
+    // If no BREVO_API_KEY, don't try to convert EMAIL_PASS
+    if (!apiKey) {
+      throw new Error('BREVO_API_KEY not found in environment variables');
     }
     
-    if (!apiKey) {
-      throw new Error('No valid API key found in environment variables');
+    // Validate API key format
+    if (!apiKey.startsWith('xkeysib-')) {
+      throw new Error('Invalid Brevo API key format. Must start with xkeysib-');
     }
     
     console.log('Sending email via Brevo API to:', options.email);
-    console.log('Using API key format:', apiKey.substring(0, 10) + '...');
+    console.log('Using API key format:', apiKey.substring(0, 15) + '...');
+    
+    const emailPayload = {
+      sender: {
+        name: process.env.EMAIL_FROM || 'Bluelight Academy',
+        email: 'elyasyenealem95@gmail.com'
+      },
+      to: [{
+        email: options.email
+      }],
+      subject: options.subject,
+      htmlContent: options.html || `<p>${options.message}</p>`
+    };
+    
+    console.log('Email payload:', JSON.stringify(emailPayload, null, 2));
     
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
@@ -27,25 +38,17 @@ const sendEmailAPI = async (options) => {
         'Content-Type': 'application/json',
         'api-key': apiKey
       },
-      body: JSON.stringify({
-        sender: {
-          name: process.env.EMAIL_FROM || 'Bluelight Academy',
-          email: 'elyasyenealem95@gmail.com'
-        },
-        to: [{
-          email: options.email
-        }],
-        subject: options.subject,
-        htmlContent: options.html || `<p>${options.message}</p>`
-      })
+      body: JSON.stringify(emailPayload)
     });
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Brevo API error response:', errorText);
       let errorMessage;
       try {
         const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.message || errorJson.error || response.statusText;
+        errorMessage = errorJson.message || errorJson.error || errorJson.code || response.statusText;
+        console.error('Parsed error:', errorJson);
       } catch {
         errorMessage = errorText || response.statusText;
       }

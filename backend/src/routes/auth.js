@@ -460,25 +460,43 @@ router.post('/forgot-password', async (req, res) => {
       `
     };
 
+    let emailSent = false;
+    let lastError = null;
+    
+    // Try SMTP first (since it works locally)
     try {
       console.log('Attempting to send OTP email via SMTP to:', admin.email);
       await sendEmail(emailData);
       console.log('OTP email sent successfully via SMTP');
+      emailSent = true;
     } catch (smtpError) {
-      console.log('SMTP failed, trying Brevo API:', smtpError.message);
-      try {
-        await sendEmailAPI(emailData);
-        console.log('OTP email sent successfully via API');
-      } catch (apiError) {
-        console.error('Both SMTP and API failed:', apiError);
-        admin.resetOTP = undefined;
-        admin.resetOTPExpire = undefined;
-        await admin.save();
-        
-        return res.status(500).json({ 
-          message: `Failed to send email: ${apiError.message}. Please try again later.` 
-        });
+      console.log('SMTP failed:', smtpError.message);
+      lastError = smtpError;
+      
+      // Try Brevo API as fallback only if API key is valid
+      if (process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.startsWith('xkeysib-')) {
+        try {
+          console.log('Attempting to send OTP email via Brevo API to:', admin.email);
+          await sendEmailAPI(emailData);
+          console.log('OTP email sent successfully via Brevo API');
+          emailSent = true;
+        } catch (apiError) {
+          console.error('Both SMTP and API failed:', apiError.message);
+          lastError = apiError;
+        }
+      } else {
+        console.log('Skipping Brevo API (invalid or missing API key)');
       }
+    }
+    
+    if (!emailSent) {
+      admin.resetOTP = undefined;
+      admin.resetOTPExpire = undefined;
+      await admin.save();
+      
+      return res.status(500).json({ 
+        message: `Failed to send email: ${lastError.message}. Please contact administrator.` 
+      });
     }
 
     res.json({
