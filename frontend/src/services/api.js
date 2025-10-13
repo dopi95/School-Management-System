@@ -38,7 +38,7 @@ class ApiService {
   }
 
   async getStudent(id) {
-    return this.request(`/students/${id}`);
+    return this.request(`/students/${encodeURIComponent(id)}`);
   }
 
   async createStudent(studentData) {
@@ -49,21 +49,21 @@ class ApiService {
   }
 
   async updateStudent(id, studentData) {
-    return this.request(`/students/${id}`, {
+    return this.request(`/students/${encodeURIComponent(id)}`, {
       method: 'PUT',
       body: studentData,
     });
   }
 
   async updateStudentStatus(id, status) {
-    return this.request(`/students/${id}/status`, {
+    return this.request(`/students/${encodeURIComponent(id)}/status`, {
       method: 'PATCH',
       body: { status },
     });
   }
 
   async updateStudentPayment(id, monthKey, paymentData) {
-    return this.request(`/students/${id}/payment`, {
+    return this.request(`/students/${encodeURIComponent(id)}/payment`, {
       method: 'PATCH',
       body: { monthKey, paymentData },
     });
@@ -77,7 +77,7 @@ class ApiService {
   }
 
   async deleteStudent(id) {
-    return this.request(`/students/${id}`, {
+    return this.request(`/students/${encodeURIComponent(id)}`, {
       method: 'DELETE',
     });
   }
@@ -124,7 +124,7 @@ class ApiService {
   }
 
   async getStudentPayments(studentId) {
-    return this.request(`/payments/student/${studentId}`);
+    return this.request(`/payments/student/${encodeURIComponent(studentId)}`);
   }
 
   async createPayment(paymentData) {
@@ -153,7 +153,7 @@ class ApiService {
   }
 
   async getSpecialStudent(id) {
-    return this.request(`/special-students/${id}`);
+    return this.request(`/special-students/${encodeURIComponent(id)}`);
   }
 
   async createSpecialStudent(studentData) {
@@ -164,21 +164,21 @@ class ApiService {
   }
 
   async updateSpecialStudent(id, studentData) {
-    return this.request(`/special-students/${id}`, {
+    return this.request(`/special-students/${encodeURIComponent(id)}`, {
       method: 'PUT',
       body: studentData,
     });
   }
 
   async updateSpecialStudentStatus(id, status) {
-    return this.request(`/special-students/${id}/status`, {
+    return this.request(`/special-students/${encodeURIComponent(id)}/status`, {
       method: 'PATCH',
       body: { status },
     });
   }
 
   async updateSpecialStudentPayment(id, monthKey, paymentData) {
-    return this.request(`/special-students/${id}/payment`, {
+    return this.request(`/special-students/${encodeURIComponent(id)}/payment`, {
       method: 'PATCH',
       body: { monthKey, paymentData },
     });
@@ -192,7 +192,7 @@ class ApiService {
   }
 
   async deleteSpecialStudent(id) {
-    return this.request(`/special-students/${id}`, {
+    return this.request(`/special-students/${encodeURIComponent(id)}`, {
       method: 'DELETE',
     });
   }
@@ -203,7 +203,7 @@ class ApiService {
   }
 
   async getSpecialStudentPayments(studentId) {
-    return this.request(`/special-payments/student/${studentId}`);
+    return this.request(`/special-payments/student/${encodeURIComponent(studentId)}`);
   }
 
   async createSpecialPayment(paymentData) {
