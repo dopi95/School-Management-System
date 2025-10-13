@@ -1,6 +1,7 @@
 import express from 'express';
 import Payment from '../models/Payment.js';
 import Student from '../models/Student.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -86,6 +87,75 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Payment not found' });
     }
     res.json({ message: 'Payment deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Bulk payment update
+router.post('/bulk', protect, async (req, res) => {
+  try {
+    const { studentIds, month, year, description } = req.body;
+    
+    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+      return res.status(400).json({ message: 'Student IDs array is required' });
+    }
+    
+    const results = [];
+    const errors = [];
+    
+    for (const studentId of studentIds) {
+      try {
+        // Get student info
+        const student = await Student.findOne({ id: studentId });
+        if (!student) {
+          errors.push(`Student ${studentId} not found`);
+          continue;
+        }
+        
+        // Generate payment ID
+        const lastPayment = await Payment.findOne().sort({ id: -1 });
+        const lastId = lastPayment ? parseInt(lastPayment.id.replace('PAY', '')) : 0;
+        const paymentId = `PAY${String(lastId + results.length + 1).padStart(4, '0')}`;
+        
+        // Create payment record
+        const payment = new Payment({
+          id: paymentId,
+          studentId: student.id,
+          studentName: student.name,
+          amount: 500,
+          month,
+          year,
+          description
+        });
+        
+        await payment.save();
+        
+        // Update student payment record
+        const monthIndex = ['September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August'].indexOf(month);
+        const monthKey = `${year}-${monthIndex}`;
+        student.payments.set(monthKey, {
+          month,
+          year,
+          paid: true,
+          date: new Date().toISOString().split('T')[0],
+          description
+        });
+        await student.save();
+        
+        results.push({ studentId, paymentId, status: 'success' });
+      } catch (error) {
+        errors.push(`Error processing ${studentId}: ${error.message}`);
+      }
+    }
+    
+    res.json({
+      success: true,
+      processed: results.length,
+      errors: errors.length,
+      results,
+      errors
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

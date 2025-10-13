@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { History, Check, CreditCard, Calendar, Users, Search, Filter, FileText, Download, Plus } from 'lucide-react';
+import { History, Check, CreditCard, Calendar, Users, Search, Filter, FileText, Download, Plus, Trash2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
 import { useSpecialPayments } from '../context/SpecialPaymentsContext.jsx';
@@ -26,6 +26,10 @@ const SpecialPayments = () => {
   const [showPaidOnly, setShowPaidOnly] = useState(false);
   const [showDescModal, setShowDescModal] = useState({ isOpen: false, student: null });
   const [showHistoryModal, setShowHistoryModal] = useState({ isOpen: false, student: null });
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [bulkDescription, setBulkDescription] = useState('');
+  const [bulkAmount, setBulkAmount] = useState(500);
   const [description, setDescription] = useState('');
 
   const months = [
@@ -182,9 +186,30 @@ const SpecialPayments = () => {
       setShowDescModal({ isOpen: true, student: specialStudentsList.find(s => s.id === studentId) });
     } else {
       try {
-        // Remove only the current month/year payment, keep other history
-        await updateSpecialStudentPayment(studentId, currentMonthKey, null);
+        console.log('Unchecking special payment for student:', studentId, 'monthKey:', currentMonthKey);
+        
+        // Remove special payment record from database
+        const paymentToDelete = specialPaymentsList.find(p => 
+          p.studentId === studentId
+        );
+        
+        if (paymentToDelete) {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/special-payments/${paymentToDelete.id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            }
+          });
+          console.log('Database special payment deleted:', response.ok);
+        }
+        
+        // Remove from special student payment record - this will delete the entry completely
+        const result = await updateSpecialStudentPayment(studentId, currentMonthKey, null);
+        console.log('Special student payment updated:', result);
+        
       } catch (error) {
+        console.error('Error updating special payment:', error);
         alert('Error updating payment: ' + error.message);
       }
     }
@@ -225,22 +250,145 @@ const SpecialPayments = () => {
   };
 
   const getPaymentHistory = (student) => {
+    if (!student || !student.payments) {
+      return [];
+    }
+    
     const uniquePayments = new Map();
     
-    Object.entries(student.payments || {})
+    Object.entries(student.payments)
       .filter(([key, payment]) => {
-        // Only show payments that exist and are paid
-        return payment && payment.paid === true;
+        // Only show payments that exist, are currently paid, and have required fields
+        return payment && 
+               payment.paid === true && 
+               payment.month && 
+               payment.year && 
+               payment.date;
       })
       .forEach(([key, payment]) => {
         const uniqueKey = `${payment.month}_${payment.year}`;
-        if (!uniquePayments.has(uniqueKey)) {
+        // Only keep the most recent entry for each month/year combination
+        if (!uniquePayments.has(uniqueKey) || new Date(payment.date) > new Date(uniquePayments.get(uniqueKey).date)) {
           uniquePayments.set(uniqueKey, { ...payment, key });
         }
       });
     
     return Array.from(uniquePayments.values())
       .sort((a, b) => new Date(b.date) - new Date(a.date));
+  };
+
+  const handleDeleteHistory = async (student, paymentKey) => {
+    if (!confirm('Are you sure you want to delete this payment history?')) {
+      return;
+    }
+    
+    try {
+      // Get the payment details from the key
+      const payment = student.payments[paymentKey];
+      
+      // Try to find and delete the special payment record from database
+      if (payment && specialPaymentsList.length > 0) {
+        const paymentToDelete = specialPaymentsList.find(p => 
+          p.studentId === student.id
+        );
+        
+        if (paymentToDelete) {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/special-payments/${paymentToDelete.id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            }
+          });
+          
+          if (!response.ok) {
+            console.warn('Failed to delete special payment record from database');
+          }
+        }
+      }
+      
+      // Remove from special student payment record (this updates the context immediately)
+      await updateSpecialStudentPayment(student.id, paymentKey, null);
+      
+      // Update the modal with the updated student data immediately
+      const updatedStudent = specialStudentsList.find(s => s.id === student.id);
+      if (updatedStudent) {
+        setShowHistoryModal({ isOpen: true, student: updatedStudent });
+      }
+      
+    } catch (error) {
+      console.error('Error deleting payment history:', error);
+      alert('Error deleting payment history: ' + error.message);
+    }
+  };
+
+  const handleStudentSelect = (studentId, isSelected) => {
+    if (isSelected) {
+      setSelectedStudents(prev => [...prev, studentId]);
+    } else {
+      setSelectedStudents(prev => prev.filter(id => id !== studentId));
+    }
+  };
+
+  const handleSelectAll = (isSelected) => {
+    if (isSelected) {
+      const unpaidStudents = filteredStudents
+        .filter(student => !student.payments[currentMonthKey]?.paid)
+        .map(student => student.id);
+      setSelectedStudents(unpaidStudents);
+    } else {
+      setSelectedStudents([]);
+    }
+  };
+
+  const handleBulkPayment = async () => {
+    if (selectedStudents.length === 0) {
+      alert('Please select students first');
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/special-payments/bulk`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          studentIds: selectedStudents,
+          description: bulkDescription,
+          amount: bulkAmount
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update local state for each processed student
+        for (const studentId of selectedStudents) {
+          const paymentData = {
+            paid: true,
+            date: new Date().toISOString().split('T')[0],
+            description: bulkDescription,
+            month: months[selectedMonth],
+            year: selectedYear
+          };
+          await updateSpecialStudentPayment(studentId, currentMonthKey, paymentData);
+        }
+        
+        alert(`Successfully processed ${result.processed} special payments${result.errors.length > 0 ? ` with ${result.errors.length} errors` : ''}`);
+      } else {
+        alert('Error processing bulk special payments: ' + result.message);
+      }
+    } catch (error) {
+      alert('Error processing bulk special payments: ' + error.message);
+    }
+    
+    setShowBulkModal(false);
+    setSelectedStudents([]);
+    setBulkDescription('');
+    setBulkAmount(500);
   };
 
   return (
@@ -299,7 +447,7 @@ const SpecialPayments = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-4 border-b border-gray-200 dark:border-gray-600">
             {/* Year Filter */}
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Calendar className="absolute left-3 top-3 text-gray-400 w-5 h-5 pointer-events-none z-10" />
               <select
                 value={selectedYear}
                 onChange={(e) => {
@@ -307,7 +455,7 @@ const SpecialPayments = () => {
                   setSelectedYear(year);
                   localStorage.setItem('special-payments-selected-year', year.toString());
                 }}
-                className="input-field pl-10"
+                className="input-field pl-10 pr-10 appearance-none"
               >
                 {years.map(year => (
                   <option key={year} value={year}>{year}</option>
@@ -317,7 +465,7 @@ const SpecialPayments = () => {
 
             {/* Month Filter */}
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Calendar className="absolute left-3 top-3 text-gray-400 w-5 h-5 pointer-events-none z-10" />
               <select
                 value={selectedMonth}
                 onChange={(e) => {
@@ -325,7 +473,7 @@ const SpecialPayments = () => {
                   setSelectedMonth(month);
                   localStorage.setItem('special-payments-selected-month', month.toString());
                 }}
-                className="input-field pl-10"
+                className="input-field pl-10 pr-10 appearance-none"
               >
                 {months.map((month, index) => (
                   <option key={index} value={index}>{month}</option>
@@ -335,11 +483,11 @@ const SpecialPayments = () => {
 
             {/* Payment Status Filter */}
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Filter className="absolute left-3 top-3 text-gray-400 w-5 h-5 pointer-events-none z-10" />
               <select
                 value={paymentStatusFilter}
                 onChange={(e) => setPaymentStatusFilter(e.target.value)}
-                className="input-field pl-10"
+                className="input-field pl-10 pr-10 appearance-none"
               >
                 <option value="all">All Special Students</option>
                 <option value="paid">Paid Special Students</option>
@@ -347,18 +495,26 @@ const SpecialPayments = () => {
               </select>
             </div>
 
-            {/* Download Links */}
+            {/* Download Links & Bulk Actions */}
             <div className="flex flex-col space-y-2">
               <button
+                onClick={() => setShowBulkModal(true)}
+                disabled={selectedStudents.length === 0}
+                className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-2 py-1 rounded text-sm font-medium transition-colors w-fit self-start"
+                title="Mark Selected as Paid"
+              >
+                Mark Selected as Paid ({selectedStudents.length})
+              </button>
+              <button
                 onClick={() => generatePDF('paid')}
-                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm underline decoration-2 underline-offset-2 hover:decoration-blue-800 dark:hover:decoration-blue-300 transition-colors duration-200"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm font-medium transition-colors w-fit self-start"
                 title="Download Paid Special Students PDF"
               >
                 Download Paid Special Students
               </button>
               <button
                 onClick={() => generatePDF('unpaid')}
-                className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium text-sm underline decoration-2 underline-offset-2 hover:decoration-red-800 dark:hover:decoration-red-300 transition-colors duration-200"
+                className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-medium transition-colors w-fit self-start"
                 title="Download Unpaid Special Students PDF"
               >
                 Download Unpaid Special Students
@@ -382,11 +538,11 @@ const SpecialPayments = () => {
 
             {/* Class Filter */}
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Filter className="absolute left-3 top-3 text-gray-400 w-5 h-5 pointer-events-none z-10" />
               <select
                 value={classFilter}
                 onChange={(e) => setClassFilter(e.target.value)}
-                className="input-field pl-10"
+                className="input-field pl-10 pr-10 appearance-none"
               >
                 <option value="all">All Classes</option>
                 {classes.map(cls => (
@@ -397,11 +553,11 @@ const SpecialPayments = () => {
 
             {/* Section Filter */}
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Filter className="absolute left-3 top-3 text-gray-400 w-5 h-5 pointer-events-none z-10" />
               <select
                 value={sectionFilter}
                 onChange={(e) => setSectionFilter(e.target.value)}
-                className="input-field pl-10"
+                className="input-field pl-10 pr-10 appearance-none"
               >
                 <option value="all">All Sections</option>
                 {sections.map(section => (
@@ -472,6 +628,14 @@ const SpecialPayments = () => {
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  <input
+                    type="checkbox"
+                    checked={selectedStudents.length > 0 && selectedStudents.length === filteredStudents.filter(s => !s.payments[currentMonthKey]?.paid).length}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Student Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -494,8 +658,18 @@ const SpecialPayments = () => {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredStudents.map((student) => {
                 const isPaid = student.payments[currentMonthKey]?.paid || false;
+                const isSelected = selectedStudents.includes(student.id);
                 return (
                   <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => handleStudentSelect(student.id, e.target.checked)}
+                        disabled={isPaid}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 disabled:opacity-50"
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
@@ -610,7 +784,7 @@ const SpecialPayments = () => {
                 getPaymentHistory(showHistoryModal.student).map((payment) => (
                   <div key={payment.key || `${payment.month}_${payment.year}`} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="flex-1">
                         <p className="font-medium text-gray-900 dark:text-white">
                           {payment.month} {payment.year}
                         </p>
@@ -623,9 +797,18 @@ const SpecialPayments = () => {
                           </p>
                         )}
                       </div>
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                        Paid
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                          Paid
+                        </span>
+                        <button
+                          onClick={() => handleDeleteHistory(showHistoryModal.student, payment.key)}
+                          className="text-red-600 hover:text-red-700 dark:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+                          title="Delete this payment history"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -641,6 +824,63 @@ const SpecialPayments = () => {
                 className="btn-secondary w-full"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Payment Modal */}
+      {showBulkModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Mark Selected Special Students as Paid
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              {selectedStudents.length} special students selected
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Amount
+                </label>
+                <input
+                  type="number"
+                  value={bulkAmount}
+                  onChange={(e) => setBulkAmount(Number(e.target.value))}
+                  placeholder="Enter amount"
+                  className="input-field w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={bulkDescription}
+                  onChange={(e) => setBulkDescription(e.target.value)}
+                  placeholder="Enter payment description for all selected students..."
+                  className="input-field w-full h-24 resize-none"
+                />
+              </div>
+            </div>
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={handleBulkPayment}
+                className="btn-primary flex-1"
+              >
+                Mark All as Paid
+              </button>
+              <button
+                onClick={() => {
+                  setShowBulkModal(false);
+                  setBulkDescription('');
+                  setBulkAmount(500);
+                }}
+                className="btn-secondary flex-1"
+              >
+                Cancel
               </button>
             </div>
           </div>
