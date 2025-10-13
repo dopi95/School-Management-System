@@ -82,20 +82,17 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 shadow-lg p-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-primary-700 dark:text-primary-400">{t('bluelightAcademy')}</h1>
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg"
-        >
-          {isMobileMenuOpen ? (
-            <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-          ) : (
-            <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-          )}
-        </button>
-      </div>
+      {/* Mobile Hamburger Button */}
+      <button
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="lg:hidden fixed top-2 left-4 z-30 p-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg touch-manipulation"
+      >
+        {isMobileMenuOpen ? (
+          <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+        ) : (
+          <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+        )}
+      </button>
 
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
@@ -108,14 +105,20 @@ const Sidebar = () => {
       {/* Sidebar */}
       <div className={`bg-white dark:bg-gray-800 shadow-lg w-64 fixed left-0 z-40 transform transition-transform duration-300 ease-in-out flex flex-col ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      } top-0 h-screen lg:top-0 lg:h-screen overflow-hidden`}>
-        {/* Desktop Header */}
-        <div className="hidden lg:block p-3 border-b border-gray-200 dark:border-gray-700">
+      } top-0 h-screen overflow-y-auto`}>
+        {/* Header */}
+        <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <h1 className="text-lg font-bold text-primary-700 dark:text-primary-400">{t('bluelightAcademy')}</h1>
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+          >
+            <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+          </button>
         </div>
 
         {/* User Profile */}
-        <div className="p-3 border-b border-gray-200 dark:border-gray-700 lg:mt-0">
+        <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors">
             <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
               <User className="w-6 h-6 text-primary-600 dark:text-primary-400" />
