@@ -439,6 +439,7 @@ router.post('/forgot-password', async (req, res) => {
 
     // Send OTP via email
     try {
+      console.log('Attempting to send OTP email to:', admin.email);
       await sendEmail({
         email: admin.email,
         subject: 'Password Reset OTP - Bluelight Academy',
@@ -460,16 +461,20 @@ router.post('/forgot-password', async (req, res) => {
         `
       });
 
+      console.log('OTP email sent successfully to:', admin.email);
       res.json({
         success: true,
         message: 'OTP sent to your email address successfully'
       });
     } catch (emailError) {
+      console.error('Failed to send OTP email:', emailError);
       admin.resetOTP = undefined;
       admin.resetOTPExpire = undefined;
       await admin.save();
       
-      res.status(500).json({ message: 'Failed to send email. Please try again.' });
+      res.status(500).json({ 
+        message: `Failed to send email: ${emailError.message}. Please check your email configuration.` 
+      });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -1,26 +1,55 @@
 import nodemailer from 'nodemailer';
 
 const sendEmail = async (options) => {
-  const transporter = nodemailer.createTransporter({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: false,
-    auth: {
+  try {
+    console.log('Email configuration:', {
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT,
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+      from: process.env.EMAIL_FROM
+    });
 
-  const message = {
-    from: `${process.env.EMAIL_FROM} <${process.env.EMAIL_USER}>`,
-    to: options.email,
-    subject: options.subject,
-    text: options.message,
-    html: options.html,
-  };
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: parseInt(process.env.EMAIL_PORT),
+      secure: false, // Use TLS
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.BREVO_API_KEY,
+      },
+      tls: {
+        rejectUnauthorized: false
+      },
+      debug: true,
+      logger: true
+    });
 
-  const info = await transporter.sendMail(message);
-  return info;
+    // Verify connection
+    await transporter.verify();
+    console.log('SMTP connection verified successfully');
+
+    const message = {
+      from: `${process.env.EMAIL_FROM} <elyasyenealem95@gmail.com>`,
+      to: options.email,
+      subject: options.subject,
+      text: options.message,
+      html: options.html,
+    };
+
+    console.log('Sending email to:', options.email);
+    console.log('Email message:', message);
+    const info = await transporter.sendMail(message);
+    console.log('Email sent successfully:', {
+      messageId: info.messageId,
+      accepted: info.accepted,
+      rejected: info.rejected,
+      response: info.response
+    });
+    return info;
+  } catch (error) {
+    console.error('Email sending error:', error);
+    throw error;
+  }
 };
 
 export default sendEmail;
