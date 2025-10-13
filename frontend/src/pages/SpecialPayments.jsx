@@ -227,7 +227,7 @@ const SpecialPayments = () => {
           : student.firstName && student.middleName 
           ? `${student.firstName} ${student.middleName}`
           : student.name,
-        amount: parseFloat(amount) || 500
+        amount: parseFloat(amount) || 500,
         month: months[selectedMonth],
         year: selectedYear.toString(),
         description: description
