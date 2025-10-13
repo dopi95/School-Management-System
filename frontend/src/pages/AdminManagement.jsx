@@ -8,12 +8,10 @@ import DeleteModal from '../components/DeleteModal.jsx';
 const AdminManagement = () => {
   const { admin } = useAuth();
   const [admins, setAdmins] = useState([]);
-  const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [logsLoading, setLogsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [showActivityLogs, setShowActivityLogs] = useState(false);
+
   const [editingAdmin, setEditingAdmin] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
@@ -40,7 +38,6 @@ const AdminManagement = () => {
 
   useEffect(() => {
     fetchAdmins();
-    fetchActivityLogs();
   }, []);
 
   const fetchAdmins = async () => {
@@ -56,18 +53,7 @@ const AdminManagement = () => {
     }
   };
 
-  const fetchActivityLogs = async () => {
-    try {
-      const response = await api.getAdminActivityLogs();
-      if (response.success) {
-        setActivityLogs(response.logs);
-      }
-    } catch (error) {
-      console.error('Error fetching activity logs:', error);
-    } finally {
-      setLogsLoading(false);
-    }
-  };
+
 
   const filteredAdmins = admins.filter(adminItem =>
     adminItem.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -98,7 +84,6 @@ const AdminManagement = () => {
         }
       }
       fetchAdmins();
-      fetchActivityLogs();
       resetForm();
     } catch (error) {
       alert('Error: ' + error.message);
@@ -193,22 +178,13 @@ const AdminManagement = () => {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Management</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Manage system administrators</p>
         </div>
-        <div className="flex space-x-3">
-          <button
-            onClick={() => setShowActivityLogs(!showActivityLogs)}
-            className="btn-secondary flex items-center space-x-2"
-          >
-            <Activity className="w-5 h-5" />
-            <span>{showActivityLogs ? 'Hide' : 'Show'} Activity Logs</span>
-          </button>
-          <button
-            onClick={() => setShowModal(true)}
-            className="btn-primary flex items-center space-x-2"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Add Admin</span>
-          </button>
-        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="btn-primary flex items-center space-x-2"
+        >
+          <Plus className="w-5 h-5" />
+          <span>Add Admin</span>
+        </button>
       </div>
 
       {/* Stats Cards */}
@@ -264,103 +240,7 @@ const AdminManagement = () => {
         </div>
       </div>
 
-      {/* Activity Logs */}
-      {showActivityLogs && (
-        <div className="card">
-          <div className="flex items-center space-x-2 mb-4">
-            <Activity className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Admin Activity Logs</h2>
-          </div>
-          {logsLoading ? (
-            <div className="text-center py-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Admin
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Action
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Changes
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Date & Time
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {activityLogs.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                        No activity logs found
-                      </td>
-                    </tr>
-                  ) : (
-                    activityLogs.map((log) => (
-                      <tr key={log._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                              <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                                {log.adminName.charAt(0)}
-                              </span>
-                            </div>
-                            <div className="ml-3">
-                              <div className="text-sm font-medium text-gray-900 dark:text-white">{log.adminName}</div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">{log.adminEmail}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            log.actionType === 'password_change'
-                              ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-                              : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
-                          }`}>
-                            {log.actionType === 'password_change' ? 'Password Changed' : 'Profile Updated'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900 dark:text-white">
-                            {Object.entries(log.changes).map(([key, value]) => (
-                              <div key={key} className="mb-1">
-                                {key === 'password' ? (
-                                  <span className="text-red-600 dark:text-red-400">
-                                    Password: Changed to "{value.newPassword}"
-                                  </span>
-                                ) : (
-                                  <span>
-                                    {key}: <span className="text-gray-500">{value.from}</span> → <span className="text-green-600">{value.to}</span>
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center text-sm text-gray-900 dark:text-white">
-                            <Clock className="w-4 h-4 mr-1 text-gray-400" />
-                            <div>
-                              <div>{new Date(log.createdAt).toLocaleDateString()}</div>
-                              <div className="text-xs text-gray-500">{new Date(log.createdAt).toLocaleTimeString()}</div>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
+
 
       {/* Admins Table */}
       <div className="card overflow-hidden">

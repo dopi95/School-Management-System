@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { User, Mail, Lock, Save, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Lock, Save, Eye, EyeOff, Camera, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
+import api from '../services/api.js';
 import SuccessModal from '../components/SuccessModal.jsx';
 
 const Profile = () => {
-  const { admin, updateProfile } = useAuth();
+  const { admin, updateProfile, refreshProfile } = useAuth();
   const [formData, setFormData] = useState({
     name: admin?.name || '',
     email: admin?.email || '',
@@ -20,6 +21,7 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
+  const [uploadingPicture, setUploadingPicture] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -77,6 +79,51 @@ const Profile = () => {
     }
     
     setIsLoading(false);
+  };
+
+  const handlePictureUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingPicture(true);
+    setError('');
+
+    try {
+      const result = await api.uploadProfilePicture(file);
+      if (result.success) {
+        await refreshProfile();
+        setSuccessModal({
+          isOpen: true,
+          title: 'Profile Picture Updated!',
+          message: result.message
+        });
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setUploadingPicture(false);
+    }
+  };
+
+  const handlePictureRemove = async () => {
+    setUploadingPicture(true);
+    setError('');
+
+    try {
+      const result = await api.removeProfilePicture();
+      if (result.success) {
+        await refreshProfile();
+        setSuccessModal({
+          isOpen: true,
+          title: 'Profile Picture Removed!',
+          message: result.message
+        });
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setUploadingPicture(false);
+    }
   };
 
   return (
@@ -254,13 +301,50 @@ const Profile = () => {
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Profile Summary</h3>
             <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
-                  <span className="text-lg font-bold text-primary-600 dark:text-primary-400">
-                    {admin?.name?.charAt(0)}
-                  </span>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative">
+                  {admin?.profilePicture ? (
+                    <img
+                      src={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}/${admin.profilePicture}`}
+                      alt="Profile"
+                      className="w-20 h-20 rounded-full object-cover border-4 border-primary-200 dark:border-primary-700"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center border-4 border-primary-200 dark:border-primary-700">
+                      <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                        {admin?.name?.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 right-0 flex space-x-1">
+                    <label className="bg-primary-600 hover:bg-primary-700 text-white rounded-full p-2 cursor-pointer transition-colors">
+                      <Camera className="w-4 h-4" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePictureUpload}
+                        className="hidden"
+                        disabled={uploadingPicture}
+                      />
+                    </label>
+                    {admin?.profilePicture && (
+                      <button
+                        onClick={handlePictureRemove}
+                        disabled={uploadingPicture}
+                        className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 transition-colors"
+                        title="Remove picture"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  {uploadingPicture && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                    </div>
+                  )}
                 </div>
-                <div>
+                <div className="text-center">
                   <p className="font-medium text-gray-900 dark:text-white">{admin?.name}</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{admin?.email}</p>
                 </div>

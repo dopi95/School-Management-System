@@ -120,8 +120,16 @@ const Sidebar = () => {
         {/* User Profile */}
         <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors">
-            <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center overflow-hidden">
+              {admin?.profilePicture ? (
+                <img
+                  src={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}/${admin.profilePicture}`}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+              )}
             </div>
             <div className="flex-1">
               <p className="font-medium text-gray-900 dark:text-white">{admin?.name}</p>

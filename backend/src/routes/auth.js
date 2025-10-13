@@ -1,6 +1,9 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import Admin from '../models/Admin.js';
 import AdminActivityLog from '../models/AdminActivityLog.js';
 import { protect, authorize } from '../middleware/auth.js';
@@ -8,6 +11,39 @@ import { logActivity } from '../utils/activityLogger.js';
 import sendEmail from '../utils/sendEmail.js';
 
 const router = express.Router();
+
+// Configure multer for profile picture uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = 'uploads/profiles';
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = /jpeg|jpg|png|gif/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -86,6 +122,7 @@ router.get('/profile', protect, async (req, res) => {
         permissions: req.admin.permissions,
         status: req.admin.status,
         lastLogin: req.admin.lastLogin,
+        profilePicture: req.admin.profilePicture,
         createdAt: req.admin.createdAt
       }
     });
@@ -501,6 +538,94 @@ router.post('/reset-password', async (req, res) => {
     res.json({
       success: true,
       message: 'Password reset successfully'
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Upload profile picture
+// @route   POST /api/auth/profile/picture
+// @access  Private
+router.post('/profile/picture', protect, upload.single('profilePicture'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const admin = await Admin.findById(req.admin._id);
+    
+    // Delete old profile picture if exists
+    if (admin.profilePicture) {
+      const oldPath = admin.profilePicture;
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath);
+      }
+    }
+
+    // Update admin with new profile picture path
+    admin.profilePicture = req.file.path;
+    await admin.save();
+
+    await logActivity(req, 'PROFILE_PICTURE_UPDATE', 'Profile', admin._id, admin.name, 'Profile picture updated');
+
+    res.json({
+      success: true,
+      message: 'Profile picture uploaded successfully',
+      profilePicture: admin.profilePicture,
+      admin: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        role: admin.role,
+        permissions: admin.permissions,
+        status: admin.status,
+        profilePicture: admin.profilePicture
+      }
+    });
+  } catch (error) {
+    // Delete uploaded file if there was an error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Remove profile picture
+// @route   DELETE /api/auth/profile/picture
+// @access  Private
+router.delete('/profile/picture', protect, async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.admin._id);
+    
+    if (!admin.profilePicture) {
+      return res.status(400).json({ message: 'No profile picture to remove' });
+    }
+
+    // Delete the file
+    if (fs.existsSync(admin.profilePicture)) {
+      fs.unlinkSync(admin.profilePicture);
+    }
+
+    // Remove from database
+    admin.profilePicture = undefined;
+    await admin.save();
+
+    await logActivity(req, 'PROFILE_PICTURE_REMOVE', 'Profile', admin._id, admin.name, 'Profile picture removed');
+
+    res.json({
+      success: true,
+      message: 'Profile picture removed successfully',
+      admin: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        role: admin.role,
+        permissions: admin.permissions,
+        status: admin.status,
+        profilePicture: admin.profilePicture
+      }
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

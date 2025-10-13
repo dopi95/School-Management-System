@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Users, GraduationCap, UserCog, UserX, User, UserCheck } from 'lucide-react';
+import { Users, GraduationCap, UserCog, UserX, User, UserCheck, Send } from 'lucide-react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -343,49 +343,32 @@ const Dashboard = () => {
       {/* Quick Actions */}
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <PermissionGuard 
-            permission="students" 
-            fallback={
-              <div className="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-center opacity-50">
-                <Users className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                <p className="text-sm text-gray-400 dark:text-gray-500">No Access to Students</p>
-              </div>
-            }
-          >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <PermissionGuard permission="students">
             <Link to="/students/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
               <Users className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add New Student</p>
             </Link>
           </PermissionGuard>
           
-          <PermissionGuard 
-            permission="employees" 
-            fallback={
-              <div className="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-center opacity-50">
-                <GraduationCap className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                <p className="text-sm text-gray-400 dark:text-gray-500">No Access to Employees</p>
-              </div>
-            }
-          >
+          <PermissionGuard permission="employees">
             <Link to="/teachers/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
               <GraduationCap className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add New Employee</p>
             </Link>
           </PermissionGuard>
           
-          <PermissionGuard 
-            permission="admins" 
-            fallback={
-              <div className="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-center opacity-50">
-                <UserCog className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                <p className="text-sm text-gray-400 dark:text-gray-500">No Access to Admins</p>
-              </div>
-            }
-          >
+          <PermissionGuard permission="admins">
             <Link to="/admin-management" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
               <UserCog className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Manage Admins</p>
+            </Link>
+          </PermissionGuard>
+          
+          <PermissionGuard permission="notifications">
+            <Link to="/notifications" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
+              <Send className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Send Notification</p>
             </Link>
           </PermissionGuard>
         </div>

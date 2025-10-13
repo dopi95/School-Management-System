@@ -30,6 +30,7 @@ const adminSchema = new mongoose.Schema({
     enum: ['active', 'inactive'], 
     default: 'active' 
   },
+  profilePicture: { type: String },
   lastLogin: { type: Date },
   resetPasswordToken: String,
   resetPasswordExpire: Date,

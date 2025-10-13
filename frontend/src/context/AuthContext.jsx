@@ -113,6 +113,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshProfile = async () => {
+    try {
+      const response = await api.getProfile();
+      if (response.success) {
+        setAdmin(response.admin);
+      }
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+    }
+  };
+
   const value = {
     admin,
     loading,
@@ -120,6 +131,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateProfile,
+    refreshProfile,
     checkAuth
   };
 

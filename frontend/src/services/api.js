@@ -245,6 +245,33 @@ class ApiService {
     });
   }
 
+  async uploadProfilePicture(file) {
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+    
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/auth/profile/picture`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Upload failed');
+    }
+    
+    return await response.json();
+  }
+
+  async removeProfilePicture() {
+    return this.request('/auth/profile/picture', {
+      method: 'DELETE',
+    });
+  }
+
   async getAdmins() {
     return this.request('/auth/admins');
   }
