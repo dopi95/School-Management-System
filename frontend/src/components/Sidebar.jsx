@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import logo from '../assets/lo.png';
 
 const Sidebar = () => {
   const { admin, logout } = useAuth();
@@ -110,7 +111,7 @@ const Sidebar = () => {
         <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <img
-              src="/src/assets/lo.png"
+              src={logo}
               alt="Logo"
               className="h-10 w-16"
             />

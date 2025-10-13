@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
+import logo from '../assets/logo.png'
 
 const Login = () => {
   const { login, isAuthenticated, loading, logout } = useAuth();
@@ -177,7 +178,7 @@ const Login = () => {
         <div>
           <div className="flex flex-col items-center mb-6">
             <img
-              src="/src/assets/logo.png"
+              src={logo}
               alt="Bluelight Academy Logo"
               className="h-24 w-24 mb-4"
             />

@@ -20,8 +20,11 @@ const sendEmail = async (options) => {
       tls: {
         rejectUnauthorized: false
       },
-      debug: true,
-      logger: true
+      connectionTimeout: 60000, // 60 seconds
+      greetingTimeout: 30000, // 30 seconds
+      socketTimeout: 60000, // 60 seconds
+      debug: process.env.NODE_ENV === 'development',
+      logger: process.env.NODE_ENV === 'development'
     });
 
     // Verify connection
