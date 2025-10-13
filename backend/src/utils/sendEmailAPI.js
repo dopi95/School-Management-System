@@ -1,6 +1,10 @@
 // Alternative email service using Brevo API (more reliable on Render)
 const sendEmailAPI = async (options) => {
   try {
+    if (!process.env.BREVO_API_KEY) {
+      throw new Error('BREVO_API_KEY environment variable is not set');
+    }
+    
     console.log('Sending email via Brevo API to:', options.email);
     
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
