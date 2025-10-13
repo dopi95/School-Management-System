@@ -16,9 +16,37 @@ export const SpecialStudentsProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load special students on mount
+  // Load special students on mount and set up refresh mechanisms
   useEffect(() => {
     loadSpecialStudents();
+    
+    // Refresh data when page becomes visible (switching between devices/tabs)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadSpecialStudents();
+      }
+    };
+    
+    // Refresh data when window gains focus
+    const handleFocus = () => {
+      loadSpecialStudents();
+    };
+    
+    // Set up periodic refresh every 10 seconds
+    const refreshInterval = setInterval(() => {
+      if (!document.hidden) {
+        loadSpecialStudents();
+      }
+    }, 10000);
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(refreshInterval);
+    };
   }, []);
 
   const loadSpecialStudents = async () => {

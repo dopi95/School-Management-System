@@ -16,9 +16,37 @@ export const StudentsProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load students on mount
+  // Load students on mount and set up refresh mechanisms
   useEffect(() => {
     loadStudents();
+    
+    // Refresh data when page becomes visible (switching between devices/tabs)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadStudents();
+      }
+    };
+    
+    // Refresh data when window gains focus
+    const handleFocus = () => {
+      loadStudents();
+    };
+    
+    // Set up periodic refresh every 10 seconds
+    const refreshInterval = setInterval(() => {
+      if (!document.hidden) {
+        loadStudents();
+      }
+    }, 10000);
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(refreshInterval);
+    };
   }, []);
 
   const loadStudents = async () => {
