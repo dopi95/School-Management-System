@@ -821,7 +821,7 @@ const Payments = () => {
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           Date: {payment.date}
                         </p>
-                        {payment.amount && (
+                        {payment.amount !== undefined && payment.amount !== null && (
                           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                             Amount: {payment.amount} ETB
                           </p>
