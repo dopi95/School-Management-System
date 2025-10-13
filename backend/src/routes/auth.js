@@ -9,6 +9,7 @@ import AdminActivityLog from '../models/AdminActivityLog.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { logActivity } from '../utils/activityLogger.js';
 import sendEmail from '../utils/sendEmail.js';
+import sendEmailAPI from '../utils/sendEmailAPI.js';
 
 const router = express.Router();
 
@@ -438,44 +439,52 @@ router.post('/forgot-password', async (req, res) => {
     await admin.save();
 
     // Send OTP via email
-    try {
-      console.log('Attempting to send OTP email to:', admin.email);
-      await sendEmail({
-        email: admin.email,
-        subject: 'Password Reset OTP - Bluelight Academy',
-        message: `Your password reset OTP is: ${otp}. This OTP will expire in 10 minutes.`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Password Reset Request</h2>
-            <p>Hello ${admin.name},</p>
-            <p>You have requested to reset your password for Bluelight Academy Management System.</p>
-            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
-              <h3 style="color: #007bff; margin: 0;">Your OTP Code</h3>
-              <h1 style="color: #007bff; font-size: 32px; letter-spacing: 5px; margin: 10px 0;">${otp}</h1>
-            </div>
-            <p><strong>This OTP will expire in 10 minutes.</strong></p>
-            <p>If you did not request this password reset, please ignore this email.</p>
-            <hr style="margin: 30px 0;">
-            <p style="color: #666; font-size: 12px;">Bluelight Academy Management System</p>
+    const emailData = {
+      email: admin.email,
+      subject: 'Password Reset OTP - Bluelight Academy',
+      message: `Your password reset OTP is: ${otp}. This OTP will expire in 10 minutes.`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Password Reset Request</h2>
+          <p>Hello ${admin.name},</p>
+          <p>You have requested to reset your password for Bluelight Academy Management System.</p>
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; text-align: center; margin: 20px 0;">
+            <h3 style="color: #007bff; margin: 0;">Your OTP Code</h3>
+            <h1 style="color: #007bff; font-size: 32px; letter-spacing: 5px; margin: 10px 0;">${otp}</h1>
           </div>
-        `
-      });
+          <p><strong>This OTP will expire in 10 minutes.</strong></p>
+          <p>If you did not request this password reset, please ignore this email.</p>
+          <hr style="margin: 30px 0;">
+          <p style="color: #666; font-size: 12px;">Bluelight Academy Management System</p>
+        </div>
+      `
+    };
 
-      console.log('OTP email sent successfully to:', admin.email);
-      res.json({
-        success: true,
-        message: 'OTP sent to your email address successfully'
-      });
-    } catch (emailError) {
-      console.error('Failed to send OTP email:', emailError);
-      admin.resetOTP = undefined;
-      admin.resetOTPExpire = undefined;
-      await admin.save();
-      
-      res.status(500).json({ 
-        message: `Failed to send email: ${emailError.message}. Please check your email configuration.` 
-      });
+    try {
+      console.log('Attempting to send OTP email via SMTP to:', admin.email);
+      await sendEmail(emailData);
+      console.log('OTP email sent successfully via SMTP');
+    } catch (smtpError) {
+      console.log('SMTP failed, trying Brevo API:', smtpError.message);
+      try {
+        await sendEmailAPI(emailData);
+        console.log('OTP email sent successfully via API');
+      } catch (apiError) {
+        console.error('Both SMTP and API failed:', apiError);
+        admin.resetOTP = undefined;
+        admin.resetOTPExpire = undefined;
+        await admin.save();
+        
+        return res.status(500).json({ 
+          message: `Failed to send email: ${apiError.message}. Please try again later.` 
+        });
+      }
     }
+
+    res.json({
+      success: true,
+      message: 'OTP sent to your email address successfully'
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
