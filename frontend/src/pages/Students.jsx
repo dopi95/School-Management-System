@@ -255,18 +255,8 @@ const Students = () => {
         </div>
       </div>
 
-      {/* Loading State */}
-      {loading && (
-        <div className="card">
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="text-gray-500 dark:text-gray-400 mt-4">Loading students...</p>
-          </div>
-        </div>
-      )}
-
       {/* Students Table */}
-      {!loading && (
+      {studentsList.length > 0 && (
         <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -410,7 +400,7 @@ const Students = () => {
       )}
 
       {/* Results Count */}
-      {!loading && (
+      {studentsList.length > 0 && (
         <div className="text-sm text-gray-600 dark:text-gray-400">
           Showing {filteredStudents.length} of {studentsList.length} students
         </div>

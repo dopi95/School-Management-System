@@ -34,6 +34,16 @@ export const PaymentsProvider = ({ children }) => {
     }
   };
 
+  const fetchPayments = async () => {
+    try {
+      const payments = await apiService.getPayments();
+      setPaymentsList(payments);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to refresh payments:', err);
+    }
+  };
+
   const addPayment = async (paymentData) => {
     try {
       const newPayment = await apiService.createPayment(paymentData);
@@ -83,6 +93,7 @@ export const PaymentsProvider = ({ children }) => {
     loading,
     error,
     loadPayments,
+    fetchPayments,
     addPayment,
     updatePayment,
     deletePayment,

@@ -35,6 +35,16 @@ export const SpecialPaymentsProvider = ({ children }) => {
     }
   };
 
+  const fetchSpecialPayments = async () => {
+    try {
+      const payments = await apiService.getSpecialPayments();
+      setSpecialPaymentsList(payments);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to refresh special payments:', err);
+    }
+  };
+
   const addSpecialPayment = async (paymentData) => {
     try {
       const newPayment = await apiService.createSpecialPayment(paymentData);
@@ -85,6 +95,7 @@ export const SpecialPaymentsProvider = ({ children }) => {
     loading,
     error,
     loadSpecialPayments,
+    fetchSpecialPayments,
     addSpecialPayment,
     updateSpecialPayment,
     deleteSpecialPayment,

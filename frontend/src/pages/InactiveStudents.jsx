@@ -89,18 +89,8 @@ const InactiveStudents = () => {
         </div>
       </div>
 
-      {/* Loading State */}
-      {loading && (
-        <div className="card">
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="text-gray-500 dark:text-gray-400 mt-4">Loading students...</p>
-          </div>
-        </div>
-      )}
-
       {/* Students Table */}
-      {!loading && (
+      {inactiveStudents.length > 0 && (
         <div className="card overflow-hidden">
         {filteredStudents.length > 0 ? (
           <div className="overflow-x-auto">
@@ -213,7 +203,7 @@ const InactiveStudents = () => {
       )}
 
       {/* Results Count */}
-      {!loading && filteredStudents.length > 0 && (
+      {filteredStudents.length > 0 && (
         <div className="text-sm text-gray-600 dark:text-gray-400">
           Showing {filteredStudents.length} of {inactiveStudents.length} inactive students
         </div>
