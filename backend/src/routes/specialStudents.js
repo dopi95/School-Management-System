@@ -62,19 +62,30 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const decodedId = decodeURIComponent(req.params.id);
+    
+    // Get existing student to preserve payments
+    const existingStudent = await SpecialStudent.findOne({ id: decodedId });
+    if (!existingStudent) {
+      return res.status(404).json({ message: 'Special student not found' });
+    }
+    
     // Combine name fields for backward compatibility
     if (req.body.firstName && req.body.middleName && req.body.lastName) {
       req.body.name = `${req.body.firstName} ${req.body.middleName} ${req.body.lastName}`;
     }
     
+    // Preserve existing payments data
+    const updateData = {
+      ...req.body,
+      payments: existingStudent.payments
+    };
+    
     const student = await SpecialStudent.findOneAndUpdate(
       { id: decodedId },
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
-    if (!student) {
-      return res.status(404).json({ message: 'Special student not found' });
-    }
+    
     res.json(student);
   } catch (error) {
     res.status(400).json({ message: error.message });
