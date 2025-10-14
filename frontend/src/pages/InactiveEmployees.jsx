@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Search, Eye, Users, UserCheck } from 'lucide-react';
+import { Search, Eye, Users, UserCheck, FileText, FileSpreadsheet } from 'lucide-react';
 import { useEmployees } from '../context/EmployeesContext.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
+import { exportEmployeesToPDF, exportEmployeesToExcel } from '../utils/exportUtils.js';
 
 const InactiveEmployees = () => {
   const { employeesList, loading, updateEmployeeStatus } = useEmployees();
@@ -24,6 +25,25 @@ const InactiveEmployees = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Inactive Employees</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Manage inactive employee records</p>
+        </div>
+        <div className="flex items-center space-x-3">
+          {/* Export Buttons */}
+          <button
+            onClick={() => exportEmployeesToPDF(filteredEmployees, 'Inactive Employees List')}
+            className="btn-secondary flex items-center space-x-2"
+            title="Export to PDF"
+          >
+            <FileText className="w-4 h-4" />
+            <span>PDF</span>
+          </button>
+          <button
+            onClick={() => exportEmployeesToExcel(filteredEmployees, 'inactive_employees_list')}
+            className="btn-secondary flex items-center space-x-2"
+            title="Export to Excel"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Excel</span>
+          </button>
         </div>
       </div>
 

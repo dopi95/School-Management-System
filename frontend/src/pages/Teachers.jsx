@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Eye, Trash2, Users, UserX, Edit } from 'lucide-react';
+import { Plus, Search, Eye, Trash2, Users, UserX, Edit, FileText, FileSpreadsheet } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useEmployees } from '../context/EmployeesContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
+import { exportEmployeesToPDF, exportEmployeesToExcel } from '../utils/exportUtils.js';
 
 const Teachers = () => {
   const { t } = useLanguage();
@@ -69,10 +70,29 @@ const Teachers = () => {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Employees</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Manage employee information and records</p>
         </div>
-        <Link to="/teachers/add" className="btn-primary flex items-center space-x-2">
-          <Plus className="w-5 h-5" />
-          <span>Add Employee</span>
-        </Link>
+        <div className="flex items-center space-x-3">
+          {/* Export Buttons */}
+          <button
+            onClick={() => exportEmployeesToPDF(filteredEmployees, 'Active Employees List')}
+            className="btn-secondary flex items-center space-x-2"
+            title="Export to PDF"
+          >
+            <FileText className="w-4 h-4" />
+            <span>PDF</span>
+          </button>
+          <button
+            onClick={() => exportEmployeesToExcel(filteredEmployees, 'active_employees_list')}
+            className="btn-secondary flex items-center space-x-2"
+            title="Export to Excel"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Excel</span>
+          </button>
+          <Link to="/teachers/add" className="btn-primary flex items-center space-x-2">
+            <Plus className="w-5 h-5" />
+            <span>Add Employee</span>
+          </Link>
+        </div>
       </div>
 
       {/* Count Cards */}

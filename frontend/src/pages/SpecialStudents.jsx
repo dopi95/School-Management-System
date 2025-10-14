@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Eye, Filter, Trash2, Users, UserX, Edit, CheckSquare, Square } from 'lucide-react';
+import { Plus, Search, Eye, Filter, Trash2, Users, UserX, Edit, CheckSquare, Square, FileText, FileSpreadsheet } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
+import { exportStudentsToPDF, exportStudentsToExcel } from '../utils/exportUtils.js';
 
 const SpecialStudents = () => {
   const { t, language } = useLanguage();
@@ -137,6 +138,39 @@ const SpecialStudents = () => {
           <p className="text-gray-600 dark:text-gray-400 mt-2">Manage special student information and records</p>
         </div>
         <div className="flex items-center space-x-3">
+          {/* Export Buttons */}
+          <button
+            onClick={() => {
+              const dataToExport = selectedStudents.length > 0 
+                ? filteredStudents.filter(s => selectedStudents.includes(s.id))
+                : filteredStudents;
+              const title = selectedStudents.length > 0 
+                ? `Selected Special Students (${selectedStudents.length})`
+                : 'Special Students List';
+              exportStudentsToPDF(dataToExport, title);
+            }}
+            className="btn-secondary flex items-center space-x-2"
+            title={selectedStudents.length > 0 ? 'Export Selected to PDF' : 'Export Filtered to PDF'}
+          >
+            <FileText className="w-4 h-4" />
+            <span>PDF</span>
+          </button>
+          <button
+            onClick={() => {
+              const dataToExport = selectedStudents.length > 0 
+                ? filteredStudents.filter(s => selectedStudents.includes(s.id))
+                : filteredStudents;
+              const filename = selectedStudents.length > 0 
+                ? `selected_special_students_${selectedStudents.length}`
+                : 'special_students_list';
+              exportStudentsToExcel(dataToExport, filename);
+            }}
+            className="btn-secondary flex items-center space-x-2"
+            title={selectedStudents.length > 0 ? 'Export Selected to Excel' : 'Export Filtered to Excel'}
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Excel</span>
+          </button>
           {selectedStudents.length > 0 && (
             <>
               <button

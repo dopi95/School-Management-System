@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Search, Eye, Users, UserCheck, History } from 'lucide-react';
+import { Search, Eye, Users, UserCheck, History, FileText, FileSpreadsheet } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
 import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
+import { exportStudentsToPDF, exportStudentsToExcel } from '../utils/exportUtils.js';
 
 const InactiveStudents = () => {
   const { t, language } = useLanguage();
@@ -59,6 +60,25 @@ const InactiveStudents = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Inactive Students</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Manage inactive student records</p>
+        </div>
+        <div className="flex items-center space-x-3">
+          {/* Export Buttons */}
+          <button
+            onClick={() => exportStudentsToPDF(filteredStudents, 'Inactive Students List')}
+            className="btn-secondary flex items-center space-x-2"
+            title="Export to PDF"
+          >
+            <FileText className="w-4 h-4" />
+            <span>PDF</span>
+          </button>
+          <button
+            onClick={() => exportStudentsToExcel(filteredStudents, 'inactive_students_list')}
+            className="btn-secondary flex items-center space-x-2"
+            title="Export to Excel"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Excel</span>
+          </button>
         </div>
       </div>
 
