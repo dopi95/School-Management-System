@@ -15,6 +15,7 @@ export const StudentsProvider = ({ children }) => {
   const [studentsList, setStudentsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Load students on mount and set up refresh mechanisms
   useEffect(() => {
@@ -22,20 +23,22 @@ export const StudentsProvider = ({ children }) => {
     
     // Refresh data when page becomes visible (switching between devices/tabs)
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        loadStudents();
+      if (!document.hidden && !isEditing) {
+        loadStudents(false); // Silent refresh
       }
     };
     
     // Refresh data when window gains focus
     const handleFocus = () => {
-      loadStudents();
+      if (!isEditing) {
+        loadStudents(false); // Silent refresh
+      }
     };
     
     // Set up periodic refresh every 10 seconds
     const refreshInterval = setInterval(() => {
-      if (!document.hidden) {
-        loadStudents();
+      if (!document.hidden && !isEditing) {
+        loadStudents(false); // Silent refresh
       }
     }, 10000);
     
@@ -47,11 +50,11 @@ export const StudentsProvider = ({ children }) => {
       window.removeEventListener('focus', handleFocus);
       clearInterval(refreshInterval);
     };
-  }, []);
+  }, [isEditing]);
 
-  const loadStudents = async () => {
+  const loadStudents = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const students = await apiService.getStudents();
       setStudentsList(students);
       setError(null);
@@ -59,7 +62,7 @@ export const StudentsProvider = ({ children }) => {
       setError(err.message);
       console.error('Failed to load students:', err);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -141,6 +144,8 @@ export const StudentsProvider = ({ children }) => {
     setStudentsList,
     loading,
     error,
+    isEditing,
+    setIsEditing,
     loadStudents,
     addStudent,
     updateStudent,

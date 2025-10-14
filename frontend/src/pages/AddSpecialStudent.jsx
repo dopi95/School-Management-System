@@ -9,7 +9,7 @@ const AddSpecialStudent = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { specialStudentsList, loading, addSpecialStudent, updateSpecialStudent } = useSpecialStudents();
+  const { specialStudentsList, loading, addSpecialStudent, updateSpecialStudent, setIsEditing } = useSpecialStudents();
   const isEdit = Boolean(id);
   
   const [formData, setFormData] = useState({
@@ -71,12 +71,14 @@ const AddSpecialStudent = () => {
   }, [isEdit, id, specialStudentsList, loading]);
 
   const handleChange = (e) => {
+    setIsEditing(true);
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setIsEditing(true);
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({ ...formData, photo: reader.result });
@@ -136,6 +138,7 @@ const AddSpecialStudent = () => {
   };
 
   const handleSuccessClose = () => {
+    setIsEditing(false);
     setSuccessModal({ isOpen: false, title: '', message: '' });
     navigate('/special-students');
   };
@@ -462,7 +465,11 @@ const AddSpecialStudent = () => {
               <Save className="w-5 h-5" />
               <span>{isEdit ? 'Update Special Student' : 'Save Special Student'}</span>
             </button>
-            <Link to="/special-students" className="btn-secondary">
+            <Link 
+              to="/special-students" 
+              className="btn-secondary"
+              onClick={() => setIsEditing(false)}
+            >
               Cancel
             </Link>
           </div>

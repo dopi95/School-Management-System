@@ -15,6 +15,7 @@ export const SpecialStudentsProvider = ({ children }) => {
   const [specialStudentsList, setSpecialStudentsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Load special students on mount and set up refresh mechanisms
   useEffect(() => {
@@ -22,20 +23,22 @@ export const SpecialStudentsProvider = ({ children }) => {
     
     // Refresh data when page becomes visible (switching between devices/tabs)
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        loadSpecialStudents();
+      if (!document.hidden && !isEditing) {
+        loadSpecialStudents(false); // Silent refresh
       }
     };
     
     // Refresh data when window gains focus
     const handleFocus = () => {
-      loadSpecialStudents();
+      if (!isEditing) {
+        loadSpecialStudents(false); // Silent refresh
+      }
     };
     
     // Set up periodic refresh every 10 seconds
     const refreshInterval = setInterval(() => {
-      if (!document.hidden) {
-        loadSpecialStudents();
+      if (!document.hidden && !isEditing) {
+        loadSpecialStudents(false); // Silent refresh
       }
     }, 10000);
     
@@ -47,11 +50,11 @@ export const SpecialStudentsProvider = ({ children }) => {
       window.removeEventListener('focus', handleFocus);
       clearInterval(refreshInterval);
     };
-  }, []);
+  }, [isEditing]);
 
-  const loadSpecialStudents = async () => {
+  const loadSpecialStudents = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const students = await apiService.getSpecialStudents();
       setSpecialStudentsList(students);
       setError(null);
@@ -59,7 +62,7 @@ export const SpecialStudentsProvider = ({ children }) => {
       setError(err.message);
       console.error('Failed to load special students:', err);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -141,6 +144,8 @@ export const SpecialStudentsProvider = ({ children }) => {
     setSpecialStudentsList,
     loading,
     error,
+    isEditing,
+    setIsEditing,
     loadSpecialStudents,
     addSpecialStudent,
     updateSpecialStudent,

@@ -9,7 +9,7 @@ const AddStudent = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { studentsList, loading, addStudent, updateStudent } = useStudents();
+  const { studentsList, loading, addStudent, updateStudent, setIsEditing } = useStudents();
   const isEdit = Boolean(id);
   
   const [formData, setFormData] = useState({
@@ -73,12 +73,14 @@ const AddStudent = () => {
   }, [isEdit, id, studentsList, loading]);
 
   const handleChange = (e) => {
+    setIsEditing(true);
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setIsEditing(true);
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({ ...formData, photo: reader.result });
@@ -138,6 +140,7 @@ const AddStudent = () => {
   };
 
   const handleSuccessClose = () => {
+    setIsEditing(false);
     setSuccessModal({ isOpen: false, title: '', message: '' });
     navigate('/students');
   };
@@ -478,7 +481,11 @@ const AddStudent = () => {
               <Save className="w-5 h-5" />
               <span>{isEdit ? 'Update Student' : 'Save Student'}</span>
             </button>
-            <Link to="/students" className="btn-secondary">
+            <Link 
+              to="/students" 
+              className="btn-secondary"
+              onClick={() => setIsEditing(false)}
+            >
               Cancel
             </Link>
           </div>
