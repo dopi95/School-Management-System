@@ -137,169 +137,181 @@ const SpecialStudents = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Special Students</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">Manage special student information and records</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Special Students</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Manage special student information and records</p>
         </div>
-        <div className="flex items-center space-x-3">
-          {/* Export Buttons */}
-          <button
-            onClick={() => {
-              const dataToExport = selectedStudents.length > 0 
-                ? filteredStudents.filter(s => selectedStudents.includes(s.id))
-                : filteredStudents;
-              const title = selectedStudents.length > 0 
-                ? `Selected Special Students (${selectedStudents.length})`
-                : 'Special Students List';
-              exportSpecialStudentsToPDF(dataToExport, title, language);
-            }}
-            className="btn-secondary flex items-center space-x-2"
-            title={selectedStudents.length > 0 ? 'Export Selected to PDF' : 'Export Filtered to PDF'}
-          >
-            <FileText className="w-4 h-4" />
-            <span>PDF</span>
-          </button>
-          <button
-            onClick={() => {
-              const dataToExport = selectedStudents.length > 0 
-                ? filteredStudents.filter(s => selectedStudents.includes(s.id))
-                : filteredStudents;
-              const filename = selectedStudents.length > 0 
-                ? `selected_special_students_${selectedStudents.length}`
-                : 'special_students_list';
-              exportSpecialStudentsToExcel(dataToExport, filename, language);
-            }}
-            className="btn-secondary flex items-center space-x-2"
-            title={selectedStudents.length > 0 ? 'Export Selected to Excel' : 'Export Filtered to Excel'}
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span>Excel</span>
-          </button>
+        
+        {/* Action Buttons - Mobile Responsive */}
+        <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-3">
+          {/* Export Buttons Row */}
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => {
+                const dataToExport = selectedStudents.length > 0 
+                  ? filteredStudents.filter(s => selectedStudents.includes(s.id))
+                  : filteredStudents;
+                const title = selectedStudents.length > 0 
+                  ? `Selected Special Students (${selectedStudents.length})`
+                  : 'Special Students List';
+                exportSpecialStudentsToPDF(dataToExport, title, language);
+              }}
+              className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
+              title={selectedStudents.length > 0 ? 'Export Selected to PDF' : 'Export Filtered to PDF'}
+            >
+              <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span>PDF</span>
+            </button>
+            <button
+              onClick={() => {
+                const dataToExport = selectedStudents.length > 0 
+                  ? filteredStudents.filter(s => selectedStudents.includes(s.id))
+                  : filteredStudents;
+                const filename = selectedStudents.length > 0 
+                  ? `selected_special_students_${selectedStudents.length}`
+                  : 'special_students_list';
+                exportSpecialStudentsToExcel(dataToExport, filename, language);
+              }}
+              className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
+              title={selectedStudents.length > 0 ? 'Export Selected to Excel' : 'Export Filtered to Excel'}
+            >
+              <FileSpreadsheet className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span>Excel</span>
+            </button>
+            <Link
+              to="/special-students/add"
+              className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+            >
+              <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span>Add Special Student</span>
+            </Link>
+          </div>
+          
+          {/* Bulk Actions Row */}
           {selectedStudents.length > 0 && (
-            <>
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={handleBulkInactive}
-                className="btn-secondary flex items-center space-x-2"
+                className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
               >
-                <UserX className="w-4 h-4" />
-                <span>Inactive All Selected</span>
+                <UserX className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span className="hidden sm:inline">Inactive All Selected</span>
+                <span className="sm:hidden">Inactive</span>
               </button>
               <button
                 onClick={() => setClassEditModal({ isOpen: true, newClass: '' })}
-                className="btn-secondary flex items-center space-x-2"
+                className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
               >
-                <Edit className="w-4 h-4" />
-                <span>Edit Class of Selected</span>
+                <Edit className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span className="hidden sm:inline">Edit Class of Selected</span>
+                <span className="sm:hidden">Edit Class</span>
               </button>
-            </>
+            </div>
           )}
-          <Link
-            to="/special-students/add"
-            className="btn-primary flex items-center space-x-2"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Add Special Student</span>
-          </Link>
+
         </div>
       </div>
 
       {/* Count Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-              <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+      <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+              <Users className="w-5 h-5 lg:w-6 lg:h-6 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{specialStudentsList.length}</p>
-              <p className="text-gray-600 dark:text-gray-400">Total Special Students</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{specialStudentsList.length}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Total Special Students</p>
             </div>
           </div>
         </div>
         
-        <div className="card">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-              <Users className="w-6 h-6 text-green-600 dark:text-green-400" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+              <Users className="w-5 h-5 lg:w-6 lg:h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{activeStudents}</p>
-              <p className="text-gray-600 dark:text-gray-400">Active Special Students</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{activeStudents}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Active Special Students</p>
             </div>
           </div>
         </div>
         
-        <div className="card">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-              <UserX className="w-6 h-6 text-red-600 dark:text-red-400" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+              <UserX className="w-5 h-5 lg:w-6 lg:h-6 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{inactiveStudents}</p>
-              <p className="text-gray-600 dark:text-gray-400">Inactive Special Students</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{inactiveStudents}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Inactive Special Students</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="card">
-        <div className="flex flex-col md:flex-row gap-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+        <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-4">
           {/* Search */}
-          <div className="flex-1">
+          <div className="w-fit">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 lg:w-5 lg:h-5" />
               <input
                 type="text"
                 placeholder="Search students..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-field pl-10"
+                className="w-64 px-3 py-2 pl-9 lg:pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm lg:text-base"
               />
             </div>
           </div>
 
-          {/* Class Filter */}
-          <div className="md:w-48">
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <select
-                value={classFilter}
-                onChange={(e) => setClassFilter(e.target.value)}
-                className="input-field pl-10 pr-10 appearance-none"
-              >
-                <option value="all">All Classes</option>
-                {classes.map(cls => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))}
-              </select>
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+          {/* Filters Row */}
+          <div className="flex gap-2 lg:gap-4">
+            {/* Class Filter */}
+            <div className="w-fit">
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <select
+                  value={classFilter}
+                  onChange={(e) => setClassFilter(e.target.value)}
+                  className="w-32 px-3 py-2 pl-9 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none text-sm lg:text-base"
+                >
+                  <option value="all">All Classes</option>
+                  {classes.map(cls => (
+                    <option key={cls} value={cls}>{cls}</option>
+                  ))}
+                </select>
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Section Filter */}
-          <div className="md:w-48">
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <select
-                value={sectionFilter}
-                onChange={(e) => setSectionFilter(e.target.value)}
-                className="input-field pl-10 pr-10 appearance-none"
-              >
-                <option value="all">All Sections</option>
-                {sections.map(section => (
-                  <option key={section} value={section}>Section {section}</option>
-                ))}
-              </select>
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+            {/* Section Filter */}
+            <div className="w-fit">
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <select
+                  value={sectionFilter}
+                  onChange={(e) => setSectionFilter(e.target.value)}
+                  className="w-36 px-3 py-2 pl-9 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none text-sm lg:text-base"
+                >
+                  <option value="all">All Sections</option>
+                  {sections.map(section => (
+                    <option key={section} value={section}>Section {section}</option>
+                  ))}
+                </select>
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>

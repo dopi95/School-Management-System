@@ -401,54 +401,54 @@ const Payments = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Payments</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">Track student payment status by month</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Payments</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Track student payment status by month</p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-              <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
+      <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+              <Check className="w-5 h-5 lg:w-6 lg:h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{paidStudents}</p>
-              <p className="text-gray-600 dark:text-gray-400">Paid Students</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{paidStudents}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Paid Students</p>
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-              <Users className="w-6 h-6 text-red-600 dark:text-red-400" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+              <Users className="w-5 h-5 lg:w-6 lg:h-6 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{unpaidStudents}</p>
-              <p className="text-gray-600 dark:text-gray-400">Unpaid Students</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{unpaidStudents}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Unpaid Students</p>
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-              <CreditCard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+              <CreditCard className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{filteredStudents.length}</p>
-              <p className="text-gray-600 dark:text-gray-400">Total Students</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{filteredStudents.length}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Total Students</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="card">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
         <div className="space-y-4">
           {/* Year and Month Selection - Top Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-4 border-b border-gray-200 dark:border-gray-600">

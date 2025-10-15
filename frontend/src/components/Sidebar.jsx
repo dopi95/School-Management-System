@@ -84,16 +84,20 @@ const Sidebar = () => {
   return (
     <>
       {/* Mobile Hamburger Button */}
-      <button
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-2 left-4 z-30 p-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg touch-manipulation"
-      >
-        {isMobileMenuOpen ? (
-          <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-        ) : (
+      {!isMobileMenuOpen && (
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="lg:hidden fixed top-2 left-4 z-50 p-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg touch-manipulation"
+          style={{ 
+            position: 'fixed', 
+            top: '8px', 
+            left: '16px',
+            zIndex: 9999
+          }}
+        >
           <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-        )}
-      </button>
+        </button>
+      )}
 
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
