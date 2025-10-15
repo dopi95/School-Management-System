@@ -29,9 +29,9 @@ router.post('/', async (req, res) => {
   try {
     // Generate ID if not provided
     if (!req.body.id) {
-      const lastPayment = await SpecialPayment.findOne().sort({ id: -1 });
-      const lastId = lastPayment ? parseInt(lastPayment.id.replace('SPPAY', '')) : 0;
-      req.body.id = `SPPAY${String(lastId + 1).padStart(4, '0')}`;
+      const timestamp = Date.now().toString().slice(-6);
+      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      req.body.id = `SPPAY${timestamp}${random}`;
     }
 
     const payment = new SpecialPayment(req.body);
@@ -86,10 +86,10 @@ router.post('/bulk', protect, async (req, res) => {
     
     for (const studentId of studentIds) {
       try {
-        // Generate payment ID
-        const lastPayment = await SpecialPayment.findOne().sort({ id: -1 });
-        const lastId = lastPayment ? parseInt(lastPayment.id.replace('SPPAY', '')) : 0;
-        const paymentId = `SPPAY${String(lastId + results.length + 1).padStart(4, '0')}`;
+        // Generate unique payment ID
+        const timestamp = Date.now().toString().slice(-6);
+        const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        const paymentId = `SPPAY${timestamp}${random}${results.length.toString().padStart(2, '0')}`;
         
         // Create special payment record
         const payment = new SpecialPayment({

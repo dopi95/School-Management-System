@@ -29,9 +29,10 @@ router.get('/student/:studentId', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     if (!req.body.id) {
-      const lastPayment = await Payment.findOne().sort({ id: -1 });
-      const lastId = lastPayment ? parseInt(lastPayment.id.replace('PAY', '')) : 0;
-      req.body.id = `PAY${String(lastId + 1).padStart(4, '0')}`;
+      // Use timestamp + random number for unique ID generation
+      const timestamp = Date.now().toString().slice(-6);
+      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      req.body.id = `PAY${timestamp}${random}`;
     }
 
     // Get student name
@@ -113,10 +114,10 @@ router.post('/bulk', protect, async (req, res) => {
           continue;
         }
         
-        // Generate payment ID
-        const lastPayment = await Payment.findOne().sort({ id: -1 });
-        const lastId = lastPayment ? parseInt(lastPayment.id.replace('PAY', '')) : 0;
-        const paymentId = `PAY${String(lastId + results.length + 1).padStart(4, '0')}`;
+        // Generate unique payment ID
+        const timestamp = Date.now().toString().slice(-6);
+        const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        const paymentId = `PAY${timestamp}${random}${results.length.toString().padStart(2, '0')}`;
         
         // Create payment record
         const payment = new Payment({
