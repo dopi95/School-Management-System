@@ -44,8 +44,16 @@ const SpecialPayments = () => {
   const activeSpecialStudentsList = specialStudentsList.filter(student => student.status === 'active');
   
   const filteredStudents = activeSpecialStudentsList.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = !searchTerm || 
+      student.name?.toLowerCase().includes(searchLower) ||
+      student.id?.toLowerCase().includes(searchLower) ||
+      student.joinedYear?.includes(searchTerm) ||
+      student.fatherName?.toLowerCase().includes(searchLower) ||
+      student.motherName?.toLowerCase().includes(searchLower) ||
+      student.fatherPhone?.includes(searchTerm) ||
+      student.motherPhone?.includes(searchTerm) ||
+      `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
     const matchesClass = classFilter === 'all' || student.class === classFilter;
     const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
     
@@ -457,6 +465,11 @@ const SpecialPayments = () => {
                   <option key={year} value={year}>{year}</option>
                 ))}
               </select>
+              <div className="absolute right-3 top-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
 
             {/* Month Filter */}
@@ -475,6 +488,11 @@ const SpecialPayments = () => {
                   <option key={index} value={index}>{month}</option>
                 ))}
               </select>
+              <div className="absolute right-3 top-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
 
             {/* Payment Status Filter */}
@@ -489,6 +507,11 @@ const SpecialPayments = () => {
                 <option value="paid">Paid Special Students</option>
                 <option value="unpaid">Unpaid Special Students</option>
               </select>
+              <div className="absolute right-3 top-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
 
             {/* Download Links & Bulk Actions */}
@@ -526,7 +549,7 @@ const SpecialPayments = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search special students..."
+                placeholder="Search students..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input-field pl-10"
@@ -546,6 +569,11 @@ const SpecialPayments = () => {
                   <option key={cls} value={cls}>{cls}</option>
                 ))}
               </select>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
 
             {/* Section Filter */}
@@ -561,6 +589,11 @@ const SpecialPayments = () => {
                   <option key={section} value={section}>Section {section}</option>
                 ))}
               </select>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
           </div>
         

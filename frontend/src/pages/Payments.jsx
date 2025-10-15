@@ -44,8 +44,16 @@ const Payments = () => {
   const activeStudentsList = studentsList.filter(student => student.status === 'active');
   
   const filteredStudents = activeStudentsList.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = !searchTerm || 
+      student.name?.toLowerCase().includes(searchLower) ||
+      student.id?.toLowerCase().includes(searchLower) ||
+      student.joinedYear?.includes(searchTerm) ||
+      student.fatherName?.toLowerCase().includes(searchLower) ||
+      student.motherName?.toLowerCase().includes(searchLower) ||
+      student.fatherPhone?.includes(searchTerm) ||
+      student.motherPhone?.includes(searchTerm) ||
+      `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
     const matchesClass = classFilter === 'all' || student.class === classFilter;
     const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
     
@@ -460,6 +468,11 @@ const Payments = () => {
                   <option key={year} value={year}>{year}</option>
                 ))}
               </select>
+              <div className="absolute right-3 top-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
 
             {/* Month Filter */}
@@ -478,6 +491,11 @@ const Payments = () => {
                   <option key={index} value={index}>{month}</option>
                 ))}
               </select>
+              <div className="absolute right-3 top-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
 
             {/* Payment Status Filter */}
@@ -492,6 +510,11 @@ const Payments = () => {
                 <option value="paid">Paid Students</option>
                 <option value="unpaid">Unpaid Students</option>
               </select>
+              <div className="absolute right-3 top-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
 
             {/* Download Links & Bulk Actions */}
@@ -549,6 +572,11 @@ const Payments = () => {
                   <option key={cls} value={cls}>{cls}</option>
                 ))}
               </select>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
 
             {/* Section Filter */}
@@ -564,6 +592,11 @@ const Payments = () => {
                   <option key={section} value={section}>Section {section}</option>
                 ))}
               </select>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
           </div>
         

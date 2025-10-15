@@ -150,7 +150,6 @@ router.patch('/bulk/update', async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
-
 // Delete student
 router.delete('/:id', async (req, res) => {
   try {

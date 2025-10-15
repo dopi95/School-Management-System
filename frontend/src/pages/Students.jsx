@@ -22,9 +22,16 @@ const Students = () => {
   const sections = ['A', 'B', 'C', 'D'];
 
   const filteredStudents = studentsList.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (student.joinedYear && student.joinedYear.includes(searchTerm));
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = !searchTerm || 
+      student.name?.toLowerCase().includes(searchLower) ||
+      student.id?.toLowerCase().includes(searchLower) ||
+      student.joinedYear?.includes(searchTerm) ||
+      student.fatherName?.toLowerCase().includes(searchLower) ||
+      student.motherName?.toLowerCase().includes(searchLower) ||
+      student.fatherPhone?.includes(searchTerm) ||
+      student.motherPhone?.includes(searchTerm) ||
+      `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
     const matchesClass = classFilter === 'all' || student.class === classFilter;
     const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
     const isActive = student.status === 'active';
@@ -145,7 +152,7 @@ const Students = () => {
               const title = selectedStudents.length > 0 
                 ? `Selected Students (${selectedStudents.length})`
                 : 'Active Students List';
-              exportStudentsToPDF(dataToExport, title);
+              exportStudentsToPDF(dataToExport, title, language);
             }}
             className="btn-secondary flex items-center space-x-2"
             title={selectedStudents.length > 0 ? 'Export Selected to PDF' : 'Export Filtered to PDF'}
@@ -161,7 +168,7 @@ const Students = () => {
               const filename = selectedStudents.length > 0 
                 ? `selected_students_${selectedStudents.length}`
                 : 'active_students_list';
-              exportStudentsToExcel(dataToExport, filename);
+              exportStudentsToExcel(dataToExport, filename, language);
             }}
             className="btn-secondary flex items-center space-x-2"
             title={selectedStudents.length > 0 ? 'Export Selected to Excel' : 'Export Filtered to Excel'}
@@ -245,7 +252,7 @@ const Students = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search by name, ID, or joined year..."
+                placeholder="Search students..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input-field pl-10"
@@ -260,13 +267,18 @@ const Students = () => {
               <select
                 value={classFilter}
                 onChange={(e) => setClassFilter(e.target.value)}
-                className="input-field pl-10 appearance-none"
+                className="input-field pl-10 pr-10 appearance-none"
               >
                 <option value="all">All Classes</option>
                 {classes.map(cls => (
                   <option key={cls} value={cls}>{cls}</option>
                 ))}
               </select>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
           </div>
 
@@ -277,13 +289,18 @@ const Students = () => {
               <select
                 value={sectionFilter}
                 onChange={(e) => setSectionFilter(e.target.value)}
-                className="input-field pl-10 appearance-none"
+                className="input-field pl-10 pr-10 appearance-none"
               >
                 <option value="all">All Sections</option>
                 {sections.map(section => (
                   <option key={section} value={section}>Section {section}</option>
                 ))}
               </select>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
