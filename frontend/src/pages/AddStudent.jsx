@@ -77,6 +77,32 @@ const AddStudent = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleDateChange = (e) => {
+    let value = e.target.value.replace(/[^0-9/]/g, '');
+    let numbers = value.replace(/[^0-9]/g, '');
+    
+    if (numbers.length >= 2) {
+      const day = parseInt(numbers.substring(0, 2));
+      if (day > 31) numbers = '31' + numbers.substring(2);
+      if (day < 1) numbers = '01' + numbers.substring(2);
+    }
+    
+    if (numbers.length >= 4) {
+      const month = parseInt(numbers.substring(2, 4));
+      if (month > 12) numbers = numbers.substring(0, 2) + '12' + numbers.substring(4);
+      if (month < 1) numbers = numbers.substring(0, 2) + '01' + numbers.substring(4);
+    }
+    
+    if (numbers.length > 8) numbers = numbers.substring(0, 8);
+    
+    let formatted = numbers;
+    if (numbers.length >= 3) formatted = numbers.substring(0, 2) + '/' + numbers.substring(2);
+    if (numbers.length >= 5) formatted = numbers.substring(0, 2) + '/' + numbers.substring(2, 4) + '/' + numbers.substring(4);
+    
+    setIsEditing(true);
+    setFormData({ ...formData, dateOfBirth: formatted });
+  };
+
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -87,6 +113,14 @@ const AddStudent = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleRemovePhoto = () => {
+    setIsEditing(true);
+    setFormData({ ...formData, photo: '' });
+    // Clear the file input
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) fileInput.value = '';
   };
 
   const generateId = () => {
@@ -110,11 +144,13 @@ const AddStudent = () => {
     const studentData = {
       ...formData,
       id: finalId,
+      name: `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim(),
       phone: formData.fatherPhone, // Use father's phone as main phone
       status: 'active',
       payments: {},
       joinedYear: formData.joinedYear || new Date().getFullYear().toString(), // Default to current year if empty
-      section: formData.section || undefined // Convert empty string to undefined
+      section: formData.section || undefined, // Convert empty string to undefined
+      dateOfBirth: formData.dateOfBirth || undefined // Ensure empty string becomes undefined
     };
 
     try {
@@ -194,8 +230,17 @@ const AddStudent = () => {
                   type="file"
                   accept="image/*"
                   onChange={handlePhotoChange}
-                  className="input-field"
+                  className="input-field mb-2"
                 />
+                {formData.photo && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="text-red-600 hover:text-red-800 text-sm"
+                  >
+                    Remove Photo
+                  </button>
+                )}
               </div>
             </div>
             
@@ -347,11 +392,17 @@ const AddStudent = () => {
                   Date of Birth
                 </label>
                 <input
-                  type="date"
+                  type="text"
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
-                  onChange={handleChange}
+                  onChange={handleDateChange}
                   className="input-field"
+                  placeholder="dd/mm/yyyy"
+                  maxLength="10"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Backspace' || e.key === 'Delete' || e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Tab') return;
+                    if (!/[0-9/]/.test(e.key)) e.preventDefault();
+                  }}
                 />
               </div>
 

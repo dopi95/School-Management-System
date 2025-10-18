@@ -215,7 +215,7 @@ const Students = () => {
 
       {/* Count Cards */}
       <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3 lg:space-x-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
               <Users className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600 dark:text-blue-400" />
@@ -227,7 +227,7 @@ const Students = () => {
           </div>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3 lg:space-x-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
               <Users className="w-5 h-5 lg:w-6 lg:h-6 text-green-600 dark:text-green-400" />
@@ -239,7 +239,7 @@ const Students = () => {
           </div>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3 lg:space-x-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
               <UserX className="w-5 h-5 lg:w-6 lg:h-6 text-red-600 dark:text-red-400" />
@@ -253,10 +253,10 @@ const Students = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-4">
           {/* Search */}
-          <div className="w-fit">
+          <div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 lg:w-5 lg:h-5" />
               <input
@@ -272,7 +272,7 @@ const Students = () => {
           {/* Filters Row */}
           <div className="flex gap-2 lg:gap-4">
             {/* Class Filter */}
-            <div className="w-fit">
+            <div>
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <select
@@ -294,7 +294,7 @@ const Students = () => {
             </div>
 
             {/* Section Filter */}
-            <div className="w-fit">
+            <div>
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <select
