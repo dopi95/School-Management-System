@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, GraduationCap, UserCog, UserX, User, UserCheck, Send } from 'lucide-react';
+import { Users, GraduationCap, UserCog, UserX, User, UserCheck, Send, Bell } from 'lucide-react';
+import apiService from '../services/api.js';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -258,12 +259,46 @@ const Dashboard = () => {
     }
   };
 
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    const loadPendingCount = async () => {
+      try {
+        const response = await apiService.request('/pending-students');
+        setPendingCount(response.length);
+      } catch (error) {
+        console.error('Failed to load pending students count:', error);
+      }
+    };
+
+    if (admin?.role === 'superadmin' || admin?.permissions?.students) {
+      loadPendingCount();
+    }
+  }, [admin]);
+
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">Welcome back! Here's what's happening at Bluelight Academy.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Welcome back! Here's what's happening at Bluelight Academy.</p>
+        </div>
+        
+        {/* Notification Bell */}
+        {(admin?.role === 'superadmin' || admin?.permissions?.students) && (
+          <Link 
+            to="/pending-students" 
+            className="relative p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 dark:border-gray-700"
+          >
+            <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            {pendingCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {pendingCount}
+              </span>
+            )}
+          </Link>
+        )}
       </div>
 
       {/* Stats Cards */}

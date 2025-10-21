@@ -33,6 +33,8 @@ import Notifications from './pages/Notifications';
 import ActivityLogs from './pages/ActivityLogs';
 import InactiveStudents from './pages/InactiveStudents';
 import InactiveEmployees from './pages/InactiveEmployees';
+import StudentRegistration from './pages/StudentRegistration';
+import PendingStudents from './pages/PendingStudents';
 import PermissionRoute from './components/ProtectedRoute.jsx';
 
 const ProtectedRoute = ({ children }) => {
@@ -56,6 +58,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
       <Route path="/reset-password/:token" element={isAuthenticated ? <Navigate to="/dashboard" /> : <ResetPassword />} />
+      <Route path="/studentsform" element={<StudentRegistration />} />
       <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
       
       <Route path="/dashboard" element={
@@ -231,6 +234,16 @@ const AppRoutes = () => {
           <Layout>
             <PermissionRoute permission="admins" section="admin management">
               <ActivityLogs />
+            </PermissionRoute>
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/pending-students" element={
+        <ProtectedRoute>
+          <Layout>
+            <PermissionRoute permission="students" section="student management">
+              <PendingStudents />
             </PermissionRoute>
           </Layout>
         </ProtectedRoute>

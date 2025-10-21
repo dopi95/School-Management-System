@@ -17,8 +17,8 @@ router.get('/', async (req, res) => {
 // Get student by ID
 router.get('/:id', async (req, res) => {
   try {
-    const decodedId = decodeURIComponent(req.params.id);
-    const student = await Student.findOne({ id: decodedId });
+    const studentId = req.params.id;
+    const student = await Student.findOne({ id: studentId });
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
@@ -61,10 +61,10 @@ router.post('/', async (req, res) => {
 // Update student
 router.put('/:id', async (req, res) => {
   try {
-    const decodedId = decodeURIComponent(req.params.id);
+    const studentId = req.params.id;
     
     // Get existing student to preserve payments
-    const existingStudent = await Student.findOne({ id: decodedId });
+    const existingStudent = await Student.findOne({ id: studentId });
     if (!existingStudent) {
       return res.status(404).json({ message: 'Student not found' });
     }
@@ -81,7 +81,7 @@ router.put('/:id', async (req, res) => {
     };
     
     const student = await Student.findOneAndUpdate(
-      { id: decodedId },
+      { id: studentId },
       updateData,
       { new: true, runValidators: true }
     );
@@ -96,10 +96,10 @@ router.put('/:id', async (req, res) => {
 // Update student status
 router.patch('/:id/status', async (req, res) => {
   try {
-    const decodedId = decodeURIComponent(req.params.id);
+    const studentId = req.params.id;
     const { status } = req.body;
     const student = await Student.findOneAndUpdate(
-      { id: decodedId },
+      { id: studentId },
       { status },
       { new: true }
     );
@@ -116,9 +116,9 @@ router.patch('/:id/status', async (req, res) => {
 // Update student payment
 router.patch('/:id/payment', async (req, res) => {
   try {
-    const decodedId = decodeURIComponent(req.params.id);
+    const studentId = req.params.id;
     const { monthKey, paymentData } = req.body;
-    const student = await Student.findOne({ id: decodedId });
+    const student = await Student.findOne({ id: studentId });
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
@@ -153,8 +153,8 @@ router.patch('/bulk/update', async (req, res) => {
 // Delete student
 router.delete('/:id', async (req, res) => {
   try {
-    const decodedId = decodeURIComponent(req.params.id);
-    const student = await Student.findOneAndDelete({ id: decodedId });
+    const studentId = req.params.id;
+    const student = await Student.findOneAndDelete({ id: studentId });
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }

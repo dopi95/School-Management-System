@@ -10,6 +10,7 @@ const paymentSchema = new mongoose.Schema({
 
 const studentSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
+  originalPendingId: { type: String },
   name: { type: String, required: true }, // Keep for backward compatibility
   firstName: { type: String, required: true },
   middleName: { type: String, required: true },
