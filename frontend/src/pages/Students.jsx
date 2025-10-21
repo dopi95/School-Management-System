@@ -378,9 +378,6 @@ const Students = () => {
                   Section
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -405,10 +402,10 @@ const Students = () => {
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {language === 'am' && student.firstNameAm && student.middleNameAm
-                            ? `${student.firstNameAm} ${student.middleNameAm}`
-                            : student.firstName && student.middleName 
-                            ? `${student.firstName} ${student.middleName}`
+                          {language === 'am' && student.firstNameAm && student.middleNameAm && student.lastNameAm
+                            ? `${student.firstNameAm} ${student.middleNameAm} ${student.lastNameAm}`
+                            : student.firstName && student.middleName && student.lastName
+                            ? `${student.firstName} ${student.middleName} ${student.lastName}`
                             : student.name
                           }
                         </div>
@@ -434,15 +431,6 @@ const Students = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
                       {student.section || 'N/A'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      student.status === 'active' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-                    }`}>
-                      {student.status === 'active' ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

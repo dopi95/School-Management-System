@@ -99,16 +99,19 @@ const InactiveEmployees = () => {
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Employee Name
+                    ID
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Phone Number
+                    Full Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Phone
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Role
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Classes
+                    Teaching Class
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Actions
@@ -119,14 +122,19 @@ const InactiveEmployees = () => {
                 {filteredEmployees.map((employee) => (
                   <tr key={employee.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                        {employee.id}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
                           <span className="text-sm font-medium text-red-600 dark:text-red-400">
-                            {employee.name.charAt(0)}
+                            {(employee.fullName || employee.name).charAt(0)}
                           </span>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">{employee.name}</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{employee.fullName || employee.name}</div>
                         </div>
                       </div>
                     </td>
@@ -135,13 +143,13 @@ const InactiveEmployees = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
-                        {employee.position || employee.role || 'N/A'}
+                        {employee.role || employee.position || 'N/A'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {(employee.position === 'Teacher' || employee.role === 'Teacher') && employee.classes && employee.classes.length > 0 ? (
+                      {((employee.position === 'Teacher' || employee.role === 'Teacher') && (employee.teachingGradeLevel || employee.classes)) ? (
                         <div className="flex flex-wrap gap-1">
-                          {employee.classes.map((cls, index) => (
+                          {(employee.teachingGradeLevel || employee.classes || []).map((cls, index) => (
                             <span key={index} className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
                               {cls}
                             </span>

@@ -148,6 +148,20 @@ class ApiService {
     });
   }
 
+  async addEmployeeSalary(id, year, monthlySalary) {
+    return this.request(`/employees/${id}/salary`, {
+      method: 'POST',
+      body: { year, monthlySalary },
+    });
+  }
+
+  async updateEmployeeSalary(id, year, monthlySalary) {
+    return this.request(`/employees/${id}/salary/${year}`, {
+      method: 'PUT',
+      body: { monthlySalary },
+    });
+  }
+
   // Payment API methods
   async getPayments() {
     return this.request('/payments');

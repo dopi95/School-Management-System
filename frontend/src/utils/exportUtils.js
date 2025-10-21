@@ -221,56 +221,100 @@ export const exportSpecialStudentsToPDF = (students, title = 'Special Students L
 
 export const exportEmployeesToPDF = (employees, title = 'Employees List') => {
   const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+  const margin = 10;
+  const rowHeight = 8;
   
   // Add title
-  doc.setFontSize(20);
-  doc.text(title, 20, 20);
+  doc.setFontSize(18);
+  doc.setFont(undefined, 'bold');
+  doc.text(title, pageWidth / 2, 20, { align: 'center' });
   
   // Add date
   doc.setFontSize(10);
-  doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+  doc.setFont(undefined, 'normal');
+  doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, 30, { align: 'center' });
   
   // Table headers
-  const headers = ['#', 'Name', 'Phone', 'Role', 'Classes', 'Status'];
-  let yPosition = 50;
+  const headers = ['#', 'ID', 'Full Name', 'Phone', 'Role', 'Teaching Class'];
+  const colWidths = [15, 25, 40, 30, 25, 35];
+  let yPosition = 45;
+  
+  // Draw table border
+  const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+  
+  // Header row background
+  doc.setFillColor(240, 240, 240);
+  doc.rect(margin, yPosition, tableWidth, rowHeight, 'F');
   
   // Header row
-  doc.setFontSize(12);
+  doc.setFontSize(10);
   doc.setFont(undefined, 'bold');
+  let xPos = margin;
+  
   headers.forEach((header, index) => {
-    doc.text(header, 15 + (index * 30), yPosition);
+    doc.text(header, xPos + 2, yPosition + 5);
+    xPos += colWidths[index];
   });
+  
+  // Draw header borders
+  xPos = margin;
+  for (let i = 0; i <= headers.length; i++) {
+    doc.line(xPos, yPosition, xPos, yPosition + rowHeight);
+    if (i < headers.length) xPos += colWidths[i];
+  }
+  doc.line(margin, yPosition, margin + tableWidth, yPosition);
+  doc.line(margin, yPosition + rowHeight, margin + tableWidth, yPosition + rowHeight);
   
   // Data rows
   doc.setFont(undefined, 'normal');
-  doc.setFontSize(10);
-  yPosition += 10;
+  doc.setFontSize(9);
+  yPosition += rowHeight;
   
   employees.forEach((employee, index) => {
     if (yPosition > 270) {
       doc.addPage();
-      yPosition = 20;
+      yPosition = 30;
     }
     
-    const classes = employee.classes && employee.classes.length > 0 
-      ? employee.classes.join(', ') 
+    const teachingClass = ((employee.position === 'Teacher' || employee.role === 'Teacher') && (employee.teachingGradeLevel || employee.classes)) 
+      ? (employee.teachingGradeLevel || employee.classes || []).join(', ') 
       : '-';
     
     const rowData = [
       (index + 1).toString(),
-      employee.name.substring(0, 15),
+      employee.id || 'N/A',
+      (employee.fullName || employee.name || 'N/A').substring(0, 25),
       employee.phone || 'N/A',
-      (employee.position || employee.role || 'N/A').substring(0, 12),
-      classes.substring(0, 12),
-      employee.status || 'active'
+      (employee.role || employee.position || 'N/A').substring(0, 15),
+      teachingClass.substring(0, 20)
     ];
     
+    // Draw row data
+    xPos = margin;
     rowData.forEach((data, colIndex) => {
-      doc.text(String(data), 15 + (colIndex * 30), yPosition);
+      doc.text(String(data), xPos + 2, yPosition + 5);
+      xPos += colWidths[colIndex];
     });
     
-    yPosition += 8;
+    // Draw row borders
+    xPos = margin;
+    for (let i = 0; i <= headers.length; i++) {
+      doc.line(xPos, yPosition, xPos, yPosition + rowHeight);
+      if (i < headers.length) xPos += colWidths[i];
+    }
+    doc.line(margin, yPosition + rowHeight, margin + tableWidth, yPosition + rowHeight);
+    
+    yPosition += rowHeight;
   });
+  
+  // Footer
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, doc.internal.pageSize.height - 10);
+  }
   
   // Save the PDF
   doc.save(`${title.toLowerCase().replace(/\s+/g, '_')}.pdf`);
@@ -352,18 +396,27 @@ export const exportSpecialStudentsToExcel = (students, filename = 'special_stude
 };
 
 export const exportEmployeesToExcel = (employees, filename = 'employees_list') => {
-  const worksheetData = employees.map((employee, index) => ({
-    '#': index + 1,
-    'Name': employee.name,
-    'Phone': employee.phone || 'N/A',
-    'Role': employee.position || employee.role || 'N/A',
-    'Classes': employee.classes && employee.classes.length > 0 
-      ? employee.classes.join(', ') 
-      : '-',
-    'Status': employee.status || 'active',
-    'Address': employee.address || 'N/A',
-    'Hire Date': employee.hireDate || 'N/A'
-  }));
+  const worksheetData = employees.map((employee, index) => {
+    const teachingClass = ((employee.position === 'Teacher' || employee.role === 'Teacher') && (employee.teachingGradeLevel || employee.classes)) 
+      ? (employee.teachingGradeLevel || employee.classes || []).join(', ') 
+      : '-';
+    
+    return {
+      '#': index + 1,
+      'ID': employee.id || 'N/A',
+      'Full Name': employee.fullName || employee.name || 'N/A',
+      'Phone': employee.phone || 'N/A',
+      'Role': employee.role || employee.position || 'N/A',
+      'Teaching Class': teachingClass,
+      'Sex': employee.sex || 'N/A',
+      'Employment Date': employee.employmentDate || 'N/A',
+      'Employment Type': employee.employmentType === 'fulltime' ? 'Full Time' : employee.employmentType === 'parttime' ? 'Part Time' : 'N/A',
+      'Qualification Level': employee.qualificationLevel || employee.qualification || 'N/A',
+      'Experience': employee.experience || 'N/A',
+      'Address': employee.address || 'N/A',
+      'Status': employee.status || 'active'
+    };
+  });
   
   const worksheet = XLSX.utils.json_to_sheet(worksheetData);
   const workbook = XLSX.utils.book_new();

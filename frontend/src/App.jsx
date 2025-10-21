@@ -21,7 +21,7 @@ import SpecialStudentDetail from './pages/SpecialStudentDetail';
 import AddSpecialStudent from './pages/AddSpecialStudent';
 import SpecialPayments from './pages/SpecialPayments';
 import Teachers from './pages/Teachers';
-import TeacherDetail from './pages/TeacherDetail';
+import EmployeeDetail from './pages/EmployeeDetail';
 import AddTeacher from './pages/AddTeacher';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
@@ -160,7 +160,7 @@ const AppRoutes = () => {
       
       <Route path="/teachers/:id" element={
         <ProtectedRoute>
-          <Layout><TeacherDetail /></Layout>
+          <Layout><EmployeeDetail /></Layout>
         </ProtectedRoute>
       } />
       

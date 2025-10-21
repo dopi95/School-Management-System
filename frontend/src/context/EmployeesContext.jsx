@@ -81,6 +81,32 @@ export const EmployeesProvider = ({ children }) => {
     }
   };
 
+  const addEmployeeSalary = async (employeeId, year, monthlySalary) => {
+    try {
+      const updatedEmployee = await apiService.addEmployeeSalary(employeeId, year, monthlySalary);
+      setEmployeesList(prev => prev.map(employee => 
+        employee.id === employeeId ? updatedEmployee : employee
+      ));
+      return updatedEmployee;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const updateEmployeeSalary = async (employeeId, year, monthlySalary) => {
+    try {
+      const updatedEmployee = await apiService.updateEmployeeSalary(employeeId, year, monthlySalary);
+      setEmployeesList(prev => prev.map(employee => 
+        employee.id === employeeId ? updatedEmployee : employee
+      ));
+      return updatedEmployee;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
   const value = {
     employeesList,
     setEmployeesList,
@@ -90,7 +116,9 @@ export const EmployeesProvider = ({ children }) => {
     addEmployee,
     updateEmployee,
     updateEmployeeStatus,
-    deleteEmployee
+    deleteEmployee,
+    addEmployeeSalary,
+    updateEmployeeSalary
   };
 
   return (
