@@ -17,8 +17,23 @@ export const StudentsProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Load students on mount
+  // Load students on mount with cache check
   useEffect(() => {
+    // Check for cached data first
+    const cached = sessionStorage.getItem('studentsCache');
+    if (cached) {
+      try {
+        const { data, timestamp } = JSON.parse(cached);
+        // Use cache if less than 2 minutes old
+        if (Date.now() - timestamp < 120000) {
+          setStudentsList(data);
+          setLoading(false);
+          return;
+        }
+      } catch (e) {
+        // Invalid cache, proceed with normal load
+      }
+    }
     loadStudents();
   }, []);
 
@@ -33,12 +48,12 @@ export const StudentsProvider = ({ children }) => {
       }
     };
     
-    // Set up periodic refresh every 30 seconds (reduced frequency)
+    // Set up periodic refresh every 5 minutes (much less frequent)
     const refreshInterval = setInterval(() => {
       if (!document.hidden) {
         loadStudents(false); // Silent refresh
       }
-    }, 30000);
+    }, 300000);
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
@@ -53,6 +68,11 @@ export const StudentsProvider = ({ children }) => {
     try {
       if (showLoading) setLoading(true);
       const students = await apiService.getStudents();
+      // Cache students data in sessionStorage for faster subsequent loads
+      sessionStorage.setItem('studentsCache', JSON.stringify({
+        data: students,
+        timestamp: Date.now()
+      }));
       setStudentsList(students);
       setError(null);
     } catch (err) {

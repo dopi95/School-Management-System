@@ -40,13 +40,11 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
 
     // Validate password change
     if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
       setError('New passwords do not match');
-      setIsLoading(false);
       return;
     }
 
@@ -77,15 +75,12 @@ const Profile = () => {
     } else {
       setError(result.message);
     }
-    
-    setIsLoading(false);
   };
 
   const handlePictureUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setUploadingPicture(true);
     setError('');
 
     try {
@@ -114,7 +109,6 @@ const Profile = () => {
   };
 
   const handlePictureRemove = async () => {
-    setUploadingPicture(true);
     setError('');
 
     try {
@@ -135,13 +129,24 @@ const Profile = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ 
+      zoom: '0.9', 
+      minWidth: '100%', 
+      maxWidth: '100vw',
+      position: 'relative',
+      overflow: 'visible'
+    }}>
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your account information and security</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: '100vw',
+        overflow: 'visible'
+      }}>
         {/* Profile Info */}
         <div className="lg:col-span-2">
           <div className="card">
@@ -297,7 +302,7 @@ const Profile = () => {
                   className="btn-primary flex items-center space-x-2"
                 >
                   <Save className="w-5 h-5" />
-                  <span>{isLoading ? 'Saving...' : 'Save Changes'}</span>
+                  <span>Save Changes</span>
                 </button>
               </div>
             </form>

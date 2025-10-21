@@ -421,7 +421,7 @@ const Payments = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-6" style={{
+      <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-6 mb-6" style={{
         position: 'relative',
         width: '100%',
         maxWidth: '100vw',
@@ -465,7 +465,7 @@ const Payments = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700" style={{
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 mb-6" style={{
         position: 'relative',
         width: '100%',
         maxWidth: '100vw',

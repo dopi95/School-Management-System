@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, GraduationCap, UserCog, UserX, User, UserCheck, Send } from 'lucide-react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
@@ -20,53 +20,71 @@ const Dashboard = () => {
   const { studentsList } = useStudents();
   const { adminsList } = useAdmins();
   
-  const activeEmployees = employeesList.filter(e => e.status === 'active').length;
-  const inactiveEmployees = employeesList.filter(e => e.status === 'inactive').length;
-  const activeStudents = studentsList.filter(s => s.status === 'active').length;
-  const inactiveStudents = studentsList.filter(s => s.status === 'inactive').length;
-  const totalAdmins = adminsList.length;
+  // Memoize all statistics calculations for better performance
+  const stats = useMemo(() => {
+    const activeEmployees = employeesList.filter(e => e.status === 'active').length;
+    const inactiveEmployees = employeesList.filter(e => e.status === 'inactive').length;
+    const activeStudents = studentsList.filter(s => s.status === 'active').length;
+    const inactiveStudents = studentsList.filter(s => s.status === 'inactive').length;
+    const totalAdmins = adminsList.length;
 
-  // Gender statistics
-  const maleStudents = studentsList.filter(s => s.gender === 'male').length;
-  const femaleStudents = studentsList.filter(s => s.gender === 'female').length;
-  const activeMaleStudents = studentsList.filter(s => s.status === 'active' && s.gender === 'male').length;
-  const activeFemaleStudents = studentsList.filter(s => s.status === 'active' && s.gender === 'female').length;
+    // Gender statistics
+    const maleStudents = studentsList.filter(s => s.gender === 'male').length;
+    const femaleStudents = studentsList.filter(s => s.gender === 'female').length;
+    const activeMaleStudents = studentsList.filter(s => s.status === 'active' && s.gender === 'male').length;
+    const activeFemaleStudents = studentsList.filter(s => s.status === 'active' && s.gender === 'female').length;
 
-  // Class statistics
-  const classStats = {
-    'KG-1': {
-      total: studentsList.filter(s => s.class === 'KG-1').length,
-      male: studentsList.filter(s => s.class === 'KG-1' && s.gender === 'male').length,
-      female: studentsList.filter(s => s.class === 'KG-1' && s.gender === 'female').length,
-      sections: {}
-    },
-    'KG-2': {
-      total: studentsList.filter(s => s.class === 'KG-2').length,
-      male: studentsList.filter(s => s.class === 'KG-2' && s.gender === 'male').length,
-      female: studentsList.filter(s => s.class === 'KG-2' && s.gender === 'female').length,
-      sections: {}
-    },
-    'KG-3': {
-      total: studentsList.filter(s => s.class === 'KG-3').length,
-      male: studentsList.filter(s => s.class === 'KG-3' && s.gender === 'male').length,
-      female: studentsList.filter(s => s.class === 'KG-3' && s.gender === 'female').length,
-      sections: {}
-    }
-  };
-
-  // Section statistics for each class
-  ['A', 'B', 'C', 'D'].forEach(section => {
-    Object.keys(classStats).forEach(className => {
-      const sectionStudents = studentsList.filter(s => s.class === className && s.section === section);
-      if (sectionStudents.length > 0) {
-        classStats[className].sections[section] = {
-          total: sectionStudents.length,
-          male: sectionStudents.filter(s => s.gender === 'male').length,
-          female: sectionStudents.filter(s => s.gender === 'female').length
-        };
+    // Class statistics
+    const classStats = {
+      'KG-1': {
+        total: studentsList.filter(s => s.class === 'KG-1').length,
+        male: studentsList.filter(s => s.class === 'KG-1' && s.gender === 'male').length,
+        female: studentsList.filter(s => s.class === 'KG-1' && s.gender === 'female').length,
+        sections: {}
+      },
+      'KG-2': {
+        total: studentsList.filter(s => s.class === 'KG-2').length,
+        male: studentsList.filter(s => s.class === 'KG-2' && s.gender === 'male').length,
+        female: studentsList.filter(s => s.class === 'KG-2' && s.gender === 'female').length,
+        sections: {}
+      },
+      'KG-3': {
+        total: studentsList.filter(s => s.class === 'KG-3').length,
+        male: studentsList.filter(s => s.class === 'KG-3' && s.gender === 'male').length,
+        female: studentsList.filter(s => s.class === 'KG-3' && s.gender === 'female').length,
+        sections: {}
       }
+    };
+
+    // Section statistics for each class
+    ['A', 'B', 'C', 'D'].forEach(section => {
+      Object.keys(classStats).forEach(className => {
+        const sectionStudents = studentsList.filter(s => s.class === className && s.section === section);
+        if (sectionStudents.length > 0) {
+          classStats[className].sections[section] = {
+            total: sectionStudents.length,
+            male: sectionStudents.filter(s => s.gender === 'male').length,
+            female: sectionStudents.filter(s => s.gender === 'female').length
+          };
+        }
+      });
     });
-  });
+
+    return {
+      activeEmployees,
+      inactiveEmployees,
+      activeStudents,
+      inactiveStudents,
+      totalAdmins,
+      maleStudents,
+      femaleStudents,
+      activeMaleStudents,
+      activeFemaleStudents,
+      classStats
+    };
+  }, [employeesList, studentsList, adminsList]);
+
+  const { activeEmployees, inactiveEmployees, activeStudents, inactiveStudents, totalAdmins, maleStudents, femaleStudents, activeMaleStudents, activeFemaleStudents, classStats } = stats;
 
   // Check permissions for stats display
   const hasStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.students;
@@ -133,41 +151,46 @@ const Dashboard = () => {
   ];
 
   // Filter stats based on permissions
-  const stats = allStats.filter(stat => stat.permission);
+  const filteredStats = allStats.filter(stat => stat.permission);
 
-  // Chart data for class distribution
-  const classChartData = {
-    labels: Object.keys(classStats),
-    datasets: [
-      {
-        label: 'Male Students',
-        data: Object.values(classStats).map(cls => cls.male),
-        backgroundColor: 'rgba(59, 130, 246, 0.8)',
-        borderColor: 'rgba(59, 130, 246, 1)',
-        borderWidth: 1
-      },
-      {
-        label: 'Female Students',
-        data: Object.values(classStats).map(cls => cls.female),
-        backgroundColor: 'rgba(236, 72, 153, 0.8)',
-        borderColor: 'rgba(236, 72, 153, 1)',
-        borderWidth: 1
-      }
-    ]
-  };
+  // Memoize chart data for better performance
+  const chartData = useMemo(() => {
+    const classChartData = {
+      labels: Object.keys(classStats),
+      datasets: [
+        {
+          label: 'Male Students',
+          data: Object.values(classStats).map(cls => cls.male),
+          backgroundColor: 'rgba(59, 130, 246, 0.8)',
+          borderColor: 'rgba(59, 130, 246, 1)',
+          borderWidth: 1
+        },
+        {
+          label: 'Female Students',
+          data: Object.values(classStats).map(cls => cls.female),
+          backgroundColor: 'rgba(236, 72, 153, 0.8)',
+          borderColor: 'rgba(236, 72, 153, 1)',
+          borderWidth: 1
+        }
+      ]
+    };
 
-  // Gender distribution pie chart
-  const genderChartData = {
-    labels: ['Male Students', 'Female Students'],
-    datasets: [
-      {
-        data: [maleStudents, femaleStudents],
-        backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(236, 72, 153, 0.8)'],
-        borderColor: ['rgba(59, 130, 246, 1)', 'rgba(236, 72, 153, 1)'],
-        borderWidth: 2
-      }
-    ]
-  };
+    const genderChartData = {
+      labels: ['Male Students', 'Female Students'],
+      datasets: [
+        {
+          data: [maleStudents, femaleStudents],
+          backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(236, 72, 153, 0.8)'],
+          borderColor: ['rgba(59, 130, 246, 1)', 'rgba(236, 72, 153, 1)'],
+          borderWidth: 2
+        }
+      ]
+    };
+
+    return { classChartData, genderChartData };
+  }, [classStats, maleStudents, femaleStudents]);
+
+  const { classChartData, genderChartData } = chartData;
 
   const chartOptions = {
     responsive: true,
@@ -244,9 +267,9 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      {stats.length > 0 ? (
+      {filteredStats.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-          {stats.map((stat, index) => (
+          {filteredStats.map((stat, index) => (
             <div key={index} className="card hover:shadow-lg transition-shadow duration-200">
               <div className="flex items-center justify-between">
                 <div>

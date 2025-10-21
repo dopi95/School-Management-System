@@ -17,7 +17,21 @@ const ActivityLogs = () => {
 
   const fetchLogs = async () => {
     try {
-      setLoading(true);
+      // Check cache first
+      const cacheKey = `activityLogs_${currentPage}_${filter}_${adminFilter}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const { data, timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp < 60000) { // 1 minute cache
+            setLogs(data.logs || []);
+            setTotalPages(data.totalPages || 1);
+            setLoading(false);
+            return;
+          }
+        } catch (e) {}
+      }
+
       const params = new URLSearchParams({
         page: currentPage,
         limit: 20
@@ -33,6 +47,13 @@ const ActivityLogs = () => {
       });
       
       const data = await response.json();
+      
+      // Cache the result
+      sessionStorage.setItem(cacheKey, JSON.stringify({
+        data,
+        timestamp: Date.now()
+      }));
+      
       setLogs(data.logs || []);
       setTotalPages(data.totalPages || 1);
     } catch (error) {
@@ -134,12 +155,7 @@ const ActivityLogs = () => {
         </div>
 
         <div className="overflow-x-auto">
-          {loading ? (
-            <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-500 mt-2">Loading activities...</p>
-            </div>
-          ) : logs.length === 0 ? (
+          {logs.length === 0 && !loading ? (
             <div className="p-8 text-center text-gray-500">
               No activity logs found
             </div>
