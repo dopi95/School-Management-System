@@ -36,14 +36,7 @@ import InactiveEmployees from './pages/InactiveEmployees';
 import PermissionRoute from './components/ProtectedRoute.jsx';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading, checkAuth } = useAuth();
-  
-  React.useEffect(() => {
-    // Check auth status when component mounts
-    if (!loading) {
-      checkAuth();
-    }
-  }, []);
+  const { isAuthenticated, loading } = useAuth();
   
   if (loading) {
     return (
@@ -93,7 +86,11 @@ const AppRoutes = () => {
       
       <Route path="/students/edit/:id" element={
         <ProtectedRoute>
-          <Layout><AddStudent /></Layout>
+          <Layout>
+            <PermissionRoute permission="students" section="student management">
+              <AddStudent />
+            </PermissionRoute>
+          </Layout>
         </ProtectedRoute>
       } />
       

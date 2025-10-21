@@ -42,7 +42,8 @@ const AddSpecialStudent = () => {
 
   useEffect(() => {
     if (isEdit && id && !loading && specialStudentsList.length > 0) {
-      const student = specialStudentsList.find(s => s.id === id);
+      const decodedId = decodeURIComponent(id);
+      const student = specialStudentsList.find(s => s.id === decodedId);
       if (student) {
         setFormData({
           id: student.id || '',
@@ -153,7 +154,8 @@ const AddSpecialStudent = () => {
 
     try {
       if (isEdit) {
-        await updateSpecialStudent(id, studentData);
+        const decodedId = decodeURIComponent(id);
+        await updateSpecialStudent(decodedId, studentData);
         setSuccessModal({
           isOpen: true,
           title: 'Special Student Updated!',

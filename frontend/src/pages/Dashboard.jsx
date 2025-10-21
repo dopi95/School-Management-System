@@ -140,7 +140,7 @@ const Dashboard = () => {
       permission: hasEmployeesAccess
     },
     {
-      title: 'Total Admins',
+      title: 'Total Administrators',
       value: totalAdmins.toString(),
       icon: UserCog,
       color: 'bg-indigo-500',
@@ -268,7 +268,7 @@ const Dashboard = () => {
 
       {/* Stats Cards */}
       {filteredStats.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredStats.map((stat, index) => (
             <div key={index} className="card hover:shadow-lg transition-shadow duration-200">
               <div className="flex items-center justify-between">

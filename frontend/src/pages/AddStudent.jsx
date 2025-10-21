@@ -43,7 +43,8 @@ const AddStudent = () => {
 
   useEffect(() => {
     if (isEdit && id && !loading && studentsList.length > 0) {
-      const student = studentsList.find(s => s.id === id);
+      const decodedId = decodeURIComponent(id);
+      const student = studentsList.find(s => s.id === decodedId);
       if (student) {
         setFormData({
           id: student.id || '',
@@ -155,7 +156,8 @@ const AddStudent = () => {
 
     try {
       if (isEdit) {
-        await updateStudent(id, studentData);
+        const decodedId = decodeURIComponent(id);
+        await updateStudent(decodedId, studentData);
         setSuccessModal({
           isOpen: true,
           title: 'Student Updated!',

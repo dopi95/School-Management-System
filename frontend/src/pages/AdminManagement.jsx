@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, Users, UserCheck, UserX, Eye, EyeOff, Activity, Clock } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Users, UserCheck, UserX, Eye, EyeOff, Activity, Clock, UserCog, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
 import SuccessModal from '../components/SuccessModal.jsx';
@@ -190,8 +190,10 @@ const AdminManagement = () => {
     setShowPassword(false);
   };
 
-  const activeAdmins = admins.filter(a => a.status === 'active').length;
-  const inactiveAdmins = admins.filter(a => a.status === 'inactive').length;
+  const totalAdmins = admins.length;
+  const superAdmins = admins.filter(a => a.role === 'superadmin').length;
+  const regularAdmins = admins.filter(a => a.role === 'admin').length;
+  const users = admins.filter(a => a.role === 'user').length;
 
   if (admin?.role !== 'superadmin') {
     return (
@@ -236,8 +238,20 @@ const AdminManagement = () => {
               <Users className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{admins.length}</p>
-              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Total Admins</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{totalAdmins}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Total</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+              <UserCog className="w-5 h-5 lg:w-6 lg:h-6 text-purple-600 dark:text-purple-400" />
+            </div>
+            <div>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{superAdmins}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Super Admins</p>
             </div>
           </div>
         </div>
@@ -248,20 +262,20 @@ const AdminManagement = () => {
               <UserCheck className="w-5 h-5 lg:w-6 lg:h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{activeAdmins}</p>
-              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Active Admins</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{regularAdmins}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Admins</p>
             </div>
           </div>
         </div>
         
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3 lg:space-x-4">
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-              <UserX className="w-5 h-5 lg:w-6 lg:h-6 text-red-600 dark:text-red-400" />
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+              <User className="w-5 h-5 lg:w-6 lg:h-6 text-gray-600 dark:text-gray-400" />
             </div>
             <div>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{inactiveAdmins}</p>
-              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Inactive Admins</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{users}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Users</p>
             </div>
           </div>
         </div>

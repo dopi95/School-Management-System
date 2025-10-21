@@ -416,7 +416,7 @@ const SpecialStudents = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <Link
-                      to={`/special-students/${student.id}`}
+                      to={`/special-students/${encodeURIComponent(student.id)}`}
                       className="text-sm text-primary-600 hover:text-primary-700 font-medium"
                     >
                       {student.id}
@@ -447,14 +447,14 @@ const SpecialStudents = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-3">
                       <Link
-                        to={`/special-students/${student.id}`}
+                        to={`/special-students/${encodeURIComponent(student.id)}`}
                         className="text-primary-600 hover:text-primary-700"
                         title="View Details"
                       >
                         <Eye className="w-5 h-5" />
                       </Link>
                       <Link
-                        to={`/special-students/edit/${student.id}`}
+                        to={`/special-students/edit/${encodeURIComponent(student.id)}`}
                         className="text-blue-600 hover:text-blue-700"
                         title="Edit Student"
                       >

@@ -9,7 +9,8 @@ const StudentDetail = () => {
   const { t, language } = useLanguage();
   const { studentsList } = useStudents();
 
-  const student = studentsList.find(s => s.id === id);
+  const decodedId = decodeURIComponent(id);
+  const student = studentsList.find(s => s.id === decodedId);
 
   if (!student) {
     return (
@@ -193,7 +194,7 @@ const StudentDetail = () => {
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
             <div className="space-y-2">
-              <Link to={`/students/edit/${student.id}`} className="w-full btn-primary text-left flex items-center space-x-2">
+              <Link to={`/students/edit/${encodeURIComponent(student.id)}`} className="w-full btn-primary text-left flex items-center space-x-2">
                 <Edit className="w-4 h-4" />
                 <span>Edit Student</span>
               </Link>
