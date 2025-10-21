@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Eye, Filter, Trash2, Users, UserX, Edit, CheckSquare, Square, FileText, FileSpreadsheet } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -21,28 +21,30 @@ const SpecialStudents = () => {
   const classes = ['KG-1', 'KG-2', 'KG-3'];
   const sections = ['A', 'B', 'C', 'D'];
 
-  const filteredStudents = specialStudentsList.filter(student => {
-    const searchLower = searchTerm.toLowerCase();
-    const matchesSearch = !searchTerm || 
-      student.name?.toLowerCase().includes(searchLower) ||
-      student.id?.toLowerCase().includes(searchLower) ||
-      student.joinedYear?.includes(searchTerm) ||
-      student.fatherName?.toLowerCase().includes(searchLower) ||
-      student.motherName?.toLowerCase().includes(searchLower) ||
-      student.fatherPhone?.includes(searchTerm) ||
-      student.motherPhone?.includes(searchTerm) ||
-      `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
-    const matchesClass = classFilter === 'all' || student.class === classFilter;
-    const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
-    const isActive = student.status === 'active';
-    return matchesSearch && matchesClass && matchesSection && isActive;
-  }).sort((a, b) => {
-    const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
-    const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
-    const classComparison = classOrder[a.class || ''] - classOrder[b.class || ''];
-    if (classComparison !== 0) return classComparison;
-    return (sectionOrder[a.section || ''] || 0) - (sectionOrder[b.section || ''] || 0);
-  });
+  const filteredStudents = useMemo(() => {
+    return specialStudentsList.filter(student => {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = !searchTerm || 
+        student.name?.toLowerCase().includes(searchLower) ||
+        student.id?.toLowerCase().includes(searchLower) ||
+        student.joinedYear?.includes(searchTerm) ||
+        student.fatherName?.toLowerCase().includes(searchLower) ||
+        student.motherName?.toLowerCase().includes(searchLower) ||
+        student.fatherPhone?.includes(searchTerm) ||
+        student.motherPhone?.includes(searchTerm) ||
+        `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
+      const matchesClass = classFilter === 'all' || student.class === classFilter;
+      const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
+      const isActive = student.status === 'active';
+      return matchesSearch && matchesClass && matchesSection && isActive;
+    }).sort((a, b) => {
+      const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
+      const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
+      const classComparison = classOrder[a.class || ''] - classOrder[b.class || ''];
+      if (classComparison !== 0) return classComparison;
+      return (sectionOrder[a.section || ''] || 0) - (sectionOrder[b.section || ''] || 0);
+    });
+  }, [specialStudentsList, searchTerm, classFilter, sectionFilter]);
 
   const handleDeleteClick = (student) => {
     setDeleteModal({ isOpen: true, student });
@@ -77,8 +79,11 @@ const SpecialStudents = () => {
     }
   };
 
-  const activeStudents = specialStudentsList.filter(s => s.status === 'active').length;
-  const inactiveStudents = specialStudentsList.filter(s => s.status === 'inactive').length;
+  const { activeStudents, inactiveStudents } = useMemo(() => {
+    const active = specialStudentsList.filter(s => s.status === 'active').length;
+    const inactive = specialStudentsList.filter(s => s.status === 'inactive').length;
+    return { activeStudents: active, inactiveStudents: inactive };
+  }, [specialStudentsList]);
 
   const handleDeleteCancel = () => {
     setDeleteModal({ isOpen: false, student: null });
@@ -135,7 +140,13 @@ const SpecialStudents = () => {
   const isIndeterminate = selectedStudents.length > 0 && selectedStudents.length < filteredStudents.length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ 
+      zoom: '0.9', 
+      minWidth: '100%', 
+      maxWidth: '100vw',
+      position: 'relative',
+      overflow: 'visible'
+    }}>
       {/* Header */}
       <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
         <div>
@@ -214,7 +225,12 @@ const SpecialStudents = () => {
       </div>
 
       {/* Count Cards */}
-      <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-6">
+      <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-6" style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: '100vw',
+        overflow: 'visible'
+      }}>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3 lg:space-x-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
@@ -253,7 +269,13 @@ const SpecialStudents = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700" style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: '100vw',
+        overflow: 'visible',
+        zIndex: 10
+      }}>
         <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-4">
           {/* Search */}
           <div>

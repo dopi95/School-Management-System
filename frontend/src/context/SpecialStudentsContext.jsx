@@ -17,42 +17,39 @@ export const SpecialStudentsProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Load special students on mount and set up refresh mechanisms
+  // Load special students on mount
   useEffect(() => {
     loadSpecialStudents();
+  }, []);
+
+  // Set up refresh mechanisms only when not editing
+  useEffect(() => {
+    if (isEditing) return;
     
     // Refresh data when page becomes visible (switching between devices/tabs)
     const handleVisibilityChange = () => {
-      if (!document.hidden && !isEditing) {
+      if (!document.hidden) {
         loadSpecialStudents(false); // Silent refresh
       }
     };
     
-    // Refresh data when window gains focus
-    const handleFocus = () => {
-      if (!isEditing) {
-        loadSpecialStudents(false); // Silent refresh
-      }
-    };
-    
-    // Set up periodic refresh every 10 seconds
+    // Set up periodic refresh every 30 seconds (reduced frequency)
     const refreshInterval = setInterval(() => {
-      if (!document.hidden && !isEditing) {
+      if (!document.hidden) {
         loadSpecialStudents(false); // Silent refresh
       }
-    }, 10000);
+    }, 30000);
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
       clearInterval(refreshInterval);
     };
   }, [isEditing]);
 
   const loadSpecialStudents = async (showLoading = true) => {
+    if (isEditing && !showLoading) return; // Don't refresh while editing
     try {
       if (showLoading) setLoading(true);
       const students = await apiService.getSpecialStudents();

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api.js';
+import { useAuth } from './AuthContext.jsx';
 
 const AdminsContext = createContext();
 
@@ -13,13 +14,26 @@ export const useAdmins = () => {
 
 export const AdminsProvider = ({ children }) => {
   const [adminsList, setAdminsList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const { isAuthenticated, admin, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    fetchAdmins();
-  }, []);
+    if (isAuthenticated && !authLoading && admin) {
+      const hasAdminsAccess = admin.role === 'superadmin' || admin.permissions?.admins;
+      if (hasAdminsAccess) {
+        fetchAdmins();
+      } else {
+        setLoading(false);
+      }
+    } else if (!authLoading && !isAuthenticated) {
+      setAdminsList([]);
+      setLoading(false);
+    }
+  }, [isAuthenticated, admin, authLoading]);
 
   const fetchAdmins = async () => {
+    if (loading) return; // Prevent multiple simultaneous requests
+    setLoading(true);
     try {
       const response = await api.getAdmins();
       if (response.success) {
@@ -27,6 +41,7 @@ export const AdminsProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error fetching admins:', error);
+      setAdminsList([]);
     } finally {
       setLoading(false);
     }

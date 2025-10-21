@@ -91,7 +91,15 @@ const Profile = () => {
     try {
       const result = await api.uploadProfilePicture(file);
       if (result.success) {
+        // Force refresh profile data
         await refreshProfile();
+        // Clear any cached images
+        const images = document.querySelectorAll('img[src*="profilePicture"]');
+        images.forEach(img => {
+          const src = img.src;
+          img.src = '';
+          img.src = src.split('?')[0] + '?t=' + Date.now();
+        });
         setSuccessModal({
           isOpen: true,
           title: 'Profile Picture Updated!',
@@ -305,17 +313,26 @@ const Profile = () => {
                 <div className="relative">
                   {admin?.profilePicture ? (
                     <img
-                      src={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}/${admin.profilePicture}`}
-                      alt="Profile"
+                      src={admin.profilePicture.startsWith('data:') ? admin.profilePicture : `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}/${admin.profilePicture}?t=${Date.now()}`}
+                      alt={admin?.name || 'Profile'}
                       className="w-20 h-20 rounded-full object-cover border-4 border-primary-200 dark:border-primary-700"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextElementSibling.style.display = 'flex';
+                      }}
+                      onLoad={(e) => {
+                        e.target.style.display = 'block';
+                        if (e.target.nextElementSibling) {
+                          e.target.nextElementSibling.style.display = 'none';
+                        }
+                      }}
                     />
-                  ) : (
-                    <div className="w-20 h-20 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center border-4 border-primary-200 dark:border-primary-700">
-                      <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                        {admin?.name?.charAt(0)}
-                      </span>
-                    </div>
-                  )}
+                  ) : null}
+                  <div className={`w-20 h-20 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center border-4 border-primary-200 dark:border-primary-700 ${admin?.profilePicture ? 'hidden' : ''}`}>
+                    <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                      {admin?.name?.charAt(0)}
+                    </span>
+                  </div>
                   <div className="absolute bottom-0 right-0 flex space-x-1">
                     <label className="bg-primary-600 hover:bg-primary-700 text-white rounded-full p-2 cursor-pointer transition-colors">
                       <Camera className="w-4 h-4" />

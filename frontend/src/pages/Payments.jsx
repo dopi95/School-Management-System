@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { History, Check, CreditCard, Calendar, Users, Search, Filter, FileText, Download, Plus, Trash2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
@@ -43,59 +43,64 @@ const Payments = () => {
   const currentMonthKey = `${selectedYear}-${selectedMonth}`;
   const activeStudentsList = studentsList.filter(student => student.status === 'active');
   
-  const filteredStudents = activeStudentsList.filter(student => {
-    const searchLower = searchTerm.toLowerCase();
-    const matchesSearch = !searchTerm || 
-      student.name?.toLowerCase().includes(searchLower) ||
-      student.id?.toLowerCase().includes(searchLower) ||
-      student.joinedYear?.includes(searchTerm) ||
-      student.fatherName?.toLowerCase().includes(searchLower) ||
-      student.motherName?.toLowerCase().includes(searchLower) ||
-      student.fatherPhone?.includes(searchTerm) ||
-      student.motherPhone?.includes(searchTerm) ||
-      `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
-    const matchesClass = classFilter === 'all' || student.class === classFilter;
-    const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
-    
-    // Payment status filter for current month/year
-    const isPaidCurrentMonth = student.payments[currentMonthKey]?.paid || false;
-    const matchesPaymentStatus = paymentStatusFilter === 'all' || 
-      (paymentStatusFilter === 'paid' && isPaidCurrentMonth) ||
-      (paymentStatusFilter === 'unpaid' && !isPaidCurrentMonth);
-    
-    // Date range filter for paid students only
-    if (showPaidOnly && (dateFromFilter || dateToFilter)) {
-      const hasPaidInRange = Object.values(student.payments || {}).some(payment => {
-        if (!payment?.paid || !payment?.date) return false;
-        
-        const paymentDate = new Date(payment.date);
-        const fromDate = dateFromFilter ? new Date(dateFromFilter) : null;
-        const toDate = dateToFilter ? new Date(dateToFilter) : null;
-        
-        if (fromDate && toDate) {
-          return paymentDate >= fromDate && paymentDate <= toDate;
-        } else if (fromDate) {
-          return paymentDate >= fromDate;
-        } else if (toDate) {
-          return paymentDate <= toDate;
-        }
-        return true;
-      });
+  const filteredStudents = useMemo(() => {
+    return activeStudentsList.filter(student => {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = !searchTerm || 
+        student.name?.toLowerCase().includes(searchLower) ||
+        student.id?.toLowerCase().includes(searchLower) ||
+        student.joinedYear?.includes(searchTerm) ||
+        student.fatherName?.toLowerCase().includes(searchLower) ||
+        student.motherName?.toLowerCase().includes(searchLower) ||
+        student.fatherPhone?.includes(searchTerm) ||
+        student.motherPhone?.includes(searchTerm) ||
+        `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
+      const matchesClass = classFilter === 'all' || student.class === classFilter;
+      const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
       
-      if (!hasPaidInRange) return false;
-    }
-    
-    return matchesSearch && matchesClass && matchesSection && matchesPaymentStatus;
-  }).sort((a, b) => {
-    const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
-    const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
-    const classComparison = classOrder[a.class || ''] - classOrder[b.class || ''];
-    if (classComparison !== 0) return classComparison;
-    return (sectionOrder[a.section || ''] || 0) - (sectionOrder[b.section || ''] || 0);
-  });
+      // Payment status filter for current month/year
+      const isPaidCurrentMonth = student.payments[currentMonthKey]?.paid || false;
+      const matchesPaymentStatus = paymentStatusFilter === 'all' || 
+        (paymentStatusFilter === 'paid' && isPaidCurrentMonth) ||
+        (paymentStatusFilter === 'unpaid' && !isPaidCurrentMonth);
+      
+      // Date range filter for paid students only
+      if (showPaidOnly && (dateFromFilter || dateToFilter)) {
+        const hasPaidInRange = Object.values(student.payments || {}).some(payment => {
+          if (!payment?.paid || !payment?.date) return false;
+          
+          const paymentDate = new Date(payment.date);
+          const fromDate = dateFromFilter ? new Date(dateFromFilter) : null;
+          const toDate = dateToFilter ? new Date(dateToFilter) : null;
+          
+          if (fromDate && toDate) {
+            return paymentDate >= fromDate && paymentDate <= toDate;
+          } else if (fromDate) {
+            return paymentDate >= fromDate;
+          } else if (toDate) {
+            return paymentDate <= toDate;
+          }
+          return true;
+        });
+        
+        if (!hasPaidInRange) return false;
+      }
+      
+      return matchesSearch && matchesClass && matchesSection && matchesPaymentStatus;
+    }).sort((a, b) => {
+      const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
+      const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
+      const classComparison = classOrder[a.class || ''] - classOrder[b.class || ''];
+      if (classComparison !== 0) return classComparison;
+      return (sectionOrder[a.section || ''] || 0) - (sectionOrder[b.section || ''] || 0);
+    });
+  }, [activeStudentsList, searchTerm, classFilter, sectionFilter, currentMonthKey, paymentStatusFilter, showPaidOnly, dateFromFilter, dateToFilter]);
 
-  const paidStudents = filteredStudents.filter(student => student.payments[currentMonthKey]?.paid).length;
-  const unpaidStudents = filteredStudents.length - paidStudents;
+  const { paidStudents, unpaidStudents } = useMemo(() => {
+    const paid = filteredStudents.filter(student => student.payments[currentMonthKey]?.paid).length;
+    const unpaid = filteredStudents.length - paid;
+    return { paidStudents: paid, unpaidStudents: unpaid };
+  }, [filteredStudents, currentMonthKey]);
 
   const generatePDF = (type) => {
     const studentsToExport = type === 'paid' 
@@ -399,7 +404,14 @@ const Payments = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ 
+      zoom: '0.9', 
+      minWidth: '100%', 
+      maxWidth: '100vw',
+      position: 'relative',
+      overflow: 'visible'
+    }}>
+      <div className="w-full" style={{ maxWidth: '100vw', overflow: 'hidden' }}>
       {/* Header */}
       <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
         <div>
@@ -409,8 +421,13 @@ const Payments = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+      <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-6" style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: '100vw',
+        overflow: 'visible'
+      }}>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-full">
           <div className="flex items-center space-x-3 lg:space-x-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
               <Check className="w-5 h-5 lg:w-6 lg:h-6 text-green-600 dark:text-green-400" />
@@ -422,7 +439,7 @@ const Payments = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-full">
           <div className="flex items-center space-x-3 lg:space-x-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
               <Users className="w-5 h-5 lg:w-6 lg:h-6 text-red-600 dark:text-red-400" />
@@ -434,7 +451,7 @@ const Payments = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-full">
           <div className="flex items-center space-x-3 lg:space-x-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
               <CreditCard className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600 dark:text-blue-400" />
@@ -448,7 +465,13 @@ const Payments = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700" style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: '100vw',
+        overflow: 'visible',
+        zIndex: 10
+      }}>
         <div className="space-y-4">
           {/* Year and Month Selection - Top Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-4 border-b border-gray-200 dark:border-gray-600">
@@ -914,6 +937,7 @@ const Payments = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
