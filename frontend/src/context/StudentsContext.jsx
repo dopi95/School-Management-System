@@ -17,19 +17,22 @@ export const StudentsProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Load students on mount with cache check
+  // Load students on mount with immediate cache display
   useEffect(() => {
     // Check for cached data first
     const cached = sessionStorage.getItem('studentsCache');
     if (cached) {
       try {
         const { data, timestamp } = JSON.parse(cached);
-        // Use cache if less than 2 minutes old
-        if (Date.now() - timestamp < 120000) {
-          setStudentsList(data);
-          setLoading(false);
-          return;
+        // Always show cached data immediately for instant loading
+        setStudentsList(data);
+        setLoading(false);
+        
+        // If cache is older than 30 seconds, refresh in background
+        if (Date.now() - timestamp > 30000) {
+          loadStudents(false); // Background refresh
         }
+        return;
       } catch (e) {
         // Invalid cache, proceed with normal load
       }
@@ -48,12 +51,12 @@ export const StudentsProvider = ({ children }) => {
       }
     };
     
-    // Set up periodic refresh every 5 minutes (much less frequent)
+    // Set up periodic refresh every 2 minutes (more frequent for better sync)
     const refreshInterval = setInterval(() => {
       if (!document.hidden) {
         loadStudents(false); // Silent refresh
       }
-    }, 300000);
+    }, 120000);
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     

@@ -1,7 +1,20 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 class ApiService {
+  constructor() {
+    this.requestCache = new Map();
+    this.cacheTimeout = 10000; // 10 seconds cache for GET requests
+  }
+
   async request(endpoint, options = {}) {
+    // Check cache for GET requests
+    if (!options.method || options.method === 'GET') {
+      const cacheKey = `${endpoint}_${JSON.stringify(options)}`;
+      const cached = this.requestCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+        return cached.data;
+      }
+    }
     const url = `${API_BASE_URL}${endpoint}`;
     const token = localStorage.getItem('token');
     const config = {
@@ -25,7 +38,24 @@ class ApiService {
         throw new Error(error.message || 'Something went wrong');
       }
 
-      return await response.json();
+      const data = await response.json();
+      
+      // Cache GET requests
+      if (!options.method || options.method === 'GET') {
+        const cacheKey = `${endpoint}_${JSON.stringify(options)}`;
+        this.requestCache.set(cacheKey, {
+          data,
+          timestamp: Date.now()
+        });
+        
+        // Clean old cache entries
+        if (this.requestCache.size > 50) {
+          const oldestKey = this.requestCache.keys().next().value;
+          this.requestCache.delete(oldestKey);
+        }
+      }
+      
+      return data;
     } catch (error) {
       console.error('API Error:', error);
       throw error;

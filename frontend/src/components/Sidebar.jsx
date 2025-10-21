@@ -163,6 +163,24 @@ const Sidebar = () => {
               </div>
             </div>
           </Link>
+          
+          {/* Mobile Logout Button - Show at top on mobile */}
+          {admin && (
+            <div className="lg:hidden mt-2">
+              <button
+                onClick={() => {
+                  logout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center space-x-2 w-full px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors duration-200 font-medium"
+              >
+                <LogOut className="w-4 h-4 flex-shrink-0" />
+                <span className="text-xs font-medium">
+                  {language === 'am' ? 'ውጣ' : 'Logout'}
+                </span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
@@ -189,9 +207,9 @@ const Sidebar = () => {
           </ul>
         </nav>
 
-        {/* Logout - Always visible for authenticated users */}
+        {/* Desktop Logout - Only show on desktop */}
         {admin && (
-          <div className="p-2 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <div className="hidden lg:block p-2 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
             <button
               onClick={() => {
                 logout();

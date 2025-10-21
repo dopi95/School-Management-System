@@ -12,7 +12,15 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [admin, setAdmin] = useState(null);
+  const [admin, setAdmin] = useState(() => {
+    // Load cached profile immediately
+    try {
+      const cached = localStorage.getItem('adminProfile');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -49,6 +57,7 @@ export const AuthProvider = ({ children }) => {
       if (!sessionActive) {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('adminProfile'); // Clear cached profile
         setAdmin(null);
         setIsAuthenticated(false);
         setLoading(false);
@@ -59,9 +68,12 @@ export const AuthProvider = ({ children }) => {
       if (response.success) {
         setAdmin(response.admin);
         setIsAuthenticated(true);
+        // Cache profile data including picture
+        localStorage.setItem('adminProfile', JSON.stringify(response.admin));
       } else {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('adminProfile');
         sessionStorage.removeItem('sessionActive');
         setAdmin(null);
         setIsAuthenticated(false);
@@ -69,6 +81,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
+      localStorage.removeItem('adminProfile');
       sessionStorage.removeItem('sessionActive');
       setAdmin(null);
       setIsAuthenticated(false);
@@ -96,6 +109,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
+    localStorage.removeItem('adminProfile');
     sessionStorage.removeItem('sessionActive');
     setAdmin(null);
     setIsAuthenticated(false);
@@ -106,6 +120,8 @@ export const AuthProvider = ({ children }) => {
       const response = await api.updateProfile(profileData);
       if (response.success) {
         setAdmin(response.admin);
+        // Update cached profile
+        localStorage.setItem('adminProfile', JSON.stringify(response.admin));
         return { success: true, message: response.message };
       }
     } catch (error) {
@@ -118,6 +134,8 @@ export const AuthProvider = ({ children }) => {
       const response = await api.getProfile();
       if (response.success) {
         setAdmin(response.admin);
+        // Update cached profile
+        localStorage.setItem('adminProfile', JSON.stringify(response.admin));
       }
     } catch (error) {
       console.error('Error refreshing profile:', error);

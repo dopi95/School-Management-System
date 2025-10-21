@@ -82,19 +82,13 @@ const Profile = () => {
     if (!file) return;
 
     setError('');
+    setUploadingPicture(true);
 
     try {
       const result = await api.uploadProfilePicture(file);
       if (result.success) {
         // Force refresh profile data
         await refreshProfile();
-        // Clear any cached images
-        const images = document.querySelectorAll('img[src*="profilePicture"]');
-        images.forEach(img => {
-          const src = img.src;
-          img.src = '';
-          img.src = src.split('?')[0] + '?t=' + Date.now();
-        });
         setSuccessModal({
           isOpen: true,
           title: 'Profile Picture Updated!',
@@ -110,6 +104,7 @@ const Profile = () => {
 
   const handlePictureRemove = async () => {
     setError('');
+    setUploadingPicture(true);
 
     try {
       const result = await api.removeProfilePicture();
@@ -318,7 +313,7 @@ const Profile = () => {
                 <div className="relative">
                   {admin?.profilePicture ? (
                     <img
-                      src={admin.profilePicture.startsWith('data:') ? admin.profilePicture : `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}/${admin.profilePicture}?t=${Date.now()}`}
+                      src={admin.profilePicture.startsWith('data:') ? admin.profilePicture : `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}/${admin.profilePicture}`}
                       alt={admin?.name || 'Profile'}
                       className="w-20 h-20 rounded-full object-cover border-4 border-primary-200 dark:border-primary-700"
                       onError={(e) => {
