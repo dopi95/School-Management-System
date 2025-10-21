@@ -96,6 +96,7 @@ export const AuthProvider = ({ children }) => {
       if (response.success) {
         localStorage.setItem('token', response.token);
         localStorage.setItem('refreshToken', response.refreshToken);
+        localStorage.setItem('adminProfile', JSON.stringify(response.admin));
         sessionStorage.setItem('sessionActive', 'true');
         setAdmin(response.admin);
         setIsAuthenticated(true);

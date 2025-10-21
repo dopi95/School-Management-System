@@ -139,16 +139,18 @@ const Sidebar = () => {
                   alt="Profile"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    console.log('Profile image failed to load:', e.target.src);
                     e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
+                    e.target.nextElementSibling.style.display = 'flex';
                   }}
                   onLoad={(e) => {
-                    e.target.nextSibling.style.display = 'none';
+                    e.target.style.display = 'block';
+                    if (e.target.nextElementSibling) {
+                      e.target.nextElementSibling.style.display = 'none';
+                    }
                   }}
                 />
               ) : null}
-              <User className={`w-6 h-6 text-primary-600 dark:text-primary-400 ${admin?.profilePicture ? 'flex' : 'flex'}`} />
+              <User className={`w-6 h-6 text-primary-600 dark:text-primary-400 ${admin?.profilePicture ? 'hidden' : 'flex'}`} />
             </div>
             <div className="flex-1">
               <p className="font-medium text-gray-900 dark:text-white">{admin?.name}</p>

@@ -313,7 +313,7 @@ const Profile = () => {
                 <div className="relative">
                   {admin?.profilePicture ? (
                     <img
-                      src={admin.profilePicture.startsWith('data:') ? admin.profilePicture : `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}/${admin.profilePicture}`}
+                      src={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}/${admin.profilePicture}`}
                       alt={admin?.name || 'Profile'}
                       className="w-20 h-20 rounded-full object-cover border-4 border-primary-200 dark:border-primary-700"
                       onError={(e) => {

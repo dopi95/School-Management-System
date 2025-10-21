@@ -99,6 +99,7 @@ router.post('/login', async (req, res) => {
         role: admin.role,
         permissions: admin.permissions,
         status: admin.status,
+        profilePicture: admin.profilePicture,
         lastLogin: admin.lastLogin
       }
     });
@@ -191,7 +192,8 @@ router.put('/profile', protect, async (req, res) => {
         email: admin.email,
         role: admin.role,
         permissions: admin.permissions,
-        status: admin.status
+        status: admin.status,
+        profilePicture: admin.profilePicture
       }
     });
   } catch (error) {
