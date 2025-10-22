@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Check, X, Eye, Users, Clock } from 'lucide-react';
 import apiService from '../services/api.js';
 import { toast, ToastContainer } from 'react-toastify';
+import { useAuth } from '../context/AuthContext.jsx';
 import 'react-toastify/dist/ReactToastify.css';
 
 const PendingStudents = () => {
+  const { admin } = useAuth();
   const [pendingStudents, setPendingStudents] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [selectedStudent, setSelectedStudent] = useState(null);
+  
+  const canApproveReject = admin?.role === 'superadmin' || admin?.role === 'admin';
 
   useEffect(() => {
     loadPendingStudents();
@@ -167,28 +171,30 @@ const PendingStudents = () => {
               </div>
             </div>
             
-            <div className="flex space-x-3 mt-6">
-              <button
-                onClick={() => {
-                  handleApprove(student.id);
-                  onClose();
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 flex-1"
-              >
-                <Check className="w-4 h-4" />
-                <span>Approve</span>
-              </button>
-              <button
-                onClick={() => {
-                  handleReject(student.id);
-                  onClose();
-                }}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 flex-1"
-              >
-                <X className="w-4 h-4" />
-                <span>Reject</span>
-              </button>
-            </div>
+            {canApproveReject && (
+              <div className="flex space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    handleApprove(student.id);
+                    onClose();
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 flex-1"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Approve</span>
+                </button>
+                <button
+                  onClick={() => {
+                    handleReject(student.id);
+                    onClose();
+                  }}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 flex-1"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Reject</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -201,7 +207,9 @@ const PendingStudents = () => {
     <div className="space-y-4 sm:space-y-6">
       <div className="px-1">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Pending Students</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm sm:text-base">Review and approve student registrations</p>
+        <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm sm:text-base">
+          {canApproveReject ? 'Review and approve student registrations' : 'View pending student registrations'}
+        </p>
       </div>
 
       {/* Count Card */}
@@ -284,20 +292,24 @@ const PendingStudents = () => {
                         >
                           <Eye className="w-5 h-5" />
                         </button>
-                        <button
-                          onClick={() => handleApprove(student.id)}
-                          className="text-green-600 hover:text-green-700"
-                          title="Approve"
-                        >
-                          <Check className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleReject(student.id)}
-                          className="text-red-600 hover:text-red-700"
-                          title="Reject"
-                        >
-                          <X className="w-5 h-5" />
-                        </button>
+                        {canApproveReject && (
+                          <>
+                            <button
+                              onClick={() => handleApprove(student.id)}
+                              className="text-green-600 hover:text-green-700"
+                              title="Approve"
+                            >
+                              <Check className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleReject(student.id)}
+                              className="text-red-600 hover:text-red-700"
+                              title="Reject"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
