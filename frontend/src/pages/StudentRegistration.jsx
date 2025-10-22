@@ -159,7 +159,7 @@ const StudentRegistration = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 lg:p-8">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-500 text-white p-4 lg:p-8">
             <div className="flex flex-col items-center space-y-4">
               {/* Logo */}
               <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
@@ -175,8 +175,8 @@ const StudentRegistration = () => {
               
               {/* Subtitle */}
               <div className="text-center">
-                <p className="text-blue-100 text-base lg:text-lg font-medium">Student Registration Form</p>
-                <p className="text-blue-200 text-sm lg:text-base">የተማሪ ምዝገባ ቅጽ</p>
+                <p className="text-white text-base lg:text-lg font-medium">Student Registration Form</p>
+                <p className="text-white text-sm lg:text-base">የተማሪ ምዝገባ ቅጽ</p>
               </div>
             </div>
           </div>
@@ -349,7 +349,7 @@ const StudentRegistration = () => {
                     value={formData.dateOfBirth}
                     onChange={handleDateChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="03/03/2015"
+                    placeholder="dd/mm/yyyy"
                     required
                   />
                 </div>
@@ -364,7 +364,7 @@ const StudentRegistration = () => {
                     value={formData.joinedYear}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., 2024"
+                    placeholder="e.g., 2018"
                     required
                   />
                 </div>
@@ -469,7 +469,7 @@ const StudentRegistration = () => {
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium px-8 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2"
+                className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-500 text-white font-medium px-8 py-3 rounded-lg transition-colors duration-200 flex items-center space-x-2"
               >
                 <Save className="w-5 h-5" />
                 <span>{isSubmitting ? 'Submitting...' : 'Submit Registration'}</span>
