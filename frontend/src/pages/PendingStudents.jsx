@@ -19,11 +19,22 @@ const PendingStudents = () => {
   }, []);
 
   const loadPendingStudents = async () => {
+    setLoading(true);
     try {
+      // Add timeout to the request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+      
       const response = await apiService.request('/pending-students');
+      clearTimeout(timeoutId);
       setPendingStudents(response);
     } catch (error) {
       console.error('Failed to load pending students:', error);
+      if (error.name === 'AbortError') {
+        console.error('Request timed out');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -227,7 +238,12 @@ const PendingStudents = () => {
 
       {/* Pending Students Table */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
-        {pendingStudents.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-500 dark:text-gray-400">Loading pending students...</p>
+          </div>
+        ) : pendingStudents.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700" style={{minWidth: '800px'}}>
               <thead className="bg-gray-50 dark:bg-gray-700">

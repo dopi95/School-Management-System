@@ -40,8 +40,9 @@ const Dashboard = () => {
     const inactiveStudents = studentsList.filter(s => s.status === 'inactive').length;
     const totalAdmins = adminsList.length;
 
-    const maleStudents = studentsList.filter(s => s.gender === 'male').length;
-    const femaleStudents = studentsList.filter(s => s.gender === 'female').length;
+    const activeStudentsList = studentsList.filter(s => s.status === 'active');
+    const maleStudents = activeStudentsList.filter(s => s.gender === 'male').length;
+    const femaleStudents = activeStudentsList.filter(s => s.gender === 'female').length;
 
     const classStats = {
       'KG-1': { total: 0, male: 0, female: 0, sections: {} },
@@ -50,14 +51,14 @@ const Dashboard = () => {
     };
 
     Object.keys(classStats).forEach(className => {
-      classStats[className].total = studentsList.filter(s => s.class === className).length;
-      classStats[className].male = studentsList.filter(s => s.class === className && s.gender === 'male').length;
-      classStats[className].female = studentsList.filter(s => s.class === className && s.gender === 'female').length;
+      classStats[className].total = activeStudentsList.filter(s => s.class === className).length;
+      classStats[className].male = activeStudentsList.filter(s => s.class === className && s.gender === 'male').length;
+      classStats[className].female = activeStudentsList.filter(s => s.class === className && s.gender === 'female').length;
     });
 
     ['A', 'B', 'C', 'D'].forEach(section => {
       Object.keys(classStats).forEach(className => {
-        const sectionStudents = studentsList.filter(s => s.class === className && s.section === section);
+        const sectionStudents = activeStudentsList.filter(s => s.class === className && s.section === section);
         if (sectionStudents.length > 0) {
           classStats[className].sections[section] = {
             total: sectionStudents.length,
@@ -85,8 +86,7 @@ const Dashboard = () => {
   // 📋 Dashboard Cards
   // ===============================
   const allStats = [
-    { title: 'Total Students', value: studentsList.length, icon: Users, color: 'bg-blue-500', bgColor: 'bg-blue-50 dark:bg-blue-900', textColor: 'text-blue-600 dark:text-blue-400', permission: hasStudentsAccess },
-    { title: 'Active Students', value: activeStudents, icon: Users, color: 'bg-green-500', bgColor: 'bg-green-50 dark:bg-green-900', textColor: 'text-green-600 dark:text-green-400', permission: hasStudentsAccess },
+    { title: 'Total Active Students', value: activeStudents, icon: Users, color: 'bg-green-500', bgColor: 'bg-green-50 dark:bg-green-900', textColor: 'text-green-600 dark:text-green-400', permission: hasStudentsAccess },
     { title: 'Inactive Students', value: inactiveStudents, icon: UserX, color: 'bg-red-500', bgColor: 'bg-red-50 dark:bg-red-900', textColor: 'text-red-600 dark:text-red-400', permission: hasInactiveStudentsAccess },
     { title: 'Total Employees', value: employeesList.length, icon: GraduationCap, color: 'bg-purple-500', bgColor: 'bg-purple-50 dark:bg-purple-900', textColor: 'text-purple-600 dark:text-purple-400', permission: hasEmployeesAccess },
     { title: 'Inactive Employees', value: inactiveEmployees, icon: UserX, color: 'bg-orange-500', bgColor: 'bg-orange-50 dark:bg-orange-900', textColor: 'text-orange-600 dark:text-orange-400', permission: hasEmployeesAccess },
@@ -132,7 +132,12 @@ const Dashboard = () => {
   useEffect(() => {
     const loadPendingCount = async () => {
       try {
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
         const response = await apiService.request('/pending-students');
+        clearTimeout(timeoutId);
         const count = response.length;
         setPendingCount(count);
 
@@ -143,6 +148,8 @@ const Dashboard = () => {
         }
       } catch (error) {
         console.error('Failed to load pending students count:', error);
+        // Set count to 0 on error to prevent showing stale data
+        setPendingCount(0);
       }
     };
 
@@ -251,17 +258,17 @@ const Dashboard = () => {
       )}
 
       {/* Charts Section */}
-      {hasStudentsAccess && studentsList.length > 0 && (
+      {hasStudentsAccess && activeStudents > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Students by Class & Gender</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Active Students by Class & Gender</h3>
             <div className="h-64">
               <Bar data={classChartData} options={{ ...chartOptions, plugins: { ...chartOptions.plugins, title: { display: false } } }} />
             </div>
           </div>
 
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Gender Distribution</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Active Students Gender Distribution</h3>
             <div className="h-64 flex items-center justify-center">
               <Doughnut data={genderChartData} options={pieOptions} />
             </div>
@@ -269,16 +276,16 @@ const Dashboard = () => {
         </div>
       )}
       {/* Class Details */}
-      {hasStudentsAccess && studentsList.length > 0 && (
+      {hasStudentsAccess && activeStudents > 0 && (
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Class Statistics</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Active Students Class Statistics</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {Object.entries(classStats).map(([className, stats]) => (
               <div key={className} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">{className}</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Total Students:</span>
+                    <span className="text-gray-600 dark:text-gray-400">Active Students:</span>
                     <span className="font-semibold text-gray-900 dark:text-white">{stats.total}</span>
                   </div>
                   <div className="flex justify-between">

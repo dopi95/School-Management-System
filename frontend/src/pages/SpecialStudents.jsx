@@ -233,18 +233,6 @@ const SpecialStudents = () => {
       }}>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3 lg:space-x-4">
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-              <Users className="w-5 h-5 lg:w-6 lg:h-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{specialStudentsList.length}</p>
-              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Total Special Students</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3 lg:space-x-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
               <Users className="w-5 h-5 lg:w-6 lg:h-6 text-green-600 dark:text-green-400" />
             </div>
