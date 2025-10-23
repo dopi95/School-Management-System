@@ -2,6 +2,8 @@ import express from 'express';
 import PendingStudent from '../models/PendingStudent.js';
 import Student from '../models/Student.js';
 import { logActivity } from '../utils/activityLogger.js';
+import { protect } from '../middleware/auth.js';
+import { checkPermission } from '../middleware/permissions.js';
 
 const router = express.Router();
 
@@ -9,8 +11,8 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
   try {
     // Generate unique PEND ID (check both pending and approved students)
-    const lastPending = await PendingStudent.findOne({ id: /^PEND\d+$/ }).sort({ createdAt: -1 });
-    const lastApproved = await Student.findOne({ originalPendingId: /^PEND\d+$/ }).sort({ createdAt: -1 });
+    const lastPending = await PendingStudent.findOne({ id: /^PEND\d+$/ }).sort({ createdAt: -1 }).lean();
+    const lastApproved = await Student.findOne({ originalPendingId: /^PEND\d+$/ }).sort({ createdAt: -1 }).lean();
     
     let nextNumber = 1;
     if (lastPending) {
@@ -39,25 +41,29 @@ router.post('/register', async (req, res) => {
 });
 
 // Get all pending students (auth required)
-router.get('/', async (req, res) => {
+router.get('/', protect, async (req, res) => {
   try {
-    const pendingStudents = await PendingStudent.find({ status: 'pending' }).sort({ createdAt: -1 });
+    const pendingStudents = await PendingStudent.find({ status: 'pending' })
+      .sort({ createdAt: -1 })
+      .lean()
+      .maxTimeMS(30000);
     res.json(pendingStudents);
   } catch (error) {
+    console.error('Error fetching pending students:', error);
     res.status(500).json({ message: error.message });
   }
 });
 
 // Approve pending student
-router.post('/:id/approve', async (req, res) => {
+router.post('/:id/approve', protect, async (req, res) => {
   try {
-    const pendingStudent = await PendingStudent.findOne({ id: req.params.id });
+    const pendingStudent = await PendingStudent.findOne({ id: req.params.id }).lean();
     if (!pendingStudent) {
       return res.status(404).json({ message: 'Pending student not found' });
     }
 
     // Generate unique student ID
-    const lastStudent = await Student.findOne({ id: /^ST\d+$/ }).sort({ id: -1 });
+    const lastStudent = await Student.findOne({ id: /^ST\d+$/ }).sort({ id: -1 }).lean();
     let nextNumber = 1;
     if (lastStudent) {
       const lastNumber = parseInt(lastStudent.id.replace('ST', ''));
@@ -101,21 +107,23 @@ router.post('/:id/approve', async (req, res) => {
     await logActivity(req, 'STUDENT_APPROVED', 'Student', student.id, student.name, `Student approved from pending: ${student.name}`);
     res.json({ message: 'Student approved successfully', student });
   } catch (error) {
+    console.error('Error approving student:', error);
     res.status(400).json({ message: error.message });
   }
 });
 
 // Reject pending student
-router.delete('/:id/reject', async (req, res) => {
+router.delete('/:id/reject', protect, async (req, res) => {
   try {
-    const pendingStudent = await PendingStudent.findOneAndDelete({ id: req.params.id });
+    const pendingStudent = await PendingStudent.findOneAndDelete({ id: req.params.id }).lean();
     if (!pendingStudent) {
       return res.status(404).json({ message: 'Pending student not found' });
     }
 
-    await logActivity(req, 'STUDENT_REJECTED', 'PendingStudent', pendingStudent.id, pendingStudent.name, `Student registration rejected: ${pendingStudent.name}`);
+    await logActivity(req, 'STUDENT_REJECTED', 'PendingStudent', pendingStudent.id, pendingStudent.name || `${pendingStudent.firstName} ${pendingStudent.lastName}`, `Student registration rejected: ${pendingStudent.name || `${pendingStudent.firstName} ${pendingStudent.lastName}`}`);
     res.json({ message: 'Student registration rejected successfully' });
   } catch (error) {
+    console.error('Error rejecting student:', error);
     res.status(500).json({ message: error.message });
   }
 });

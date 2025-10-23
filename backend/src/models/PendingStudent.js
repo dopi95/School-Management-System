@@ -19,9 +19,15 @@ const pendingStudentSchema = new mongoose.Schema({
   motherName: { type: String, required: true },
   motherPhone: { type: String, required: true },
   photo: { type: String },
-  status: { type: String, default: 'pending', enum: ['pending', 'approved', 'rejected'] }
+  status: { type: String, default: 'pending', enum: ['pending', 'approved', 'rejected'], index: true }
 }, {
   timestamps: true
 });
 
-export default mongoose.model('PendingStudent', pendingStudentSchema);
+// Add indexes for better query performance
+pendingStudentSchema.index({ status: 1, createdAt: -1 });
+pendingStudentSchema.index({ id: 1 });
+pendingStudentSchema.index({ createdAt: -1 });
+
+const PendingStudent = mongoose.model('PendingStudent', pendingStudentSchema);
+export default PendingStudent;

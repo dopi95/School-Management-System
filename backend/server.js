@@ -99,6 +99,7 @@ app.use('/api/notifications', protect, (req, res, next) => {
   return checkPermission('notifications')(req, res, next);
 }, notificationRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
+// Pending students route - register is public, others require auth
 app.use('/api/pending-students', pendingStudentRoutes);
 
 // Settings route (protected by settings permission)
