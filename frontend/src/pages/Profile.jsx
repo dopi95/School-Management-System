@@ -3,6 +3,7 @@ import { User, Mail, Lock, Save, Eye, EyeOff, Camera, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
 import SuccessModal from '../components/SuccessModal.jsx';
+import { getProfilePictureUrl, getInitials, validateImageFile } from '../utils/profileUtils.js';
 
 const Profile = () => {
   const { admin, updateProfile, refreshProfile } = useAuth();
@@ -81,13 +82,20 @@ const Profile = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate file
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      setError(validation.error);
+      return;
+    }
+
     setError('');
     setUploadingPicture(true);
 
     try {
       const result = await api.uploadProfilePicture(file);
       if (result.success) {
-        // Force refresh profile data
+        // Force refresh profile data to get updated picture
         await refreshProfile();
         setSuccessModal({
           isOpen: true,
@@ -99,16 +107,23 @@ const Profile = () => {
       setError(error.message);
     } finally {
       setUploadingPicture(false);
+      // Clear the file input
+      e.target.value = '';
     }
   };
 
   const handlePictureRemove = async () => {
+    if (!window.confirm('Are you sure you want to remove your profile picture?')) {
+      return;
+    }
+
     setError('');
     setUploadingPicture(true);
 
     try {
       const result = await api.removeProfilePicture();
       if (result.success) {
+        // Force refresh profile data to remove picture
         await refreshProfile();
         setSuccessModal({
           isOpen: true,
@@ -311,26 +326,31 @@ const Profile = () => {
             <div className="space-y-4">
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
-                  {admin?.profilePicture ? (
+                  {getProfilePictureUrl(admin?.profilePicture) ? (
                     <img
-                      src={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}/${admin.profilePicture}`}
+                      src={getProfilePictureUrl(admin.profilePicture)}
                       alt={admin?.name || 'Profile'}
                       className="w-20 h-20 rounded-full object-cover border-4 border-primary-200 dark:border-primary-700"
                       onError={(e) => {
+                        console.log('Profile picture failed to load:', e.target.src);
                         e.target.style.display = 'none';
-                        e.target.nextElementSibling.style.display = 'flex';
+                        const fallback = e.target.nextElementSibling;
+                        if (fallback) {
+                          fallback.style.display = 'flex';
+                        }
                       }}
                       onLoad={(e) => {
                         e.target.style.display = 'block';
-                        if (e.target.nextElementSibling) {
-                          e.target.nextElementSibling.style.display = 'none';
+                        const fallback = e.target.nextElementSibling;
+                        if (fallback) {
+                          fallback.style.display = 'none';
                         }
                       }}
                     />
                   ) : null}
-                  <div className={`w-20 h-20 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center border-4 border-primary-200 dark:border-primary-700 ${admin?.profilePicture ? 'hidden' : ''}`}>
+                  <div className={`w-20 h-20 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center border-4 border-primary-200 dark:border-primary-700 ${getProfilePictureUrl(admin?.profilePicture) ? 'hidden' : ''}`}>
                     <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                      {admin?.name?.charAt(0)}
+                      {getInitials(admin?.name)}
                     </span>
                   </div>
                   <div className="absolute bottom-0 right-0 flex space-x-1">

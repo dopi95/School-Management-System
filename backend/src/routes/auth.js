@@ -99,7 +99,7 @@ router.post('/login', async (req, res) => {
         role: admin.role,
         permissions: admin.permissions,
         status: admin.status,
-        profilePicture: admin.profilePicture,
+        profilePicture: admin.profilePicture || null,
         lastLogin: admin.lastLogin
       }
     });
@@ -123,7 +123,7 @@ router.get('/profile', protect, async (req, res) => {
         permissions: req.admin.permissions,
         status: req.admin.status,
         lastLogin: req.admin.lastLogin,
-        profilePicture: req.admin.profilePicture,
+        profilePicture: req.admin.profilePicture || null,
         createdAt: req.admin.createdAt
       }
     });
@@ -193,7 +193,7 @@ router.put('/profile', protect, async (req, res) => {
         role: admin.role,
         permissions: admin.permissions,
         status: admin.status,
-        profilePicture: admin.profilePicture
+        profilePicture: admin.profilePicture || null
       }
     });
   } catch (error) {
@@ -589,7 +589,7 @@ router.post('/profile/picture', protect, upload.single('profilePicture'), async 
         role: admin.role,
         permissions: admin.permissions,
         status: admin.status,
-        profilePicture: admin.profilePicture
+        profilePicture: admin.profilePicture || null
       }
     });
   } catch (error) {
@@ -633,7 +633,7 @@ router.delete('/profile/picture', protect, async (req, res) => {
         role: admin.role,
         permissions: admin.permissions,
         status: admin.status,
-        profilePicture: admin.profilePicture
+        profilePicture: null
       }
     });
   } catch (error) {

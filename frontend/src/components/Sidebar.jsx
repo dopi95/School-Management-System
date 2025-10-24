@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { getProfilePictureUrl, getInitials } from '../utils/profileUtils.js';
 import logo from '../assets/lo.png';
 
 const Sidebar = () => {
@@ -133,24 +134,33 @@ const Sidebar = () => {
         <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors">
             <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center overflow-hidden">
-              {admin?.profilePicture ? (
+              {getProfilePictureUrl(admin?.profilePicture) ? (
                 <img
-                  src={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}/${admin.profilePicture}`}
+                  src={getProfilePictureUrl(admin.profilePicture)}
                   alt="Profile"
                   className="w-full h-full object-cover"
                   onError={(e) => {
+                    console.log('Sidebar profile picture failed to load:', e.target.src);
                     e.target.style.display = 'none';
-                    e.target.nextElementSibling.style.display = 'flex';
+                    const fallback = e.target.nextElementSibling;
+                    if (fallback) {
+                      fallback.style.display = 'flex';
+                    }
                   }}
                   onLoad={(e) => {
                     e.target.style.display = 'block';
-                    if (e.target.nextElementSibling) {
-                      e.target.nextElementSibling.style.display = 'none';
+                    const fallback = e.target.nextElementSibling;
+                    if (fallback) {
+                      fallback.style.display = 'none';
                     }
                   }}
                 />
               ) : null}
-              <User className={`w-6 h-6 text-primary-600 dark:text-primary-400 ${admin?.profilePicture ? 'hidden' : 'flex'}`} />
+              <div className={`w-full h-full flex items-center justify-center ${getProfilePictureUrl(admin?.profilePicture) ? 'hidden' : 'flex'}`}>
+                <span className="text-sm font-bold text-primary-600 dark:text-primary-400">
+                  {getInitials(admin?.name)}
+                </span>
+              </div>
             </div>
             <div className="flex-1">
               <p className="font-medium text-gray-900 dark:text-white">{admin?.name}</p>

@@ -66,10 +66,15 @@ export const AuthProvider = ({ children }) => {
 
       const response = await api.getProfile();
       if (response.success) {
-        setAdmin(response.admin);
+        // Ensure profile picture is preserved
+        const adminData = {
+          ...response.admin,
+          profilePicture: response.admin.profilePicture || null
+        };
+        setAdmin(adminData);
         setIsAuthenticated(true);
         // Cache profile data including picture
-        localStorage.setItem('adminProfile', JSON.stringify(response.admin));
+        localStorage.setItem('adminProfile', JSON.stringify(adminData));
       } else {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
@@ -94,11 +99,16 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.login(email, password);
       if (response.success) {
+        // Ensure profile picture is preserved
+        const adminData = {
+          ...response.admin,
+          profilePicture: response.admin.profilePicture || null
+        };
         localStorage.setItem('token', response.token);
         localStorage.setItem('refreshToken', response.refreshToken);
-        localStorage.setItem('adminProfile', JSON.stringify(response.admin));
+        localStorage.setItem('adminProfile', JSON.stringify(adminData));
         sessionStorage.setItem('sessionActive', 'true');
-        setAdmin(response.admin);
+        setAdmin(adminData);
         setIsAuthenticated(true);
         
         // Preload all data immediately after successful login
@@ -126,9 +136,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.updateProfile(profileData);
       if (response.success) {
-        setAdmin(response.admin);
+        // Preserve existing profile picture if not updated
+        const updatedAdmin = {
+          ...response.admin,
+          profilePicture: response.admin.profilePicture || admin?.profilePicture || null
+        };
+        setAdmin(updatedAdmin);
         // Update cached profile
-        localStorage.setItem('adminProfile', JSON.stringify(response.admin));
+        localStorage.setItem('adminProfile', JSON.stringify(updatedAdmin));
         return { success: true, message: response.message };
       }
     } catch (error) {
@@ -140,9 +155,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.getProfile();
       if (response.success) {
-        setAdmin(response.admin);
+        // Ensure profile picture is preserved
+        const adminData = {
+          ...response.admin,
+          profilePicture: response.admin.profilePicture || null
+        };
+        setAdmin(adminData);
         // Update cached profile
-        localStorage.setItem('adminProfile', JSON.stringify(response.admin));
+        localStorage.setItem('adminProfile', JSON.stringify(adminData));
       }
     } catch (error) {
       console.error('Error refreshing profile:', error);

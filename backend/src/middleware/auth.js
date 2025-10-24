@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import Admin from '../models/Admin.js';
+import { validateProfilePicture } from './profilePicture.js';
 
 export const protect = async (req, res, next) => {
   try {
@@ -25,7 +26,8 @@ export const protect = async (req, res, next) => {
     }
 
     req.admin = admin;
-    next();
+    // Validate profile picture exists
+    validateProfilePicture(req, res, next);
   } catch (error) {
     res.status(401).json({ message: 'Not authorized, token failed' });
   }

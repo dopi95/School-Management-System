@@ -13,6 +13,7 @@ import activityLogRoutes from "./src/routes/activityLogs.js";
 import pendingStudentRoutes from "./src/routes/pendingStudents.js";
 import { protect } from "./src/middleware/auth.js";
 import { checkPermission, checkWritePermission } from "./src/middleware/permissions.js";
+import { cleanupOrphanedPictures } from "./src/middleware/profilePicture.js";
 
 dotenv.config();
 
@@ -35,8 +36,18 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Serve static files for uploaded images
-app.use('/uploads', express.static('uploads'));
+// Serve static files for uploaded images with proper cache headers
+app.use('/uploads', express.static('uploads', {
+  maxAge: '1y', // Cache for 1 year
+  etag: true,
+  lastModified: true,
+  setHeaders: (res, path) => {
+    // Set cache control headers for profile pictures
+    if (path.includes('profiles')) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
+    }
+  }
+}));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -113,4 +124,12 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  
+  // Run cleanup on startup
+  cleanupOrphanedPictures();
+  
+  // Run cleanup every 24 hours
+  setInterval(cleanupOrphanedPictures, 24 * 60 * 60 * 1000);
+});
