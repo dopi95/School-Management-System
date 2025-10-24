@@ -13,30 +13,35 @@ export const useSpecialStudents = () => {
 
 export const SpecialStudentsProvider = ({ children }) => {
   const [specialStudentsList, setSpecialStudentsList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Load special students on mount with immediate cache display
+  // Load special students immediately
   useEffect(() => {
-    // Check for cached data first
+    // Check for preloaded data first
+    const preloaded = sessionStorage.getItem('preloadedData');
+    if (preloaded) {
+      try {
+        const { data } = JSON.parse(preloaded);
+        if (data.specialStudents) {
+          setSpecialStudentsList(data.specialStudents);
+          return;
+        }
+      } catch (e) {}
+    }
+    
+    // Fallback to individual cache
     const cached = sessionStorage.getItem('specialStudentsCache');
     if (cached) {
       try {
-        const { data, timestamp } = JSON.parse(cached);
-        // Always show cached data immediately for instant loading
+        const { data } = JSON.parse(cached);
         setSpecialStudentsList(data);
-        setLoading(false);
-        
-        // If cache is older than 30 seconds, refresh in background
-        if (Date.now() - timestamp > 30000) {
-          loadSpecialStudents(false); // Background refresh
-        }
         return;
-      } catch (e) {
-        // Invalid cache, proceed with normal load
-      }
+      } catch (e) {}
     }
+    
+    // Load from API if no cache
     loadSpecialStudents();
   }, []);
 

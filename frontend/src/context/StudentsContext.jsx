@@ -13,30 +13,35 @@ export const useStudents = () => {
 
 export const StudentsProvider = ({ children }) => {
   const [studentsList, setStudentsList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Load students on mount with immediate cache display
+  // Load students immediately
   useEffect(() => {
-    // Check for cached data first
+    // Check for preloaded data first
+    const preloaded = sessionStorage.getItem('preloadedData');
+    if (preloaded) {
+      try {
+        const { data } = JSON.parse(preloaded);
+        if (data.students) {
+          setStudentsList(data.students);
+          return;
+        }
+      } catch (e) {}
+    }
+    
+    // Fallback to individual cache
     const cached = sessionStorage.getItem('studentsCache');
     if (cached) {
       try {
-        const { data, timestamp } = JSON.parse(cached);
-        // Always show cached data immediately for instant loading
+        const { data } = JSON.parse(cached);
         setStudentsList(data);
-        setLoading(false);
-        
-        // If cache is older than 30 seconds, refresh in background
-        if (Date.now() - timestamp > 30000) {
-          loadStudents(false); // Background refresh
-        }
         return;
-      } catch (e) {
-        // Invalid cache, proceed with normal load
-      }
+      } catch (e) {}
     }
+    
+    // Load from API if no cache
     loadStudents();
   }, []);
 
@@ -67,11 +72,10 @@ export const StudentsProvider = ({ children }) => {
   }, [isEditing]);
 
   const loadStudents = async (showLoading = true) => {
-    if (isEditing && !showLoading) return; // Don't refresh while editing
+    if (isEditing && !showLoading) return;
     try {
       if (showLoading) setLoading(true);
       const students = await apiService.getStudents();
-      // Cache students data in sessionStorage for faster subsequent loads
       sessionStorage.setItem('studentsCache', JSON.stringify({
         data: students,
         timestamp: Date.now()

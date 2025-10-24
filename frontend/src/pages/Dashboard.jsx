@@ -130,25 +130,38 @@ const Dashboard = () => {
   // 🔔 Load Pending Students & Play Sound
   // ===============================
   useEffect(() => {
+    // Check for preloaded data first
+    const preloaded = sessionStorage.getItem('preloadedData');
+    if (preloaded) {
+      try {
+        const { data } = JSON.parse(preloaded);
+        if (data.pendingStudents) {
+          const count = data.pendingStudents.length;
+          setPendingCount(count);
+          
+          // 🔊 Play sound only if there are pending students
+          if (count > 0) {
+            const audio = new Audio('/cool-s.mp3');
+            audio.play().catch(() => console.log('Autoplay prevented until user interacts.'));
+          }
+          return;
+        }
+      } catch (e) {}
+    }
+
+    // Fallback to API call
     const loadPendingCount = async () => {
       try {
-        // Add timeout to prevent hanging
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-        
         const response = await apiService.request('/pending-students');
-        clearTimeout(timeoutId);
         const count = response.length;
         setPendingCount(count);
 
-        // 🔊 Play sound only if there are pending students
         if (count > 0) {
           const audio = new Audio('/cool-s.mp3');
           audio.play().catch(() => console.log('Autoplay prevented until user interacts.'));
         }
       } catch (error) {
         console.error('Failed to load pending students count:', error);
-        // Set count to 0 on error to prevent showing stale data
         setPendingCount(0);
       }
     };

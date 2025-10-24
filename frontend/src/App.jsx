@@ -9,6 +9,7 @@ import { EmployeesProvider } from './context/EmployeesContext.jsx';
 import { PaymentsProvider } from './context/PaymentsContext.jsx';
 import { SpecialPaymentsProvider } from './context/SpecialPaymentsContext.jsx';
 import { AdminsProvider } from './context/AdminsContext.jsx';
+import { DataPreloaderProvider } from './context/DataPreloaderContext.jsx';
 import Layout from './components/Layout.jsx';
 import Login from './pages/Login.jsx';
 import ResetPassword from './pages/ResetPassword.jsx';
@@ -256,25 +257,27 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <LanguageProvider>
-          <StudentsProvider>
-            <SpecialStudentsProvider>
-              <EmployeesProvider>
-                <PaymentsProvider>
-                  <SpecialPaymentsProvider>
-                    <AdminsProvider>
-                  <Router>
-                    <div className="App min-h-screen bg-gray-50 dark:bg-gray-900">
-                      <AppRoutes />
-                    </div>
-                  </Router>
-                    </AdminsProvider>
-                  </SpecialPaymentsProvider>
-                </PaymentsProvider>
-              </EmployeesProvider>
-            </SpecialStudentsProvider>
-          </StudentsProvider>
-        </LanguageProvider>
+        <DataPreloaderProvider>
+          <LanguageProvider>
+            <StudentsProvider>
+              <SpecialStudentsProvider>
+                <EmployeesProvider>
+                  <PaymentsProvider>
+                    <SpecialPaymentsProvider>
+                      <AdminsProvider>
+                        <Router>
+                          <div className="App min-h-screen bg-gray-50 dark:bg-gray-900">
+                            <AppRoutes />
+                          </div>
+                        </Router>
+                      </AdminsProvider>
+                    </SpecialPaymentsProvider>
+                  </PaymentsProvider>
+                </EmployeesProvider>
+              </SpecialStudentsProvider>
+            </StudentsProvider>
+          </LanguageProvider>
+        </DataPreloaderProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -38,11 +38,13 @@ const PendingStudents = () => {
     }
   };
 
-  const handleApprove = async (studentId) => {
+  const handleApprove = async (studentId, type = 'regular') => {
     try {
-      await apiService.request(`/pending-students/${studentId}/approve`, { method: 'POST' });
+      const endpoint = type === 'special' ? `/pending-students/${studentId}/approve-special` : `/pending-students/${studentId}/approve`;
+      await apiService.request(endpoint, { method: 'POST' });
       setPendingStudents(prev => prev.filter(s => s.id !== studentId));
-      toast.success('Student approved and added to students list!', {
+      const message = type === 'special' ? 'Student approved and added to special students list!' : 'Student approved and added to students list!';
+      toast.success(message, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -183,16 +185,26 @@ const PendingStudents = () => {
             </div>
             
             {canApproveReject && (
-              <div className="flex space-x-3 mt-6">
+              <div className="flex flex-wrap gap-2 mt-6">
                 <button
                   onClick={() => {
-                    handleApprove(student.id);
+                    handleApprove(student.id, 'regular');
                     onClose();
                   }}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 flex-1"
+                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg flex items-center space-x-1 text-sm flex-1 min-w-0"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Approve</span>
+                  <span>Approve as Student</span>
+                </button>
+                <button
+                  onClick={() => {
+                    handleApprove(student.id, 'special');
+                    onClose();
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg flex items-center space-x-1 text-sm flex-1 min-w-0"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Approve as SP Student</span>
                 </button>
                 <button
                   onClick={() => {
@@ -311,9 +323,16 @@ const PendingStudents = () => {
                         {canApproveReject && (
                           <>
                             <button
-                              onClick={() => handleApprove(student.id)}
+                              onClick={() => handleApprove(student.id, 'regular')}
                               className="text-green-600 hover:text-green-700"
-                              title="Approve"
+                              title="Approve as Student"
+                            >
+                              <Check className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleApprove(student.id, 'special')}
+                              className="text-purple-600 hover:text-purple-700"
+                              title="Approve as SP Student"
                             >
                               <Check className="w-5 h-5" />
                             </button>

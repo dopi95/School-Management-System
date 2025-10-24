@@ -19,6 +19,19 @@ export const AdminsProvider = ({ children }) => {
 
   useEffect(() => {
     if (isAuthenticated && !authLoading && admin) {
+      // Check for preloaded data first
+      const preloaded = sessionStorage.getItem('preloadedData');
+      if (preloaded) {
+        try {
+          const { data } = JSON.parse(preloaded);
+          if (data.admins) {
+            setAdminsList(data.admins);
+            setLoading(false);
+            return;
+          }
+        } catch (e) {}
+      }
+      
       const hasAdminsAccess = admin.role === 'superadmin' || admin.permissions?.admins;
       if (hasAdminsAccess) {
         fetchAdmins();
@@ -32,7 +45,7 @@ export const AdminsProvider = ({ children }) => {
   }, [isAuthenticated, admin, authLoading]);
 
   const fetchAdmins = async () => {
-    if (loading) return; // Prevent multiple simultaneous requests
+    if (loading) return;
     setLoading(true);
     try {
       const response = await api.getAdmins();

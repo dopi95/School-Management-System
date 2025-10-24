@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (email, password, preloadData) => {
     try {
       const response = await api.login(email, password);
       if (response.success) {
@@ -100,6 +100,12 @@ export const AuthProvider = ({ children }) => {
         sessionStorage.setItem('sessionActive', 'true');
         setAdmin(response.admin);
         setIsAuthenticated(true);
+        
+        // Preload all data immediately after successful login
+        if (preloadData) {
+          preloadData();
+        }
+        
         return { success: true };
       }
     } catch (error) {
@@ -151,7 +157,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateProfile,
     refreshProfile,
-    checkAuth
+    checkAuth,
+    setLoading
   };
 
   return (

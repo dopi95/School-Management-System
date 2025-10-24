@@ -13,10 +13,23 @@ export const useEmployees = () => {
 
 export const EmployeesProvider = ({ children }) => {
   const [employeesList, setEmployeesList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Check for preloaded data first
+    const preloaded = sessionStorage.getItem('preloadedData');
+    if (preloaded) {
+      try {
+        const { data } = JSON.parse(preloaded);
+        if (data.employees) {
+          setEmployeesList(data.employees);
+          return;
+        }
+      } catch (e) {}
+    }
+    
+    // Load from API if no preloaded data
     loadEmployees();
   }, []);
 

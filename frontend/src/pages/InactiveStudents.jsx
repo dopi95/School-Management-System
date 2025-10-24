@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Eye, Users, UserCheck, History, FileText, FileSpreadsheet } from 'lucide-react';
+import { Search, Eye, Users, UserCheck, History, FileText, FileSpreadsheet, Trash2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
 import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
@@ -8,11 +8,12 @@ import { exportStudentsToPDF, exportStudentsToExcel } from '../utils/exportUtils
 
 const InactiveStudents = () => {
   const { t, language } = useLanguage();
-  const { studentsList, loading, updateStudentStatus } = useStudents();
-  const { specialStudentsList, updateSpecialStudentStatus } = useSpecialStudents();
+  const { studentsList, loading, updateStudentStatus, deleteStudent } = useStudents();
+  const { specialStudentsList, updateSpecialStudentStatus, deleteSpecialStudent } = useSpecialStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [showHistoryModal, setShowHistoryModal] = useState({ isOpen: false, student: null });
   const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
+  const [showDeleteModal, setShowDeleteModal] = useState({ isOpen: false, student: null });
 
   const inactiveRegularStudents = studentsList.filter(student => student.status === 'inactive');
   const inactiveSpecialStudents = specialStudentsList.filter(student => student.status === 'inactive');
@@ -43,6 +44,28 @@ const InactiveStudents = () => {
       });
     } catch (error) {
       alert('Error updating student status: ' + error.message);
+    }
+  };
+
+  const handleDeleteStudent = async () => {
+    try {
+      const { student } = showDeleteModal;
+      const regularStudent = studentsList.find(s => s.id === student.id);
+      
+      if (regularStudent) {
+        await deleteStudent(student.id);
+      } else {
+        await deleteSpecialStudent(student.id);
+      }
+      
+      setShowDeleteModal({ isOpen: false, student: null });
+      setSuccessModal({
+        isOpen: true,
+        title: 'Student Deleted!',
+        message: `${student.name} has been permanently deleted.`
+      });
+    } catch (error) {
+      alert('Error deleting student: ' + error.message);
     }
   };
 
@@ -223,6 +246,13 @@ const InactiveStudents = () => {
                         >
                           <History className="w-5 h-5" />
                         </button>
+                        <button
+                          onClick={() => setShowDeleteModal({ isOpen: true, student })}
+                          className="text-red-600 hover:text-red-700 dark:text-red-400"
+                          title="Delete Student"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -289,6 +319,34 @@ const InactiveStudents = () => {
                 className="btn-secondary w-full"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Delete Student
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Are you sure you want to permanently delete <strong>{showDeleteModal.student?.name}</strong>? This action cannot be undone.
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowDeleteModal({ isOpen: false, student: null })}
+                className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteStudent}
+                className="flex-1 px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
               </button>
             </div>
           </div>
