@@ -19,33 +19,6 @@ export const SpecialStudentsProvider = ({ children }) => {
 
   // Load special students immediately
   useEffect(() => {
-    // Check for preloaded data first
-    const preloaded = sessionStorage.getItem('preloadedData');
-    if (preloaded) {
-      try {
-        const { data, timestamp } = JSON.parse(preloaded);
-        // Check if cache is still valid (within 5 minutes)
-        if (data.specialStudents && Date.now() - timestamp < 300000) {
-          setSpecialStudentsList(data.specialStudents);
-          return;
-        }
-      } catch (e) {}
-    }
-    
-    // Fallback to individual cache
-    const cached = sessionStorage.getItem('specialStudentsCache');
-    if (cached) {
-      try {
-        const { data, timestamp } = JSON.parse(cached);
-        // Check if cache is still valid (within 5 minutes)
-        if (data && Date.now() - timestamp < 300000) {
-          setSpecialStudentsList(data);
-          return;
-        }
-      } catch (e) {}
-    }
-    
-    // Load from API if no cache or cache is expired
     loadSpecialStudents();
   }, []);
 
@@ -76,32 +49,11 @@ export const SpecialStudentsProvider = ({ children }) => {
   }, [isEditing]);
 
   const loadSpecialStudents = async (showLoading = true) => {
-    if (isEditing && !showLoading) return; // Don't refresh while editing
+    if (isEditing && !showLoading) return;
     try {
       if (showLoading) setLoading(true);
       const students = await apiService.getSpecialStudents();
-      
-      // Cache special students data in sessionStorage for faster subsequent loads
-      sessionStorage.setItem('specialStudentsCache', JSON.stringify({
-        data: students,
-        timestamp: Date.now()
-      }));
-      
-      // Update preloaded data cache if it exists
-      const preloaded = sessionStorage.getItem('preloadedData');
-      if (preloaded) {
-        try {
-          const { data } = JSON.parse(preloaded);
-          data.specialStudents = students;
-          sessionStorage.setItem('preloadedData', JSON.stringify({
-            data,
-            timestamp: Date.now()
-          }));
-        } catch (e) {}
-      }
-      
       setSpecialStudentsList(students);
-      console.log('Special students loaded:', students.length, students);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -115,28 +67,6 @@ export const SpecialStudentsProvider = ({ children }) => {
     try {
       const newStudent = await apiService.createSpecialStudent(studentData);
       setSpecialStudentsList(prev => [...prev, newStudent]);
-      
-      const updatedList = [...specialStudentsList, newStudent];
-      
-      // Update cache immediately
-      sessionStorage.setItem('specialStudentsCache', JSON.stringify({
-        data: updatedList,
-        timestamp: Date.now()
-      }));
-      
-      // Update preloaded data cache if it exists
-      const preloaded = sessionStorage.getItem('preloadedData');
-      if (preloaded) {
-        try {
-          const { data } = JSON.parse(preloaded);
-          data.specialStudents = updatedList;
-          sessionStorage.setItem('preloadedData', JSON.stringify({
-            data,
-            timestamp: Date.now()
-          }));
-        } catch (e) {}
-      }
-      
       return newStudent;
     } catch (err) {
       setError(err.message);
@@ -151,26 +81,6 @@ export const SpecialStudentsProvider = ({ children }) => {
         student.id === id ? updatedStudent : student
       );
       setSpecialStudentsList(updatedList);
-      
-      // Update cache immediately
-      sessionStorage.setItem('specialStudentsCache', JSON.stringify({
-        data: updatedList,
-        timestamp: Date.now()
-      }));
-      
-      // Update preloaded data cache if it exists
-      const preloaded = sessionStorage.getItem('preloadedData');
-      if (preloaded) {
-        try {
-          const { data } = JSON.parse(preloaded);
-          data.specialStudents = updatedList;
-          sessionStorage.setItem('preloadedData', JSON.stringify({
-            data,
-            timestamp: Date.now()
-          }));
-        } catch (e) {}
-      }
-      
       return updatedStudent;
     } catch (err) {
       setError(err.message);
@@ -185,26 +95,6 @@ export const SpecialStudentsProvider = ({ children }) => {
         student.id === studentId ? updatedStudent : student
       );
       setSpecialStudentsList(updatedList);
-      
-      // Update cache immediately
-      sessionStorage.setItem('specialStudentsCache', JSON.stringify({
-        data: updatedList,
-        timestamp: Date.now()
-      }));
-      
-      // Update preloaded data cache if it exists
-      const preloaded = sessionStorage.getItem('preloadedData');
-      if (preloaded) {
-        try {
-          const { data } = JSON.parse(preloaded);
-          data.specialStudents = updatedList;
-          sessionStorage.setItem('preloadedData', JSON.stringify({
-            data,
-            timestamp: Date.now()
-          }));
-        } catch (e) {}
-      }
-      
       return updatedStudent;
     } catch (err) {
       setError(err.message);
@@ -230,25 +120,6 @@ export const SpecialStudentsProvider = ({ children }) => {
       await apiService.deleteSpecialStudent(studentId);
       const updatedList = specialStudentsList.filter(student => student.id !== studentId);
       setSpecialStudentsList(updatedList);
-      
-      // Update cache immediately
-      sessionStorage.setItem('specialStudentsCache', JSON.stringify({
-        data: updatedList,
-        timestamp: Date.now()
-      }));
-      
-      // Update preloaded data cache if it exists
-      const preloaded = sessionStorage.getItem('preloadedData');
-      if (preloaded) {
-        try {
-          const { data } = JSON.parse(preloaded);
-          data.specialStudents = updatedList;
-          sessionStorage.setItem('preloadedData', JSON.stringify({
-            data,
-            timestamp: Date.now()
-          }));
-        } catch (e) {}
-      }
     } catch (err) {
       setError(err.message);
       throw err;
@@ -263,25 +134,6 @@ export const SpecialStudentsProvider = ({ children }) => {
         return updatedStudent || student;
       });
       setSpecialStudentsList(updatedList);
-      
-      // Update cache immediately
-      sessionStorage.setItem('specialStudentsCache', JSON.stringify({
-        data: updatedList,
-        timestamp: Date.now()
-      }));
-      
-      // Update preloaded data cache if it exists
-      const preloaded = sessionStorage.getItem('preloadedData');
-      if (preloaded) {
-        try {
-          const { data } = JSON.parse(preloaded);
-          data.specialStudents = updatedList;
-          sessionStorage.setItem('preloadedData', JSON.stringify({
-            data,
-            timestamp: Date.now()
-          }));
-        } catch (e) {}
-      }
     } catch (err) {
       setError(err.message);
       throw err;

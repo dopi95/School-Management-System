@@ -23,37 +23,6 @@ export const StudentsProvider = ({ children }) => {
   useEffect(() => {
     if (isAuthenticated) {
       console.log('StudentsContext: User authenticated, loading students...');
-      
-      // Check for preloaded data first
-      const preloaded = sessionStorage.getItem('preloadedData');
-      if (preloaded) {
-        try {
-          const { data, timestamp } = JSON.parse(preloaded);
-          if (data.students && Date.now() - timestamp < 300000) { // 5 minutes
-            console.log('StudentsContext: Using preloaded students data');
-            setStudentsList(data.students);
-            return;
-          }
-        } catch (e) {
-          console.log('StudentsContext: Failed to parse preloaded data, fetching fresh');
-        }
-      }
-      
-      // Check individual cache
-      const cached = sessionStorage.getItem('studentsCache');
-      if (cached) {
-        try {
-          const { data, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < 120000) { // 2 minutes
-            console.log('StudentsContext: Using cached students data');
-            setStudentsList(data);
-            return;
-          }
-        } catch (e) {
-          console.log('StudentsContext: Failed to parse cached data, fetching fresh');
-        }
-      }
-      
       loadStudents();
     }
   }, [isAuthenticated]);
