@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import apiService from '../services/api.js';
+import { useAuth } from './AuthContext.jsx';
 
 const EmployeesContext = createContext();
 
@@ -16,51 +17,14 @@ export const EmployeesProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    let dataLoaded = false;
-    
-    // Check for preloaded data first
-    const preloaded = sessionStorage.getItem('preloadedData');
-    if (preloaded) {
-      try {
-        const { data } = JSON.parse(preloaded);
-        if (data.employees) {
-          console.log('Loading employees from preloaded data:', data.employees.length);
-          setEmployeesList(data.employees);
-          dataLoaded = true;
-        }
-      } catch (e) {
-        console.error('Error parsing preloaded data:', e);
-      }
-    }
-    
-    if (!dataLoaded) {
-      // Fallback to individual cache
-      const cached = sessionStorage.getItem('employeesCache');
-      if (cached) {
-        try {
-          const { data } = JSON.parse(cached);
-          if (data) {
-            console.log('Loading employees from cache:', data.length);
-            setEmployeesList(data);
-            dataLoaded = true;
-          }
-        } catch (e) {
-          console.error('Error parsing cached data:', e);
-        }
-      }
-    }
-    
-    // Always load from API to ensure fresh data
-    if (!dataLoaded) {
-      console.log('Loading employees from API');
+    if (isAuthenticated) {
+      console.log('EmployeesContext: User authenticated, loading employees...');
       loadEmployees();
-    } else {
-      // Load fresh data in background
-      setTimeout(() => loadEmployees(false), 1000);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Set up refresh mechanisms
   useEffect(() => {

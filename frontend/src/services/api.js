@@ -64,7 +64,15 @@ class ApiService {
 
   // Student API methods
   async getStudents() {
-    return this.request('/students');
+    console.log('API: Fetching students...');
+    try {
+      const result = await this.request('/students');
+      console.log('API: Students fetched successfully:', result?.length || 0, result);
+      return result || [];
+    } catch (error) {
+      console.error('API: Failed to fetch students:', error);
+      return [];
+    }
   }
 
   async getStudent(id) {
@@ -114,7 +122,15 @@ class ApiService {
 
   // Employee API methods
   async getEmployees() {
-    return this.request('/employees');
+    console.log('API: Fetching employees...');
+    try {
+      const result = await this.request('/employees');
+      console.log('API: Employees fetched successfully:', result.length);
+      return result;
+    } catch (error) {
+      console.error('API: Failed to fetch employees:', error);
+      throw error;
+    }
   }
 
   async getEmployee(id) {

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import apiService from '../services/api.js';
+import { useAuth } from './AuthContext.jsx';
 
 const StudentsContext = createContext();
 
@@ -16,52 +17,15 @@ export const StudentsProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const { isAuthenticated } = useAuth();
 
-  // Load students immediately
+  // Load students when authenticated
   useEffect(() => {
-    let dataLoaded = false;
-    
-    // Check for preloaded data first
-    const preloaded = sessionStorage.getItem('preloadedData');
-    if (preloaded) {
-      try {
-        const { data } = JSON.parse(preloaded);
-        if (data.students) {
-          console.log('Loading students from preloaded data:', data.students.length);
-          setStudentsList(data.students);
-          dataLoaded = true;
-        }
-      } catch (e) {
-        console.error('Error parsing preloaded data:', e);
-      }
-    }
-    
-    if (!dataLoaded) {
-      // Fallback to individual cache
-      const cached = sessionStorage.getItem('studentsCache');
-      if (cached) {
-        try {
-          const { data } = JSON.parse(cached);
-          if (data) {
-            console.log('Loading students from cache:', data.length);
-            setStudentsList(data);
-            dataLoaded = true;
-          }
-        } catch (e) {
-          console.error('Error parsing cached data:', e);
-        }
-      }
-    }
-    
-    // Always load from API to ensure fresh data
-    if (!dataLoaded) {
-      console.log('Loading students from API');
+    if (isAuthenticated) {
+      console.log('StudentsContext: User authenticated, loading students...');
       loadStudents();
-    } else {
-      // Load fresh data in background
-      setTimeout(() => loadStudents(false), 1000);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Set up refresh mechanisms only when not editing
   useEffect(() => {
@@ -93,11 +57,15 @@ export const StudentsProvider = ({ children }) => {
     if (isEditing && !showLoading) return;
     try {
       if (showLoading) setLoading(true);
+      console.log('StudentsContext: Calling API to fetch students...');
       const students = await apiService.getStudents();
+      console.log('StudentsContext: Received students from API:', students?.length || 0, students);
+      
+      const studentsArray = Array.isArray(students) ? students : [];
       
       // Update both individual cache and preloaded data
       sessionStorage.setItem('studentsCache', JSON.stringify({
-        data: students,
+        data: studentsArray,
         timestamp: Date.now()
       }));
       
@@ -106,16 +74,18 @@ export const StudentsProvider = ({ children }) => {
       if (preloaded) {
         try {
           const parsed = JSON.parse(preloaded);
-          parsed.data.students = students;
+          parsed.data.students = studentsArray;
           sessionStorage.setItem('preloadedData', JSON.stringify(parsed));
         } catch (e) {}
       }
       
-      setStudentsList(students);
+      setStudentsList(studentsArray);
+      console.log('StudentsContext: Students state updated, count:', studentsArray.length);
       setError(null);
     } catch (err) {
+      console.error('StudentsContext: Failed to load students:', err);
       setError(err.message);
-      console.error('Failed to load students:', err);
+      setStudentsList([]);
     } finally {
       if (showLoading) setLoading(false);
     }

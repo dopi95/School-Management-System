@@ -267,11 +267,9 @@ function App() {
                     <SpecialPaymentsProvider>
                       <AdminsProvider>
                         <Router>
-                          <DataLoader>
-                            <div className="App min-h-screen bg-gray-50 dark:bg-gray-900">
-                              <AppRoutes />
-                            </div>
-                          </DataLoader>
+                          <div className="App min-h-screen bg-gray-50 dark:bg-gray-900">
+                            <AppRoutes />
+                          </div>
                         </Router>
                       </AdminsProvider>
                     </SpecialPaymentsProvider>

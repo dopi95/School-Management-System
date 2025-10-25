@@ -99,6 +99,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.login(email, password);
       if (response.success) {
+        // Clear all cached data on fresh login
+        sessionStorage.removeItem('preloadedData');
+        sessionStorage.removeItem('studentsCache');
+        sessionStorage.removeItem('employeesCache');
+        
         // Ensure profile picture is preserved
         const adminData = {
           ...response.admin,
@@ -113,7 +118,7 @@ export const AuthProvider = ({ children }) => {
         
         // Preload all data immediately after successful login
         if (preloadData) {
-          console.log('Triggering data preload after login...');
+          console.log('Triggering fresh data preload after login...');
           // Don't await - let it load in background
           preloadData().then(() => {
             console.log('Data preload completed after login');
