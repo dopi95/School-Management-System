@@ -231,140 +231,143 @@ const PendingStudents = () => {
 
 
   return (
-    <div className="space-y-4 lg:space-y-6">
-      <div className="px-4 lg:px-0">
-        <h1 className="text-xl lg:text-3xl font-bold text-gray-900 dark:text-white">Pending Students</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm lg:text-base">
-          {canApproveReject ? 'Review and approve student registrations' : 'View pending student registrations'}
-        </p>
-      </div>
+    <div className="min-h-screen">
+      <div className="space-y-4 lg:space-y-6 max-w-full">
+        {/* Header - Fixed */}
+        <div className="px-4 lg:px-0 w-full">
+          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 dark:text-white">Pending Students</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm lg:text-base">
+            {canApproveReject ? 'Review and approve student registrations' : 'View pending student registrations'}
+          </p>
+        </div>
 
-      {/* Count Card */}
-      <div className="mx-4 lg:mx-0">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 lg:p-6 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3 lg:space-x-4">
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center flex-shrink-0">
-              <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-orange-600 dark:text-orange-400" />
-            </div>
-            <div>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{pendingStudents.length}</p>
-              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400">Pending Registrations</p>
+        {/* Count Card - Fixed */}
+        <div className="px-4 lg:px-0 w-full">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 lg:p-6 border border-gray-200 dark:border-gray-700 w-full max-w-sm">
+            <div className="flex items-center space-x-3 lg:space-x-4">
+              <div className="w-10 h-10 lg:w-12 lg:h-12 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center flex-shrink-0">
+                <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{pendingStudents.length}</p>
+                <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 truncate">Pending Registrations</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Pending Students Table */}
-      <div className="mx-4 lg:mx-0">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-500 dark:text-gray-400">Loading pending students...</p>
-            </div>
-          ) : pendingStudents.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700" style={{minWidth: '800px'}}>
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Student Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Class
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Father Phone
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Submitted
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {pendingStudents.map((student) => (
-                    <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-medium text-orange-600">{student.id}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-sm font-medium text-orange-600">
-                              {student.firstName.charAt(0)}
-                            </span>
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                              {`${student.firstName} ${student.middleName} ${student.lastName}`}
+        {/* Table Container - Only table scrolls */}
+        <div className="px-4 lg:px-0 w-full">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 w-full">
+            {loading ? (
+              <div className="text-center py-12 w-full">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-500 dark:text-gray-400">Loading pending students...</p>
+              </div>
+            ) : pendingStudents.length > 0 ? (
+              <div className="overflow-x-auto w-full">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700" style={{minWidth: '800px'}}>
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Student Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Class
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Father Phone
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Submitted
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {pendingStudents.map((student) => (
+                      <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-medium text-orange-600">{student.id}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-sm font-medium text-orange-600">
+                                {student.firstName.charAt(0)}
+                              </span>
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                {`${student.firstName} ${student.middleName} ${student.lastName}`}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                          {student.class}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {student.fatherPhone}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {new Date(student.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-3">
-                          <button
-                            onClick={() => setSelectedStudent(student)}
-                            className="text-blue-600 hover:text-blue-700"
-                            title="View Details"
-                          >
-                            <Eye className="w-5 h-5" />
-                          </button>
-                          {canApproveReject && (
-                            <>
-                              <button
-                                onClick={() => handleApprove(student.id, 'regular')}
-                                className="text-green-600 hover:text-green-700"
-                                title="Approve as Student"
-                              >
-                                <Check className="w-5 h-5" />
-                              </button>
-                              <button
-                                onClick={() => handleApprove(student.id, 'special')}
-                                className="text-purple-600 hover:text-purple-700"
-                                title="Approve as SP Student"
-                              >
-                                <Check className="w-5 h-5" />
-                              </button>
-                              <button
-                                onClick={() => handleReject(student.id)}
-                                className="text-red-600 hover:text-red-700"
-                                title="Reject"
-                              >
-                                <X className="w-5 h-5" />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">No pending student registrations</p>
-            </div>
-          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                            {student.class}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          {student.fatherPhone}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          {new Date(student.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex items-center space-x-3">
+                            <button
+                              onClick={() => setSelectedStudent(student)}
+                              className="text-blue-600 hover:text-blue-700"
+                              title="View Details"
+                            >
+                              <Eye className="w-5 h-5" />
+                            </button>
+                            {canApproveReject && (
+                              <>
+                                <button
+                                  onClick={() => handleApprove(student.id, 'regular')}
+                                  className="text-green-600 hover:text-green-700"
+                                  title="Approve as Student"
+                                >
+                                  <Check className="w-5 h-5" />
+                                </button>
+                                <button
+                                  onClick={() => handleApprove(student.id, 'special')}
+                                  className="text-purple-600 hover:text-purple-700"
+                                  title="Approve as SP Student"
+                                >
+                                  <Check className="w-5 h-5" />
+                                </button>
+                                <button
+                                  onClick={() => handleReject(student.id)}
+                                  className="text-red-600 hover:text-red-700"
+                                  title="Reject"
+                                >
+                                  <X className="w-5 h-5" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-12 w-full">
+                <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400">No pending student registrations</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
