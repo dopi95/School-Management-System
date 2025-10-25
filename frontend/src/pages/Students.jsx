@@ -341,20 +341,22 @@ const Students = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={isAllSelected}
-                      ref={(el) => {
-                        if (el) el.indeterminate = isIndeterminate;
-                      }}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                    />
-                    <span>Select All</span>
-                  </div>
-                </th>
+                {canEdit(admin, 'students') && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={isAllSelected}
+                        ref={(el) => {
+                          if (el) el.indeterminate = isIndeterminate;
+                        }}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      />
+                      <span>Select All</span>
+                    </div>
+                  </th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Student Name
                 </th>
@@ -370,22 +372,26 @@ const Students = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Section
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Actions
-                </th>
+                {(canView(admin, 'students') || canEdit(admin, 'students') || canDelete(admin, 'students')) && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredStudents.map((student) => (
                 <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      checked={selectedStudents.includes(student.id)}
-                      onChange={(e) => handleSelectStudent(student.id, e.target.checked)}
-                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                    />
-                  </td>
+                  {canEdit(admin, 'students') && (
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={selectedStudents.includes(student.id)}
+                        onChange={(e) => handleSelectStudent(student.id, e.target.checked)}
+                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      />
+                    </td>
+                  )}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
@@ -426,46 +432,48 @@ const Students = () => {
                       {student.section || 'N/A'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-3">
-                      {canView(admin, 'students') && (
-                        <Link
-                          to={`/students/${student.id}`}
-                          className="text-primary-600 hover:text-primary-700"
-                          title="View Details"
-                        >
-                          <Eye className="w-5 h-5" />
-                        </Link>
-                      )}
-                      {canEdit(admin, 'students') && (
-                        <Link
-                          to={`/students/edit/${student.id}`}
-                          className="text-blue-600 hover:text-blue-700"
-                          title="Edit Student"
-                        >
-                          <Edit className="w-5 h-5" />
-                        </Link>
-                      )}
-                      {canEdit(admin, 'students') && (
-                        <button
-                          onClick={() => handleStatusToggle(student.id)}
-                          className={student.status === 'active' ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
-                          title={student.status === 'active' ? 'Mark as Inactive' : 'Mark as Active'}
-                        >
-                          <UserX className="w-5 h-5" />
-                        </button>
-                      )}
-                      {canDelete(admin, 'students') && (
-                        <button
-                          onClick={() => handleDeleteClick(student)}
-                          className="text-red-600 hover:text-red-700"
-                          title="Delete Student"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
+                  {(canView(admin, 'students') || canEdit(admin, 'students') || canDelete(admin, 'students')) && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-3">
+                        {canView(admin, 'students') && (
+                          <Link
+                            to={`/students/${student.id}`}
+                            className="text-primary-600 hover:text-primary-700"
+                            title="View Details"
+                          >
+                            <Eye className="w-5 h-5" />
+                          </Link>
+                        )}
+                        {canEdit(admin, 'students') && (
+                          <Link
+                            to={`/students/edit/${student.id}`}
+                            className="text-blue-600 hover:text-blue-700"
+                            title="Edit Student"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </Link>
+                        )}
+                        {canEdit(admin, 'students') && (
+                          <button
+                            onClick={() => handleStatusToggle(student.id)}
+                            className={student.status === 'active' ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
+                            title={student.status === 'active' ? 'Mark as Inactive' : 'Mark as Active'}
+                          >
+                            <UserX className="w-5 h-5" />
+                          </button>
+                        )}
+                        {canDelete(admin, 'students') && (
+                          <button
+                            onClick={() => handleDeleteClick(student)}
+                            className="text-red-600 hover:text-red-700"
+                            title="Delete Student"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

@@ -59,7 +59,7 @@ const Sidebar = () => {
 
   const allMenuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: getMenuLabel('dashboard'), permission: 'dashboard' },
-    { path: '/students', icon: Users, label: getMenuLabel('students'), permission: 'students' },
+    { path: '/students', icon: Users, label: admin?.role === 'teacher' ? 'My Students' : getMenuLabel('students'), permission: 'students' },
     { path: '/special-students', icon: Users, label: 'SP Students', permission: 'specialStudents' },
     { path: '/inactive-students', icon: UserX, label: getMenuLabel('inactive-students'), permission: 'inactiveStudents' },
     { path: '/teachers', icon: GraduationCap, label: getMenuLabel('employees'), permission: 'employees' },
@@ -79,6 +79,12 @@ const Sidebar = () => {
       return admin?.role === 'superadmin';
     }
     if (admin?.role === 'superadmin') return true;
+    
+    // Teacher role restrictions
+    if (admin?.role === 'teacher') {
+      const allowedPaths = ['/dashboard', '/students', '/profile', '/settings'];
+      return allowedPaths.includes(item.path);
+    }
     
     // Check for granular permissions (object with actions)
     if (typeof admin?.permissions?.[item.permission] === 'object') {

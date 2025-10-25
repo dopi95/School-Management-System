@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
 import SuccessModal from '../components/SuccessModal.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
+import { canView, canCreate, canEdit, canDelete } from '../utils/permissions.js';
 
 const AdminManagement = () => {
   const { admin } = useAuth();
@@ -226,13 +227,15 @@ const AdminManagement = () => {
             <Users className="w-3 h-3 lg:w-4 lg:h-4" />
             <span>Admin Profiles</span>
           </button>
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md w-fit"
-          >
-            <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
-            <span>Add Admin</span>
-          </button>
+          {canCreate(admin, 'admins') && (
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md w-fit"
+            >
+              <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span>Add Admin</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -334,9 +337,11 @@ const AdminManagement = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Last Login
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Actions
-                </th>
+                {(canEdit(admin, 'admins') || canDelete(admin, 'admins')) && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -393,24 +398,30 @@ const AdminManagement = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     {adminItem.lastLogin ? new Date(adminItem.lastLogin).toLocaleDateString() : 'Never'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-3">
-                      <button
-                        onClick={() => handleEdit(adminItem)}
-                        className="text-blue-600 hover:text-blue-700"
-                        title="Edit Admin"
-                      >
-                        <Edit className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteModal({ isOpen: true, admin: adminItem })}
-                        className="text-red-600 hover:text-red-700"
-                        title="Delete Admin"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
+                  {(canEdit(admin, 'admins') || canDelete(admin, 'admins')) && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-3">
+                        {canEdit(admin, 'admins') && (
+                          <button
+                            onClick={() => handleEdit(adminItem)}
+                            className="text-blue-600 hover:text-blue-700"
+                            title="Edit Admin"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </button>
+                        )}
+                        {canDelete(admin, 'admins') && (
+                          <button
+                            onClick={() => setDeleteModal({ isOpen: true, admin: adminItem })}
+                            className="text-red-600 hover:text-red-700"
+                            title="Delete Admin"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -490,6 +501,7 @@ const AdminManagement = () => {
                   <option value="superadmin">SuperAdministrator</option>
                   <option value="admin">Admin</option>
                   <option value="user">User</option>
+                  <option value="teacher">Teacher</option>
                 </select>
               </div>
               <div>
@@ -506,7 +518,49 @@ const AdminManagement = () => {
                 </select>
               </div>
               
-              {formData.role !== 'superadmin' && (
+              {formData.role === 'teacher' && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Assigned Classes & Sections
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {['KG-1', 'KG-2', 'KG-3'].map(cls => (
+                      <div key={cls} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">{cls}</h4>
+                        <div className="space-y-1">
+                          {['A', 'B', 'C', 'D', 'N/A'].map(section => (
+                            <label key={section} className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={formData.assignedClasses?.some(ac => ac.class === cls && ac.section === section) || false}
+                                onChange={(e) => {
+                                  const current = formData.assignedClasses || [];
+                                  if (e.target.checked) {
+                                    setFormData({
+                                      ...formData,
+                                      assignedClasses: [...current, { class: cls, section }]
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      assignedClasses: current.filter(ac => !(ac.class === cls && ac.section === section))
+                                    });
+                                  }
+                                }}
+                                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                              />
+                              <span className="text-sm text-gray-700 dark:text-gray-300">
+                                {section === 'N/A' ? 'No Section' : `Section ${section}`}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {formData.role !== 'superadmin' && formData.role !== 'teacher' && (
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Permissions
@@ -517,7 +571,6 @@ const AdminManagement = () => {
                       {[
                         { key: 'dashboard', label: 'Dashboard' },
                         { key: 'notifications', label: 'Send Notifications' },
-                        { key: 'admins', label: 'Admin Management' },
                         { key: 'settings', label: 'Settings' }
                       ].map(permission => (
                         <label key={permission.key} className="flex items-center space-x-2 cursor-pointer">
@@ -545,16 +598,18 @@ const AdminManagement = () => {
                     {[
                       { key: 'students', label: 'Students Management' },
                       { key: 'inactiveStudents', label: 'Inactive Students' },
+                      { key: 'pendingStudents', label: 'Pending Students', actions: ['view', 'approve'] },
                       { key: 'employees', label: 'Employees Management' },
                       { key: 'inactiveEmployees', label: 'Inactive Employees' },
                       { key: 'payments', label: 'Payments Management' },
                       { key: 'specialStudents', label: 'SP Students' },
-                      { key: 'specialPayments', label: 'SP Payments' }
+                      { key: 'specialPayments', label: 'SP Payments' },
+                      { key: 'admins', label: 'Admin Management', actions: ['view', 'create', 'edit', 'delete'] }
                     ].map(module => (
                       <div key={module.key} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                         <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">{module.label}</h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                          {['view', 'create', 'edit', 'delete'].map(action => (
+                          {(module.actions || ['view', 'create', 'edit', 'delete']).map(action => (
                             <label key={action} className="flex items-center space-x-2 cursor-pointer">
                               <input
                                 type="checkbox"
@@ -601,6 +656,13 @@ const AdminManagement = () => {
                 <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <p className="text-sm text-green-700 dark:text-green-300">
                     Users have limited access. Configure which modules they can access and what actions they can perform.
+                  </p>
+                </div>
+              )}
+              {formData.role === 'teacher' && (
+                <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                    Teachers can only view students in their assigned classes. They have access to Dashboard, My Students, Profile, and Settings only.
                   </p>
                 </div>
               )}

@@ -229,7 +229,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between w-full md:w-auto">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
 
-          {(admin?.role === 'superadmin' || admin?.permissions?.students) && (
+          {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
             <Link to="/pending-students" className="relative p-2 ml-3 bg-white dark:bg-gray-800 rounded-full shadow hover:shadow-md border border-gray-200 dark:border-gray-700 md:hidden">
               <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
               {pendingCount > 0 && (
@@ -241,7 +241,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {(admin?.role === 'superadmin' || admin?.permissions?.students) && (
+        {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
           <Link to="/pending-students" className="relative p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 dark:border-gray-700 hidden md:block">
             <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
             {pendingCount > 0 && (
@@ -369,21 +369,21 @@ const Dashboard = () => {
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <PermissionGuard permission="students">
+          <PermissionGuard permission="students" action="create">
             <Link to="/students/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
               <Users className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add New Student</p>
             </Link>
           </PermissionGuard>
 
-          <PermissionGuard permission="specialStudents">
+          <PermissionGuard permission="specialStudents" action="create">
             <Link to="/special-students/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
               <Users className="w-8 h-8 text-blue-400 dark:text-blue-500 mx-auto mb-2" />
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add Special Student</p>
             </Link>
           </PermissionGuard>
 
-          <PermissionGuard permission="employees">
+          <PermissionGuard permission="employees" action="create">
             <Link to="/teachers/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
               <GraduationCap className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add New Employee</p>

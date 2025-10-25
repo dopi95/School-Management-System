@@ -8,7 +8,7 @@ const adminSchema = new mongoose.Schema({
   plainPassword: { type: String }, // Store plain password for SuperAdmin viewing
   role: { 
     type: String, 
-    enum: ['superadmin', 'admin', 'user'], 
+    enum: ['superadmin', 'admin', 'user', 'teacher'], 
     default: 'admin' 
   },
   permissions: {
@@ -55,8 +55,17 @@ const adminSchema = new mongoose.Schema({
       edit: { type: Boolean, default: false },
       delete: { type: Boolean, default: false }
     },
+    pendingStudents: {
+      view: { type: Boolean, default: false },
+      approve: { type: Boolean, default: false }
+    },
     notifications: { type: Boolean, default: false },
-    admins: { type: Boolean, default: false },
+    admins: {
+      view: { type: Boolean, default: false },
+      create: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      delete: { type: Boolean, default: false }
+    },
     profile: { type: Boolean, default: true },
     settings: { type: Boolean, default: false }
   },
@@ -65,6 +74,11 @@ const adminSchema = new mongoose.Schema({
     enum: ['active', 'inactive'], 
     default: 'active' 
   },
+  // Teacher-specific fields
+  assignedClasses: [{
+    class: { type: String, enum: ['KG-1', 'KG-2', 'KG-3'] },
+    section: { type: String, enum: ['A', 'B', 'C', 'D', 'N/A'] }
+  }],
   profilePicture: { type: String },
   lastLogin: { type: Date },
   resetPasswordToken: String,
