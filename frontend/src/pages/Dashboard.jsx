@@ -41,14 +41,35 @@ const Dashboard = () => {
   const stats = useMemo(() => {
     const activeEmployees = employeesList.filter(e => e.status === 'active').length;
     const inactiveEmployees = employeesList.filter(e => e.status === 'inactive').length;
-    const activeStudents = studentsList.filter(s => s.status === 'active').length;
-    const inactiveStudents = studentsList.filter(s => s.status === 'inactive').length;
-    const activeSpecialStudents = specialStudentsList.filter(s => s.status === 'active').length;
-    const inactiveSpecialStudents = specialStudentsList.filter(s => s.status === 'inactive').length;
+    
+    // Filter students for teachers based on assigned classes
+    let filteredStudents = studentsList;
+    let filteredSpecialStudents = specialStudentsList;
+    
+    if (admin?.role === 'teacher' && admin?.assignedClasses) {
+      const assignedClasses = admin.assignedClasses;
+      filteredStudents = studentsList.filter(student => 
+        assignedClasses.some(ac => 
+          ac.class === student.class && 
+          (ac.section === 'N/A' || ac.section === student.section)
+        )
+      );
+      filteredSpecialStudents = specialStudentsList.filter(student => 
+        assignedClasses.some(ac => 
+          ac.class === student.class && 
+          (ac.section === 'N/A' || ac.section === student.section)
+        )
+      );
+    }
+    
+    const activeStudents = filteredStudents.filter(s => s.status === 'active').length;
+    const inactiveStudents = filteredStudents.filter(s => s.status === 'inactive').length;
+    const activeSpecialStudents = filteredSpecialStudents.filter(s => s.status === 'active').length;
+    const inactiveSpecialStudents = filteredSpecialStudents.filter(s => s.status === 'inactive').length;
     const totalAdmins = adminsList.length;
 
-    // Combined active students from both regular and special
-    const allActiveStudents = [...studentsList.filter(s => s.status === 'active'), ...specialStudentsList.filter(s => s.status === 'active')];
+    // Combined active students from both regular and special (filtered for teachers)
+    const allActiveStudents = [...filteredStudents.filter(s => s.status === 'active'), ...filteredSpecialStudents.filter(s => s.status === 'active')];
     const totalActiveStudents = activeStudents + activeSpecialStudents;
     const totalInactiveStudents = inactiveStudents + inactiveSpecialStudents;
     const maleStudents = allActiveStudents.filter(s => s.gender === 'male').length;
@@ -80,7 +101,7 @@ const Dashboard = () => {
     });
 
     return { activeEmployees, inactiveEmployees, activeStudents, inactiveStudents, activeSpecialStudents, inactiveSpecialStudents, totalActiveStudents, totalInactiveStudents, totalAdmins, maleStudents, femaleStudents, classStats };
-  }, [employeesList, studentsList, specialStudentsList, adminsList]);
+  }, [employeesList, studentsList, specialStudentsList, adminsList, admin?.assignedClasses]);
 
   const { activeEmployees, inactiveEmployees, activeStudents, inactiveStudents, activeSpecialStudents, inactiveSpecialStudents, totalActiveStudents, totalInactiveStudents, totalAdmins, maleStudents, femaleStudents, classStats } = stats;
 
@@ -102,7 +123,7 @@ const Dashboard = () => {
     { title: 'Active Students', value: activeStudents, icon: Users, color: 'bg-blue-500', bgColor: 'bg-blue-50 dark:bg-blue-900', textColor: 'text-blue-600 dark:text-blue-400', permission: hasStudentsAccess },
     { title: 'Active Special Students', value: activeSpecialStudents, icon: Users, color: 'bg-purple-500', bgColor: 'bg-purple-50 dark:bg-purple-900', textColor: 'text-purple-600 dark:text-purple-400', permission: hasSpecialStudentsAccess },
     { title: 'Total Employees', value: employeesList.length, icon: GraduationCap, color: 'bg-orange-500', bgColor: 'bg-orange-50 dark:bg-orange-900', textColor: 'text-orange-600 dark:text-orange-400', permission: hasEmployeesAccess },
-    { title: 'Total Administrators', value: totalAdmins, icon: UserCog, color: 'bg-indigo-500', bgColor: 'bg-indigo-50 dark:bg-indigo-900', textColor: 'text-indigo-600 dark:text-indigo-400', permission: hasAdminsAccess }
+    { title: 'Total Administrators', value: totalAdmins, icon: UserCog, color: 'bg-indigo-500', bgColor: 'bg-indigo-50 dark:bg-indigo-900', textColor: 'text-indigo-600 dark:text-indigo-400', permission: admin?.role === 'superadmin' }
   ];
 
   const filteredStats = allStats.filter(stat => stat.permission);

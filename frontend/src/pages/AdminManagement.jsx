@@ -197,6 +197,7 @@ const AdminManagement = () => {
   const superAdmins = admins.filter(a => a.role === 'superadmin').length;
   const regularAdmins = admins.filter(a => a.role === 'admin').length;
   const users = admins.filter(a => a.role === 'user').length;
+  const teachers = admins.filter(a => a.role === 'teacher').length;
 
   if (admin?.role !== 'superadmin') {
     return (
@@ -289,7 +290,19 @@ const AdminManagement = () => {
             </div>
             <div>
               <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{users}</p>
-              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Users</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Executives</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center">
+              <Users className="w-5 h-5 lg:w-6 lg:h-6 text-yellow-600 dark:text-yellow-400" />
+            </div>
+            <div>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{teachers}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Teachers</p>
             </div>
           </div>
         </div>
@@ -368,7 +381,7 @@ const AdminManagement = () => {
                         ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
                         : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
                     }`}>
-                      {adminItem.role === 'superadmin' ? 'SuperAdministrator' : adminItem.role === 'admin' ? 'Admin' : 'User'}
+                      {adminItem.role === 'superadmin' ? 'SuperAdministrator' : adminItem.role === 'admin' ? 'Admin' : 'Executive'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -500,7 +513,7 @@ const AdminManagement = () => {
                 >
                   <option value="superadmin">SuperAdministrator</option>
                   <option value="admin">Admin</option>
-                  <option value="user">User</option>
+                  <option value="user">Executive</option>
                   <option value="teacher">Teacher</option>
                 </select>
               </div>
@@ -605,36 +618,63 @@ const AdminManagement = () => {
                       { key: 'specialStudents', label: 'SP Students' },
                       { key: 'specialPayments', label: 'SP Payments' },
                       { key: 'admins', label: 'Admin Management', actions: ['view', 'create', 'edit', 'delete'] }
-                    ].map(module => (
-                      <div key={module.key} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">{module.label}</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                          {(module.actions || ['view', 'create', 'edit', 'delete']).map(action => (
-                            <label key={action} className="flex items-center space-x-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={formData.permissions?.[module.key]?.[action] || false}
-                                onChange={(e) => setFormData({
-                                  ...formData,
-                                  permissions: {
-                                    ...formData.permissions,
-                                    profile: true,
-                                    [module.key]: {
-                                      ...formData.permissions?.[module.key],
-                                      [action]: e.target.checked
+                    ].map(module => {
+                      // For admin role, only show view permission (page access)
+                      const actionsToShow = formData.role === 'admin' 
+                        ? ['view'] 
+                        : (module.actions || ['view', 'create', 'edit', 'delete']);
+                      
+                      return (
+                        <div key={module.key} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">{module.label}</h4>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            {actionsToShow.map(action => (
+                              <label key={action} className="flex items-center space-x-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={formData.permissions?.[module.key]?.[action] || false}
+                                  onChange={(e) => {
+                                    if (formData.role === 'admin' && action === 'view') {
+                                      // For admin role, when checking view, also enable all actions
+                                      const allActions = module.actions || ['view', 'create', 'edit', 'delete'];
+                                      const actionPermissions = {};
+                                      allActions.forEach(act => {
+                                        actionPermissions[act] = e.target.checked;
+                                      });
+                                      
+                                      setFormData({
+                                        ...formData,
+                                        permissions: {
+                                          ...formData.permissions,
+                                          profile: true,
+                                          [module.key]: actionPermissions
+                                        }
+                                      });
+                                    } else {
+                                      setFormData({
+                                        ...formData,
+                                        permissions: {
+                                          ...formData.permissions,
+                                          profile: true,
+                                          [module.key]: {
+                                            ...formData.permissions?.[module.key],
+                                            [action]: e.target.checked
+                                          }
+                                        }
+                                      });
                                     }
-                                  }
-                                })}
-                                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                              />
-                              <span className="text-xs text-gray-600 dark:text-gray-400 capitalize">
-                                {action}
-                              </span>
-                            </label>
-                          ))}
+                                  }}
+                                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                />
+                                <span className="text-xs text-gray-600 dark:text-gray-400 capitalize">
+                                  {formData.role === 'admin' && action === 'view' ? 'Page Access' : action}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -648,14 +688,14 @@ const AdminManagement = () => {
               {formData.role === 'admin' && (
                 <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <p className="text-sm text-blue-700 dark:text-blue-300">
-                    Admins can have granular permissions. Select specific actions (view, create, edit, delete) for each module.
+                    Admins get full access (view, create, edit, delete) to selected pages. Simply check "Page Access" to enable complete functionality for that module.
                   </p>
                 </div>
               )}
               {formData.role === 'user' && (
                 <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <p className="text-sm text-green-700 dark:text-green-300">
-                    Users have limited access. Configure which modules they can access and what actions they can perform.
+                    Executives have limited access. Configure which modules they can access and what actions they can perform.
                   </p>
                 </div>
               )}

@@ -3,12 +3,17 @@ import { History, Check, CreditCard, Calendar, Users, Search, Filter, FileText, 
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
 import { usePayments } from '../context/PaymentsContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import jsPDF from 'jspdf';
 
 const Payments = () => {
   const { t, language } = useLanguage();
+  const { admin } = useAuth();
   const { studentsList = [], updateStudentPayment, loadStudents, loading: studentsLoading } = useStudents() || {};
   const { paymentsList = [], loading = false, addPayment } = usePayments() || {};
+  
+  // Check if user can edit payments (not just view)
+  const canEditPayments = admin?.role === 'superadmin' || admin?.permissions?.payments?.edit;
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const saved = localStorage.getItem('payments-selected-month');
     return saved !== null ? parseInt(saved) : 0; // Start with September (index 0)
@@ -542,15 +547,17 @@ const Payments = () => {
 
             {/* Download Links & Bulk Actions */}
             <div className="flex flex-col space-y-2">
-              <button
-                onClick={() => setShowBulkModal(true)}
-                disabled={selectedStudents.length === 0}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors w-fit self-start flex items-center space-x-2"
-                title="Mark Selected as Paid"
-              >
-                <Check className="w-4 h-4" />
-                <span>Mark Selected as Paid ({selectedStudents.length})</span>
-              </button>
+              {canEditPayments && (
+                <button
+                  onClick={() => setShowBulkModal(true)}
+                  disabled={selectedStudents.length === 0}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors w-fit self-start flex items-center space-x-2"
+                  title="Mark Selected as Paid"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Mark Selected as Paid ({selectedStudents.length})</span>
+                </button>
+              )}
               <button
                 onClick={() => generatePDF('paid')}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm font-medium transition-colors w-fit self-start"
@@ -683,14 +690,16 @@ const Payments = () => {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  <input
-                    type="checkbox"
-                    checked={selectedStudents.length > 0 && selectedStudents.length === filteredStudents.filter(s => !s.payments[currentMonthKey]?.paid).length}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                </th>
+                {canEditPayments && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <input
+                      type="checkbox"
+                      checked={selectedStudents.length > 0 && selectedStudents.length === filteredStudents.filter(s => !s.payments[currentMonthKey]?.paid).length}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                  </th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Student Name
                 </th>
@@ -717,15 +726,17 @@ const Payments = () => {
                 const isSelected = selectedStudents.includes(student.id);
                 return (
                   <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={(e) => handleStudentSelect(student.id, e.target.checked)}
-                        disabled={isPaid}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50"
-                      />
-                    </td>
+                    {canEditPayments && (
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => handleStudentSelect(student.id, e.target.checked)}
+                          disabled={isPaid}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50"
+                        />
+                      </td>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
@@ -760,12 +771,14 @@ const Payments = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          checked={isPaid}
-                          onChange={(e) => handlePaymentToggle(student.id, e.target.checked)}
-                          className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                        />
+                        {canEditPayments ? (
+                          <input
+                            type="checkbox"
+                            checked={isPaid}
+                            onChange={(e) => handlePaymentToggle(student.id, e.target.checked)}
+                            className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                          />
+                        ) : null}
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           isPaid 
                             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' 
@@ -865,13 +878,15 @@ const Payments = () => {
                         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
                           Paid
                         </span>
-                        <button
-                          onClick={() => handleDeleteHistory(showHistoryModal.student, payment.key)}
-                          className="text-red-600 hover:text-red-700 dark:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-                          title="Delete this payment history"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {canEditPayments && (
+                          <button
+                            onClick={() => handleDeleteHistory(showHistoryModal.student, payment.key)}
+                            className="text-red-600 hover:text-red-700 dark:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+                            title="Delete this payment history"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
