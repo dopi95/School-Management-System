@@ -277,53 +277,56 @@ const InactiveStudents = () => {
       )}
 
       {/* Payment History Modal */}
-      {showHistoryModal.isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-96 overflow-y-auto">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Payment History - {showHistoryModal.student?.name}
-            </h3>
-            <div className="space-y-3">
-              {getPaymentHistory(showHistoryModal.student).length > 0 ? (
-                getPaymentHistory(showHistoryModal.student).map((payment, index) => (
-                  <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">
-                          {payment.month} {payment.year}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Date: {payment.date}
-                        </p>
-                        {payment.description && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            Description: {payment.description}
+      {showHistoryModal.isOpen && (() => {
+        const paymentHistory = getPaymentHistory(showHistoryModal.student);
+        return (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-96 overflow-y-auto">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Payment History - {showHistoryModal.student?.name}
+              </h3>
+              <div className="space-y-3">
+                {paymentHistory.length > 0 ? (
+                  paymentHistory.map((payment, index) => (
+                    <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">
+                            {payment.month} {payment.year}
                           </p>
-                        )}
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Date: {payment.date}
+                          </p>
+                          {payment.description && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              Description: {payment.description}
+                            </p>
+                          )}
+                        </div>
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                          Paid
+                        </span>
                       </div>
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                        Paid
-                      </span>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                  No payment history found
-                </p>
-              )}
-            </div>
-            <div className="mt-4">
-              <button
-                onClick={() => setShowHistoryModal({ isOpen: false, student: null })}
-                className="btn-secondary w-full"
-              >
-                Close
-              </button>
+                  ))
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                    No payment history found
+                  </p>
+                )}
+              </div>
+              <div className="mt-4">
+                <button
+                  onClick={() => setShowHistoryModal({ isOpen: false, student: null })}
+                  className="btn-secondary w-full"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal.isOpen && (

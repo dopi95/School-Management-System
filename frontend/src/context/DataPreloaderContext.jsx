@@ -92,9 +92,16 @@ export const DataPreloaderProvider = ({ children }) => {
   };
 
   const updatePreloadedData = (type, data) => {
-    setPreloadedData(prev => ({
-      ...prev,
+    const newData = {
+      ...preloadedData,
       [type]: data
+    };
+    setPreloadedData(newData);
+    
+    // Update cache immediately
+    sessionStorage.setItem('preloadedData', JSON.stringify({
+      data: newData,
+      timestamp: Date.now()
     }));
   };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Edit, Trash2, Users, UserCheck, UserX, Eye, EyeOff, Activity, Clock, UserCog, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
@@ -7,6 +8,7 @@ import DeleteModal from '../components/DeleteModal.jsx';
 
 const AdminManagement = () => {
   const { admin } = useAuth();
+  const navigate = useNavigate();
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -216,13 +218,22 @@ const AdminManagement = () => {
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Admin Management</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Manage system administrators</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md w-fit"
-        >
-          <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
-          <span>Add Admin</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => navigate('/admin-profiles')}
+            className="flex items-center space-x-1 bg-gray-600 hover:bg-gray-700 text-white font-medium text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md w-fit"
+          >
+            <Users className="w-3 h-3 lg:w-4 lg:h-4" />
+            <span>Admin Profiles</span>
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md w-fit"
+          >
+            <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
+            <span>Add Admin</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}

@@ -102,7 +102,9 @@ export const AuthProvider = ({ children }) => {
         // Clear all cached data on fresh login
         sessionStorage.removeItem('preloadedData');
         sessionStorage.removeItem('studentsCache');
+        sessionStorage.removeItem('specialStudentsCache');
         sessionStorage.removeItem('employeesCache');
+        sessionStorage.removeItem('adminsCache');
         
         // Ensure profile picture is preserved
         const adminData = {
@@ -139,6 +141,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('adminProfile');
     sessionStorage.removeItem('sessionActive');
+    // Clear all cached data on logout
+    sessionStorage.removeItem('preloadedData');
+    sessionStorage.removeItem('studentsCache');
+    sessionStorage.removeItem('specialStudentsCache');
+    sessionStorage.removeItem('employeesCache');
+    sessionStorage.removeItem('adminsCache');
     setAdmin(null);
     setIsAuthenticated(false);
   };

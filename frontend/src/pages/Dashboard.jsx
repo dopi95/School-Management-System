@@ -17,6 +17,7 @@ import { Bar, Doughnut } from 'react-chartjs-2';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useEmployees } from '../context/EmployeesContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
+import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
 import { useAdmins } from '../context/AdminsContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import PermissionGuard from '../components/PermissionGuard.jsx';
@@ -28,6 +29,7 @@ const Dashboard = () => {
   const { admin } = useAuth();
   const { employeesList } = useEmployees();
   const { studentsList } = useStudents();
+  const { specialStudentsList } = useSpecialStudents();
   const { adminsList } = useAdmins();
 
   // ===============================
@@ -38,6 +40,8 @@ const Dashboard = () => {
     const inactiveEmployees = employeesList.filter(e => e.status === 'inactive').length;
     const activeStudents = studentsList.filter(s => s.status === 'active').length;
     const inactiveStudents = studentsList.filter(s => s.status === 'inactive').length;
+    const activeSpecialStudents = specialStudentsList.filter(s => s.status === 'active').length;
+    const inactiveSpecialStudents = specialStudentsList.filter(s => s.status === 'inactive').length;
     const totalAdmins = adminsList.length;
 
     const activeStudentsList = studentsList.filter(s => s.status === 'active');
@@ -69,16 +73,17 @@ const Dashboard = () => {
       });
     });
 
-    return { activeEmployees, inactiveEmployees, activeStudents, inactiveStudents, totalAdmins, maleStudents, femaleStudents, classStats };
-  }, [employeesList, studentsList, adminsList]);
+    return { activeEmployees, inactiveEmployees, activeStudents, inactiveStudents, activeSpecialStudents, inactiveSpecialStudents, totalAdmins, maleStudents, femaleStudents, classStats };
+  }, [employeesList, studentsList, specialStudentsList, adminsList]);
 
-  const { activeEmployees, inactiveEmployees, activeStudents, inactiveStudents, totalAdmins, maleStudents, femaleStudents, classStats } = stats;
+  const { activeEmployees, inactiveEmployees, activeStudents, inactiveStudents, activeSpecialStudents, inactiveSpecialStudents, totalAdmins, maleStudents, femaleStudents, classStats } = stats;
 
   // ===============================
   // 🔐 Permissions
   // ===============================
   const hasStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.students;
   const hasInactiveStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.inactiveStudents;
+  const hasSpecialStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.specialStudents;
   const hasEmployeesAccess = admin?.role === 'superadmin' || admin?.permissions?.employees;
   const hasAdminsAccess = admin?.role === 'superadmin' || admin?.permissions?.admins;
 
@@ -88,6 +93,7 @@ const Dashboard = () => {
   const allStats = [
     { title: 'Total Active Students', value: activeStudents, icon: Users, color: 'bg-green-500', bgColor: 'bg-green-50 dark:bg-green-900', textColor: 'text-green-600 dark:text-green-400', permission: hasStudentsAccess },
     { title: 'Inactive Students', value: inactiveStudents, icon: UserX, color: 'bg-red-500', bgColor: 'bg-red-50 dark:bg-red-900', textColor: 'text-red-600 dark:text-red-400', permission: hasInactiveStudentsAccess },
+    { title: 'Active Special Students', value: activeSpecialStudents, icon: Users, color: 'bg-blue-500', bgColor: 'bg-blue-50 dark:bg-blue-900', textColor: 'text-blue-600 dark:text-blue-400', permission: hasSpecialStudentsAccess },
     { title: 'Total Employees', value: employeesList.length, icon: GraduationCap, color: 'bg-purple-500', bgColor: 'bg-purple-50 dark:bg-purple-900', textColor: 'text-purple-600 dark:text-purple-400', permission: hasEmployeesAccess },
     { title: 'Inactive Employees', value: inactiveEmployees, icon: UserX, color: 'bg-orange-500', bgColor: 'bg-orange-50 dark:bg-orange-900', textColor: 'text-orange-600 dark:text-orange-400', permission: hasEmployeesAccess },
     { title: 'Total Administrators', value: totalAdmins, icon: UserCog, color: 'bg-indigo-500', bgColor: 'bg-indigo-50 dark:bg-indigo-900', textColor: 'text-indigo-600 dark:text-indigo-400', permission: hasAdminsAccess }
@@ -347,6 +353,13 @@ const Dashboard = () => {
             <Link to="/students/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
               <Users className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add New Student</p>
+            </Link>
+          </PermissionGuard>
+
+          <PermissionGuard permission="specialStudents">
+            <Link to="/special-students/add" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
+              <Users className="w-8 h-8 text-blue-400 dark:text-blue-500 mx-auto mb-2" />
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Add Special Student</p>
             </Link>
           </PermissionGuard>
 

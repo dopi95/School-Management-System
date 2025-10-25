@@ -95,129 +95,133 @@ const PendingStudents = () => {
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Student Details</h3>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-1"
-            >
-              <X className="w-5 h-5" />
-            </button>
+        <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-600">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Student Details</h3>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
           
-          <div className="space-y-4">
-            {student.photo && (
-              <div className="flex justify-center mb-4">
-                <img src={student.photo} alt="Student" className="w-32 h-32 object-cover rounded-lg border" />
-              </div>
-            )}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Full Name:</label>
-                <p className="text-gray-900 dark:text-white">{`${student.firstName} ${student.middleName} ${student.lastName}`}</p>
-              </div>
-              
-              {student.firstNameAm && (
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Name (Amharic):</label>
-                  <p className="text-gray-900 dark:text-white">{`${student.firstNameAm || ''} ${student.middleNameAm || ''} ${student.lastNameAm || ''}`.trim()}</p>
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="space-y-4">
+              {student.photo && (
+                <div className="flex justify-center mb-4">
+                  <img src={student.photo} alt="Student" className="w-32 h-32 object-cover rounded-lg border" />
                 </div>
               )}
               
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Gender:</label>
-                <p className="text-gray-900 dark:text-white capitalize">{student.gender}</p>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Date of Birth:</label>
-                <p className="text-gray-900 dark:text-white">{student.dateOfBirth}</p>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Class:</label>
-                <p className="text-gray-900 dark:text-white">{student.class}</p>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Joined Year:</label>
-                <p className="text-gray-900 dark:text-white">{student.joinedYear}</p>
-              </div>
-              
-              {student.email && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Email:</label>
-                  <p className="text-gray-900 dark:text-white">{student.email}</p>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Full Name:</label>
+                  <p className="text-gray-900 dark:text-white">{`${student.firstName} ${student.middleName} ${student.lastName}`}</p>
+                </div>
+                
+                {student.firstNameAm && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Name (Amharic):</label>
+                    <p className="text-gray-900 dark:text-white">{`${student.firstNameAm || ''} ${student.middleNameAm || ''} ${student.lastNameAm || ''}`.trim()}</p>
+                  </div>
+                )}
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Gender:</label>
+                  <p className="text-gray-900 dark:text-white capitalize">{student.gender}</p>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Date of Birth:</label>
+                  <p className="text-gray-900 dark:text-white">{student.dateOfBirth}</p>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Class:</label>
+                  <p className="text-gray-900 dark:text-white">{student.class}</p>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Joined Year:</label>
+                  <p className="text-gray-900 dark:text-white">{student.joinedYear}</p>
+                </div>
+                
+                {student.email && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Email:</label>
+                    <p className="text-gray-900 dark:text-white">{student.email}</p>
+                  </div>
+                )}
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Address:</label>
+                  <p className="text-gray-900 dark:text-white">{student.address}</p>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Father Name:</label>
+                  <p className="text-gray-900 dark:text-white">{student.fatherName}</p>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Father Phone:</label>
+                  <p className="text-gray-900 dark:text-white">{student.fatherPhone}</p>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Mother Name:</label>
+                  <p className="text-gray-900 dark:text-white">{student.motherName}</p>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Mother Phone:</label>
+                  <p className="text-gray-900 dark:text-white">{student.motherPhone}</p>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Submitted:</label>
+                  <p className="text-gray-900 dark:text-white">{new Date(student.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+              
+              {canApproveReject && (
+                <div className="flex flex-col sm:flex-row gap-2 mt-6">
+                  <button
+                    onClick={() => {
+                      handleApprove(student.id, 'regular');
+                      onClose();
+                    }}
+                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg flex items-center justify-center space-x-1 text-sm flex-1"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Approve as Student</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleApprove(student.id, 'special');
+                      onClose();
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg flex items-center justify-center space-x-1 text-sm flex-1"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Approve as SP Student</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleReject(student.id);
+                      onClose();
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 flex-1"
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Reject</span>
+                  </button>
                 </div>
               )}
-              
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Address:</label>
-                <p className="text-gray-900 dark:text-white">{student.address}</p>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Father Name:</label>
-                <p className="text-gray-900 dark:text-white">{student.fatherName}</p>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Father Phone:</label>
-                <p className="text-gray-900 dark:text-white">{student.fatherPhone}</p>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Mother Name:</label>
-                <p className="text-gray-900 dark:text-white">{student.motherName}</p>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Mother Phone:</label>
-                <p className="text-gray-900 dark:text-white">{student.motherPhone}</p>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Submitted:</label>
-                <p className="text-gray-900 dark:text-white">{new Date(student.createdAt).toLocaleDateString()}</p>
-              </div>
             </div>
-            
-            {canApproveReject && (
-              <div className="flex flex-wrap gap-2 mt-6">
-                <button
-                  onClick={() => {
-                    handleApprove(student.id, 'regular');
-                    onClose();
-                  }}
-                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg flex items-center space-x-1 text-sm flex-1 min-w-0"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Approve as Student</span>
-                </button>
-                <button
-                  onClick={() => {
-                    handleApprove(student.id, 'special');
-                    onClose();
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg flex items-center space-x-1 text-sm flex-1 min-w-0"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Approve as SP Student</span>
-                </button>
-                <button
-                  onClick={() => {
-                    handleReject(student.id);
-                    onClose();
-                  }}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 flex-1"
-                >
-                  <X className="w-4 h-4" />
-                  <span>Reject</span>
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -227,23 +231,23 @@ const PendingStudents = () => {
 
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="px-1">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Pending Students</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm sm:text-base">
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Pending Students</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">
           {canApproveReject ? 'Review and approve student registrations' : 'View pending student registrations'}
         </p>
       </div>
 
       {/* Count Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full sm:max-w-sm">
-        <div className="flex items-center space-x-3 sm:space-x-4">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center flex-shrink-0">
-            <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 dark:text-orange-400" />
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-fit">
+        <div className="flex items-center space-x-3 lg:space-x-4">
+          <div className="w-10 h-10 lg:w-12 lg:h-12 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
+            <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-orange-600 dark:text-orange-400" />
           </div>
-          <div className="min-w-0">
-            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{pendingStudents.length}</p>
-            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Pending Registrations</p>
+          <div>
+            <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{pendingStudents.length}</p>
+            <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Pending Registrations</p>
           </div>
         </div>
       </div>
