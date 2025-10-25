@@ -1,4 +1,4 @@
-export const checkPermission = (section, action = 'read') => {
+export const checkPermission = (section, action = 'view') => {
   return (req, res, next) => {
     const admin = req.admin;
     
@@ -7,6 +7,17 @@ export const checkPermission = (section, action = 'read') => {
       return next();
     }
     
+    // Map HTTP methods to actions
+    const methodToAction = {
+      'GET': 'view',
+      'POST': 'create',
+      'PUT': 'edit',
+      'PATCH': 'edit',
+      'DELETE': 'delete'
+    };
+    
+    const requiredAction = action || methodToAction[req.method] || 'view';
+    
     // Check if admin has permission for this section
     if (!admin.permissions || !admin.permissions[section]) {
       return res.status(403).json({ 
@@ -14,14 +25,19 @@ export const checkPermission = (section, action = 'read') => {
       });
     }
     
-    // Users can only read, not modify
-    if (admin.role === 'user' && action !== 'read') {
-      const writeActions = ['POST', 'PUT', 'PATCH', 'DELETE'];
-      if (writeActions.includes(req.method)) {
+    // For granular permissions (object with actions)
+    if (typeof admin.permissions[section] === 'object' && admin.permissions[section] !== null) {
+      if (!admin.permissions[section][requiredAction]) {
         return res.status(403).json({ 
-          message: 'Access denied. Users can only view data, not modify it.' 
+          message: `Access denied. You don't have permission to ${requiredAction} in ${section}.` 
         });
       }
+    }
+    // For simple boolean permissions (backwards compatibility)
+    else if (!admin.permissions[section]) {
+      return res.status(403).json({ 
+        message: `Access denied. You don't have permission to access ${section}.` 
+      });
     }
     
     next();
@@ -29,5 +45,13 @@ export const checkPermission = (section, action = 'read') => {
 };
 
 export const checkWritePermission = (section) => {
-  return checkPermission(section, 'write');
+  return checkPermission(section, 'edit');
+};
+
+export const checkCreatePermission = (section) => {
+  return checkPermission(section, 'create');
+};
+
+export const checkDeletePermission = (section) => {
+  return checkPermission(section, 'delete');
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 
-const PermissionGuard = ({ permission, children, fallback = null }) => {
+const PermissionGuard = ({ permission, action, children, fallback = null }) => {
   const { admin } = useAuth();
   
   // Superadmin has access to everything
@@ -10,8 +10,16 @@ const PermissionGuard = ({ permission, children, fallback = null }) => {
   }
   
   // Check if admin has the required permission
-  if (admin?.permissions?.[permission]) {
-    return children;
+  if (action) {
+    // Check action-level permission (e.g., students.create)
+    if (admin?.permissions?.[permission]?.[action]) {
+      return children;
+    }
+  } else {
+    // Check module-level permission (for simple boolean permissions)
+    if (admin?.permissions?.[permission]) {
+      return children;
+    }
   }
   
   // Return fallback component or null if no access

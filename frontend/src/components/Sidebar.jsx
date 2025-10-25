@@ -79,6 +79,14 @@ const Sidebar = () => {
       return admin?.role === 'superadmin';
     }
     if (admin?.role === 'superadmin') return true;
+    
+    // Check for granular permissions (object with actions)
+    if (typeof admin?.permissions?.[item.permission] === 'object') {
+      // Show menu item if user has at least view permission
+      return admin.permissions[item.permission].view === true;
+    }
+    
+    // Check for simple boolean permissions (backwards compatibility)
     return admin?.permissions?.[item.permission] === true;
   });
 

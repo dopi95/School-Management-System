@@ -3,12 +3,15 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, Eye, Filter, Trash2, Users, UserX, Edit, CheckSquare, Square, FileText, FileSpreadsheet } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
 import { exportStudentsToPDF, exportStudentsToExcel } from '../utils/exportUtils.js';
+import { canView, canCreate, canEdit, canDelete } from '../utils/permissions.js';
 
 const Students = () => {
   const { t, language } = useLanguage();
+  const { admin } = useAuth();
   const { studentsList, loading, updateStudentStatus, deleteStudent, bulkUpdateStudents } = useStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
@@ -190,17 +193,19 @@ const Students = () => {
               <FileSpreadsheet className="w-3 h-3 lg:w-4 lg:h-4" />
               <span>Excel</span>
             </button>
-            <Link
-              to="/students/add"
-              className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
-            >
-              <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span>Add Student</span>
-            </Link>
+            {canCreate(admin, 'students') && (
+              <Link
+                to="/students/add"
+                className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+              >
+                <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span>Add Student</span>
+              </Link>
+            )}
           </div>
           
           {/* Bulk Actions Row */}
-          {selectedStudents.length > 0 && (
+          {selectedStudents.length > 0 && canEdit(admin, 'students') && (
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={handleBulkInactive}
@@ -423,34 +428,42 @@ const Students = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-3">
-                      <Link
-                        to={`/students/${student.id}`}
-                        className="text-primary-600 hover:text-primary-700"
-                        title="View Details"
-                      >
-                        <Eye className="w-5 h-5" />
-                      </Link>
-                      <Link
-                        to={`/students/edit/${student.id}`}
-                        className="text-blue-600 hover:text-blue-700"
-                        title="Edit Student"
-                      >
-                        <Edit className="w-5 h-5" />
-                      </Link>
-                      <button
-                        onClick={() => handleStatusToggle(student.id)}
-                        className={student.status === 'active' ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
-                        title={student.status === 'active' ? 'Mark as Inactive' : 'Mark as Active'}
-                      >
-                        <UserX className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClick(student)}
-                        className="text-red-600 hover:text-red-700"
-                        title="Delete Student"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      {canView(admin, 'students') && (
+                        <Link
+                          to={`/students/${student.id}`}
+                          className="text-primary-600 hover:text-primary-700"
+                          title="View Details"
+                        >
+                          <Eye className="w-5 h-5" />
+                        </Link>
+                      )}
+                      {canEdit(admin, 'students') && (
+                        <Link
+                          to={`/students/edit/${student.id}`}
+                          className="text-blue-600 hover:text-blue-700"
+                          title="Edit Student"
+                        >
+                          <Edit className="w-5 h-5" />
+                        </Link>
+                      )}
+                      {canEdit(admin, 'students') && (
+                        <button
+                          onClick={() => handleStatusToggle(student.id)}
+                          className={student.status === 'active' ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
+                          title={student.status === 'active' ? 'Mark as Inactive' : 'Mark as Active'}
+                        >
+                          <UserX className="w-5 h-5" />
+                        </button>
+                      )}
+                      {canDelete(admin, 'students') && (
+                        <button
+                          onClick={() => handleDeleteClick(student)}
+                          className="text-red-600 hover:text-red-700"
+                          title="Delete Student"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

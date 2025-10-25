@@ -13,13 +13,48 @@ const adminSchema = new mongoose.Schema({
   },
   permissions: {
     dashboard: { type: Boolean, default: true },
-    students: { type: Boolean, default: false },
-    inactiveStudents: { type: Boolean, default: false },
-    employees: { type: Boolean, default: false },
-    inactiveEmployees: { type: Boolean, default: false },
-    payments: { type: Boolean, default: false },
-    specialStudents: { type: Boolean, default: false },
-    specialPayments: { type: Boolean, default: false },
+    students: {
+      view: { type: Boolean, default: false },
+      create: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      delete: { type: Boolean, default: false }
+    },
+    inactiveStudents: {
+      view: { type: Boolean, default: false },
+      create: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      delete: { type: Boolean, default: false }
+    },
+    employees: {
+      view: { type: Boolean, default: false },
+      create: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      delete: { type: Boolean, default: false }
+    },
+    inactiveEmployees: {
+      view: { type: Boolean, default: false },
+      create: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      delete: { type: Boolean, default: false }
+    },
+    payments: {
+      view: { type: Boolean, default: false },
+      create: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      delete: { type: Boolean, default: false }
+    },
+    specialStudents: {
+      view: { type: Boolean, default: false },
+      create: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      delete: { type: Boolean, default: false }
+    },
+    specialPayments: {
+      view: { type: Boolean, default: false },
+      create: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      delete: { type: Boolean, default: false }
+    },
     notifications: { type: Boolean, default: false },
     admins: { type: Boolean, default: false },
     profile: { type: Boolean, default: true },

@@ -509,41 +509,76 @@ const AdminManagement = () => {
               {formData.role !== 'superadmin' && (
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                    Permissions {formData.role === 'user' && '(Users can only view selected sections)'}
+                    Permissions
                   </label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-4">
+                    {/* Simple permissions */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {[
+                        { key: 'dashboard', label: 'Dashboard' },
+                        { key: 'notifications', label: 'Send Notifications' },
+                        { key: 'admins', label: 'Admin Management' },
+                        { key: 'settings', label: 'Settings' }
+                      ].map(permission => (
+                        <label key={permission.key} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.permissions?.[permission.key] || false}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              permissions: {
+                                ...formData.permissions,
+                                profile: true,
+                                [permission.key]: e.target.checked
+                              }
+                            })}
+                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {permission.label}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    
+                    {/* Action-based permissions */}
                     {[
-                      { key: 'dashboard', label: 'Dashboard' },
                       { key: 'students', label: 'Students Management' },
                       { key: 'inactiveStudents', label: 'Inactive Students' },
                       { key: 'employees', label: 'Employees Management' },
                       { key: 'inactiveEmployees', label: 'Inactive Employees' },
                       { key: 'payments', label: 'Payments Management' },
                       { key: 'specialStudents', label: 'SP Students' },
-                      { key: 'specialPayments', label: 'SP Payments' },
-                      { key: 'notifications', label: 'Send Notifications' },
-                      { key: 'admins', label: 'Admin Management' },
-                      { key: 'settings', label: 'Settings' }
-                    ].map(permission => (
-                      <label key={permission.key} className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.permissions?.[permission.key] || false}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            permissions: {
-                              ...formData.permissions,
-                              profile: true,
-                              [permission.key]: e.target.checked
-                            }
-                          })}
-                          className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                        />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
-                          {permission.label}
-                          {formData.role === 'user' && ' (View Only)'}
-                        </span>
-                      </label>
+                      { key: 'specialPayments', label: 'SP Payments' }
+                    ].map(module => (
+                      <div key={module.key} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">{module.label}</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          {['view', 'create', 'edit', 'delete'].map(action => (
+                            <label key={action} className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={formData.permissions?.[module.key]?.[action] || false}
+                                onChange={(e) => setFormData({
+                                  ...formData,
+                                  permissions: {
+                                    ...formData.permissions,
+                                    profile: true,
+                                    [module.key]: {
+                                      ...formData.permissions?.[module.key],
+                                      [action]: e.target.checked
+                                    }
+                                  }
+                                })}
+                                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                              />
+                              <span className="text-xs text-gray-600 dark:text-gray-400 capitalize">
+                                {action}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -552,6 +587,20 @@ const AdminManagement = () => {
                 <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                   <p className="text-sm text-purple-700 dark:text-purple-300">
                     SuperAdministrators have full access to all features and can view/modify everything including other admin profiles and passwords.
+                  </p>
+                </div>
+              )}
+              {formData.role === 'admin' && (
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Admins can have granular permissions. Select specific actions (view, create, edit, delete) for each module.
+                  </p>
+                </div>
+              )}
+              {formData.role === 'user' && (
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    Users have limited access. Configure which modules they can access and what actions they can perform.
                   </p>
                 </div>
               )}
