@@ -44,9 +44,12 @@ const Dashboard = () => {
     const inactiveSpecialStudents = specialStudentsList.filter(s => s.status === 'inactive').length;
     const totalAdmins = adminsList.length;
 
-    const activeStudentsList = studentsList.filter(s => s.status === 'active');
-    const maleStudents = activeStudentsList.filter(s => s.gender === 'male').length;
-    const femaleStudents = activeStudentsList.filter(s => s.gender === 'female').length;
+    // Combined active students from both regular and special
+    const allActiveStudents = [...studentsList.filter(s => s.status === 'active'), ...specialStudentsList.filter(s => s.status === 'active')];
+    const totalActiveStudents = activeStudents + activeSpecialStudents;
+    const totalInactiveStudents = inactiveStudents + inactiveSpecialStudents;
+    const maleStudents = allActiveStudents.filter(s => s.gender === 'male').length;
+    const femaleStudents = allActiveStudents.filter(s => s.gender === 'female').length;
 
     const classStats = {
       'KG-1': { total: 0, male: 0, female: 0, sections: {} },
@@ -55,14 +58,14 @@ const Dashboard = () => {
     };
 
     Object.keys(classStats).forEach(className => {
-      classStats[className].total = activeStudentsList.filter(s => s.class === className).length;
-      classStats[className].male = activeStudentsList.filter(s => s.class === className && s.gender === 'male').length;
-      classStats[className].female = activeStudentsList.filter(s => s.class === className && s.gender === 'female').length;
+      classStats[className].total = allActiveStudents.filter(s => s.class === className).length;
+      classStats[className].male = allActiveStudents.filter(s => s.class === className && s.gender === 'male').length;
+      classStats[className].female = allActiveStudents.filter(s => s.class === className && s.gender === 'female').length;
     });
 
     ['A', 'B', 'C', 'D'].forEach(section => {
       Object.keys(classStats).forEach(className => {
-        const sectionStudents = activeStudentsList.filter(s => s.class === className && s.section === section);
+        const sectionStudents = allActiveStudents.filter(s => s.class === className && s.section === section);
         if (sectionStudents.length > 0) {
           classStats[className].sections[section] = {
             total: sectionStudents.length,
@@ -73,10 +76,10 @@ const Dashboard = () => {
       });
     });
 
-    return { activeEmployees, inactiveEmployees, activeStudents, inactiveStudents, activeSpecialStudents, inactiveSpecialStudents, totalAdmins, maleStudents, femaleStudents, classStats };
+    return { activeEmployees, inactiveEmployees, activeStudents, inactiveStudents, activeSpecialStudents, inactiveSpecialStudents, totalActiveStudents, totalInactiveStudents, totalAdmins, maleStudents, femaleStudents, classStats };
   }, [employeesList, studentsList, specialStudentsList, adminsList]);
 
-  const { activeEmployees, inactiveEmployees, activeStudents, inactiveStudents, activeSpecialStudents, inactiveSpecialStudents, totalAdmins, maleStudents, femaleStudents, classStats } = stats;
+  const { activeEmployees, inactiveEmployees, activeStudents, inactiveStudents, activeSpecialStudents, inactiveSpecialStudents, totalActiveStudents, totalInactiveStudents, totalAdmins, maleStudents, femaleStudents, classStats } = stats;
 
   // ===============================
   // 🔐 Permissions
@@ -91,11 +94,11 @@ const Dashboard = () => {
   // 📋 Dashboard Cards
   // ===============================
   const allStats = [
-    { title: 'Total Active Students', value: activeStudents, icon: Users, color: 'bg-green-500', bgColor: 'bg-green-50 dark:bg-green-900', textColor: 'text-green-600 dark:text-green-400', permission: hasStudentsAccess },
-    { title: 'Inactive Students', value: inactiveStudents, icon: UserX, color: 'bg-red-500', bgColor: 'bg-red-50 dark:bg-red-900', textColor: 'text-red-600 dark:text-red-400', permission: hasInactiveStudentsAccess },
-    { title: 'Active Special Students', value: activeSpecialStudents, icon: Users, color: 'bg-blue-500', bgColor: 'bg-blue-50 dark:bg-blue-900', textColor: 'text-blue-600 dark:text-blue-400', permission: hasSpecialStudentsAccess },
-    { title: 'Total Employees', value: employeesList.length, icon: GraduationCap, color: 'bg-purple-500', bgColor: 'bg-purple-50 dark:bg-purple-900', textColor: 'text-purple-600 dark:text-purple-400', permission: hasEmployeesAccess },
-    { title: 'Inactive Employees', value: inactiveEmployees, icon: UserX, color: 'bg-orange-500', bgColor: 'bg-orange-50 dark:bg-orange-900', textColor: 'text-orange-600 dark:text-orange-400', permission: hasEmployeesAccess },
+    { title: 'Total Active Students', value: totalActiveStudents, icon: Users, color: 'bg-green-500', bgColor: 'bg-green-50 dark:bg-green-900', textColor: 'text-green-600 dark:text-green-400', permission: hasStudentsAccess || hasSpecialStudentsAccess },
+    { title: 'Total Inactive Students', value: totalInactiveStudents, icon: UserX, color: 'bg-red-500', bgColor: 'bg-red-50 dark:bg-red-900', textColor: 'text-red-600 dark:text-red-400', permission: hasInactiveStudentsAccess },
+    { title: 'Active Students', value: activeStudents, icon: Users, color: 'bg-blue-500', bgColor: 'bg-blue-50 dark:bg-blue-900', textColor: 'text-blue-600 dark:text-blue-400', permission: hasStudentsAccess },
+    { title: 'Active Special Students', value: activeSpecialStudents, icon: Users, color: 'bg-purple-500', bgColor: 'bg-purple-50 dark:bg-purple-900', textColor: 'text-purple-600 dark:text-purple-400', permission: hasSpecialStudentsAccess },
+    { title: 'Total Employees', value: employeesList.length, icon: GraduationCap, color: 'bg-orange-500', bgColor: 'bg-orange-50 dark:bg-orange-900', textColor: 'text-orange-600 dark:text-orange-400', permission: hasEmployeesAccess },
     { title: 'Total Administrators', value: totalAdmins, icon: UserCog, color: 'bg-indigo-500', bgColor: 'bg-indigo-50 dark:bg-indigo-900', textColor: 'text-indigo-600 dark:text-indigo-400', permission: hasAdminsAccess }
   ];
 
@@ -277,17 +280,17 @@ const Dashboard = () => {
       )}
 
       {/* Charts Section */}
-      {hasStudentsAccess && activeStudents > 0 && (
+      {(hasStudentsAccess || hasSpecialStudentsAccess) && totalActiveStudents > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Active Students by Class & Gender</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">All Active Students by Class & Gender</h3>
             <div className="h-64">
               <Bar data={classChartData} options={{ ...chartOptions, plugins: { ...chartOptions.plugins, title: { display: false } } }} />
             </div>
           </div>
 
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Active Students Gender Distribution</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">All Active Students Gender Distribution</h3>
             <div className="h-64 flex items-center justify-center">
               <Doughnut data={genderChartData} options={pieOptions} />
             </div>
@@ -295,9 +298,9 @@ const Dashboard = () => {
         </div>
       )}
       {/* Class Details */}
-      {hasStudentsAccess && activeStudents > 0 && (
+      {(hasStudentsAccess || hasSpecialStudentsAccess) && totalActiveStudents > 0 && (
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Active Students Class Statistics</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">All Active Students Class Statistics</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {Object.entries(classStats).map(([className, stats]) => (
               <div key={className} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
