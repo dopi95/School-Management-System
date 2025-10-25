@@ -180,7 +180,7 @@ const Sidebar = () => {
               <p className="font-medium text-gray-900 dark:text-white">{admin?.name}</p>
               <div className="flex items-center space-x-2">
                 <span className="text-xs bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-400 px-2 py-1 rounded-full capitalize">
-                  {admin?.role}
+                  {admin?.role === 'user' ? 'Executive' : admin?.role}
                 </span>
                 <div className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>

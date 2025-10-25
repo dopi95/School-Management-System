@@ -392,7 +392,7 @@ const Profile = () => {
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600 dark:text-gray-400">Role</span>
                     <span className="text-sm font-medium text-gray-900 dark:text-white capitalize">
-                      {admin?.role}
+                      {admin?.role === 'user' ? 'Executive' : admin?.role}
                     </span>
                   </div>
                   <div className="flex justify-between">
