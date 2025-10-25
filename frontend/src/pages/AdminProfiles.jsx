@@ -108,7 +108,7 @@ const AdminProfiles = () => {
                     ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
                     : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
                 }`}>
-                  {adminItem.role === 'superadmin' ? 'SuperAdministrator' : adminItem.role === 'admin' ? 'Admin' : 'User'}
+                  {adminItem.role === 'superadmin' ? 'SuperAdministrator' : adminItem.role === 'admin' ? 'Admin' : adminItem.role === 'user' ? 'Executive' : adminItem.role}
                 </span>
               </div>
             </div>

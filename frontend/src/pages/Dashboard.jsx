@@ -108,11 +108,12 @@ const Dashboard = () => {
   // ===============================
   // 🔐 Permissions
   // ===============================
-  const hasStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.students;
-  const hasInactiveStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.inactiveStudents;
-  const hasSpecialStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.specialStudents;
-  const hasEmployeesAccess = admin?.role === 'superadmin' || admin?.permissions?.employees;
-  const hasAdminsAccess = admin?.role === 'superadmin' || admin?.permissions?.admins;
+  const hasStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.students === true || (typeof admin?.permissions?.students === 'object' && admin?.permissions?.students?.view === true);
+  const hasInactiveStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.inactiveStudents === true || (typeof admin?.permissions?.inactiveStudents === 'object' && admin?.permissions?.inactiveStudents?.view === true);
+  const hasSpecialStudentsAccess = admin?.role === 'superadmin' || admin?.permissions?.specialStudents === true || (typeof admin?.permissions?.specialStudents === 'object' && admin?.permissions?.specialStudents?.view === true);
+  const hasEmployeesAccess = admin?.role === 'superadmin' || admin?.permissions?.employees === true || (typeof admin?.permissions?.employees === 'object' && admin?.permissions?.employees?.view === true);
+  const hasInactiveEmployeesAccess = admin?.role === 'superadmin' || admin?.permissions?.inactiveEmployees === true || (typeof admin?.permissions?.inactiveEmployees === 'object' && admin?.permissions?.inactiveEmployees?.view === true);
+  const hasAdminsAccess = admin?.role === 'superadmin';
 
   // ===============================
   // 📋 Dashboard Cards
@@ -122,8 +123,9 @@ const Dashboard = () => {
     { title: 'Total Inactive Students', value: totalInactiveStudents, icon: UserX, color: 'bg-red-500', bgColor: 'bg-red-50 dark:bg-red-900', textColor: 'text-red-600 dark:text-red-400', permission: hasInactiveStudentsAccess },
     { title: 'Active Students', value: activeStudents, icon: Users, color: 'bg-blue-500', bgColor: 'bg-blue-50 dark:bg-blue-900', textColor: 'text-blue-600 dark:text-blue-400', permission: hasStudentsAccess },
     { title: 'Active Special Students', value: activeSpecialStudents, icon: Users, color: 'bg-purple-500', bgColor: 'bg-purple-50 dark:bg-purple-900', textColor: 'text-purple-600 dark:text-purple-400', permission: hasSpecialStudentsAccess },
-    { title: 'Total Employees', value: employeesList.length, icon: GraduationCap, color: 'bg-orange-500', bgColor: 'bg-orange-50 dark:bg-orange-900', textColor: 'text-orange-600 dark:text-orange-400', permission: hasEmployeesAccess },
-    { title: 'Total Administrators', value: totalAdmins, icon: UserCog, color: 'bg-indigo-500', bgColor: 'bg-indigo-50 dark:bg-indigo-900', textColor: 'text-indigo-600 dark:text-indigo-400', permission: admin?.role === 'superadmin' }
+    { title: 'Active Employees', value: activeEmployees, icon: GraduationCap, color: 'bg-orange-500', bgColor: 'bg-orange-50 dark:bg-orange-900', textColor: 'text-orange-600 dark:text-orange-400', permission: hasEmployeesAccess },
+    { title: 'Inactive Employees', value: inactiveEmployees, icon: UserX, color: 'bg-gray-500', bgColor: 'bg-gray-50 dark:bg-gray-900', textColor: 'text-gray-600 dark:text-gray-400', permission: hasInactiveEmployeesAccess },
+    { title: 'Total Administrators', value: totalAdmins, icon: UserCog, color: 'bg-indigo-500', bgColor: 'bg-indigo-50 dark:bg-indigo-900', textColor: 'text-indigo-600 dark:text-indigo-400', permission: hasAdminsAccess }
   ];
 
   const filteredStats = allStats.filter(stat => stat.permission);
@@ -411,12 +413,12 @@ const Dashboard = () => {
             </Link>
           </PermissionGuard>
 
-          <PermissionGuard permission="admins">
+          {admin?.role === 'superadmin' && (
             <Link to="/admin-management" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
               <UserCog className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Manage Admins</p>
             </Link>
-          </PermissionGuard>
+          )}
 
           <PermissionGuard permission="notifications">
             <Link to="/notifications" className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900 transition-colors duration-200 block text-center">
