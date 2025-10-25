@@ -19,30 +19,48 @@ export const StudentsProvider = ({ children }) => {
 
   // Load students immediately
   useEffect(() => {
+    let dataLoaded = false;
+    
     // Check for preloaded data first
     const preloaded = sessionStorage.getItem('preloadedData');
     if (preloaded) {
       try {
         const { data } = JSON.parse(preloaded);
         if (data.students) {
+          console.log('Loading students from preloaded data:', data.students.length);
           setStudentsList(data.students);
-          return;
+          dataLoaded = true;
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error('Error parsing preloaded data:', e);
+      }
     }
     
-    // Fallback to individual cache
-    const cached = sessionStorage.getItem('studentsCache');
-    if (cached) {
-      try {
-        const { data } = JSON.parse(cached);
-        setStudentsList(data);
-        return;
-      } catch (e) {}
+    if (!dataLoaded) {
+      // Fallback to individual cache
+      const cached = sessionStorage.getItem('studentsCache');
+      if (cached) {
+        try {
+          const { data } = JSON.parse(cached);
+          if (data) {
+            console.log('Loading students from cache:', data.length);
+            setStudentsList(data);
+            dataLoaded = true;
+          }
+        } catch (e) {
+          console.error('Error parsing cached data:', e);
+        }
+      }
     }
     
-    // Load from API if no cache
-    loadStudents();
+    // Always load from API to ensure fresh data
+    if (!dataLoaded) {
+      console.log('Loading students from API');
+      loadStudents();
+    } else {
+      // Load fresh data in background
+      setTimeout(() => loadStudents(false), 1000);
+    }
   }, []);
 
   // Set up refresh mechanisms only when not editing
@@ -76,10 +94,23 @@ export const StudentsProvider = ({ children }) => {
     try {
       if (showLoading) setLoading(true);
       const students = await apiService.getStudents();
+      
+      // Update both individual cache and preloaded data
       sessionStorage.setItem('studentsCache', JSON.stringify({
         data: students,
         timestamp: Date.now()
       }));
+      
+      // Update preloaded data if it exists
+      const preloaded = sessionStorage.getItem('preloadedData');
+      if (preloaded) {
+        try {
+          const parsed = JSON.parse(preloaded);
+          parsed.data.students = students;
+          sessionStorage.setItem('preloadedData', JSON.stringify(parsed));
+        } catch (e) {}
+      }
+      
       setStudentsList(students);
       setError(null);
     } catch (err) {
@@ -93,7 +124,15 @@ export const StudentsProvider = ({ children }) => {
   const addStudent = async (studentData) => {
     try {
       const newStudent = await apiService.createStudent(studentData);
-      setStudentsList(prev => [...prev, newStudent]);
+      const updatedList = [...studentsList, newStudent];
+      setStudentsList(updatedList);
+      
+      // Update cache immediately
+      sessionStorage.setItem('studentsCache', JSON.stringify({
+        data: updatedList,
+        timestamp: Date.now()
+      }));
+      
       return newStudent;
     } catch (err) {
       setError(err.message);
@@ -104,9 +143,17 @@ export const StudentsProvider = ({ children }) => {
   const updateStudent = async (id, studentData) => {
     try {
       const updatedStudent = await apiService.updateStudent(id, studentData);
-      setStudentsList(prev => prev.map(student => 
+      const updatedList = studentsList.map(student => 
         student.id === id ? updatedStudent : student
-      ));
+      );
+      setStudentsList(updatedList);
+      
+      // Update cache immediately
+      sessionStorage.setItem('studentsCache', JSON.stringify({
+        data: updatedList,
+        timestamp: Date.now()
+      }));
+      
       return updatedStudent;
     } catch (err) {
       setError(err.message);
@@ -117,9 +164,17 @@ export const StudentsProvider = ({ children }) => {
   const updateStudentStatus = async (studentId, status) => {
     try {
       const updatedStudent = await apiService.updateStudentStatus(studentId, status);
-      setStudentsList(prev => prev.map(student => 
+      const updatedList = studentsList.map(student => 
         student.id === studentId ? updatedStudent : student
-      ));
+      );
+      setStudentsList(updatedList);
+      
+      // Update cache immediately
+      sessionStorage.setItem('studentsCache', JSON.stringify({
+        data: updatedList,
+        timestamp: Date.now()
+      }));
+      
       return updatedStudent;
     } catch (err) {
       setError(err.message);
@@ -130,9 +185,17 @@ export const StudentsProvider = ({ children }) => {
   const updateStudentPayment = async (studentId, monthKey, paymentData) => {
     try {
       const updatedStudent = await apiService.updateStudentPayment(studentId, monthKey, paymentData);
-      setStudentsList(prev => prev.map(student => 
+      const updatedList = studentsList.map(student => 
         student.id === studentId ? updatedStudent : student
-      ));
+      );
+      setStudentsList(updatedList);
+      
+      // Update cache immediately
+      sessionStorage.setItem('studentsCache', JSON.stringify({
+        data: updatedList,
+        timestamp: Date.now()
+      }));
+      
       return updatedStudent;
     } catch (err) {
       setError(err.message);
@@ -143,7 +206,14 @@ export const StudentsProvider = ({ children }) => {
   const deleteStudent = async (studentId) => {
     try {
       await apiService.deleteStudent(studentId);
-      setStudentsList(prev => prev.filter(student => student.id !== studentId));
+      const updatedList = studentsList.filter(student => student.id !== studentId);
+      setStudentsList(updatedList);
+      
+      // Update cache immediately
+      sessionStorage.setItem('studentsCache', JSON.stringify({
+        data: updatedList,
+        timestamp: Date.now()
+      }));
     } catch (err) {
       setError(err.message);
       throw err;
@@ -153,9 +223,16 @@ export const StudentsProvider = ({ children }) => {
   const bulkUpdateStudents = async (studentIds, updates) => {
     try {
       const updatedStudents = await apiService.bulkUpdateStudents(studentIds, updates);
-      setStudentsList(prev => prev.map(student => {
+      const updatedList = studentsList.map(student => {
         const updatedStudent = updatedStudents.find(u => u.id === student.id);
         return updatedStudent || student;
+      });
+      setStudentsList(updatedList);
+      
+      // Update cache immediately
+      sessionStorage.setItem('studentsCache', JSON.stringify({
+        data: updatedList,
+        timestamp: Date.now()
       }));
     } catch (err) {
       setError(err.message);

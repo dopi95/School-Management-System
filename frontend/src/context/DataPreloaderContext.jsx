@@ -13,39 +13,62 @@ export const useDataPreloader = () => {
 
 export const DataPreloaderProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [preloadedData, setPreloadedData] = useState({
-    students: [],
-    specialStudents: [],
-    employees: [],
-    admins: [],
-    pendingStudents: []
+  const [preloadedData, setPreloadedData] = useState(() => {
+    // Try to load cached data immediately
+    try {
+      const cached = sessionStorage.getItem('preloadedData');
+      if (cached) {
+        const { data } = JSON.parse(cached);
+        return data;
+      }
+    } catch (e) {}
+    
+    return {
+      students: [],
+      specialStudents: [],
+      employees: [],
+      admins: [],
+      pendingStudents: []
+    };
   });
 
   const preloadAllData = async () => {
     setIsLoading(true);
     try {
+      console.log('Starting data preload...');
+      
       // Fetch all data in parallel for maximum speed
+      const promises = [
+        apiService.getStudents().catch(err => { console.error('Students fetch failed:', err); return []; }),
+        apiService.getSpecialStudents().catch(err => { console.error('Special students fetch failed:', err); return []; }),
+        apiService.getEmployees().catch(err => { console.error('Employees fetch failed:', err); return []; }),
+        apiService.getAdmins().then(res => res.admins || []).catch(err => { console.error('Admins fetch failed:', err); return []; }),
+        apiService.request('/pending-students').catch(err => { console.error('Pending students fetch failed:', err); return []; })
+      ];
+      
       const [
         students,
         specialStudents,
         employees,
         admins,
         pendingStudents
-      ] = await Promise.all([
-        apiService.getStudents().catch(() => []),
-        apiService.getSpecialStudents().catch(() => []),
-        apiService.getEmployees().catch(() => []),
-        apiService.getAdmins().then(res => res.admins || []).catch(() => []),
-        apiService.request('/pending-students').catch(() => [])
-      ]);
+      ] = await Promise.all(promises);
 
       const data = {
-        students,
-        specialStudents,
-        employees,
-        admins,
-        pendingStudents
+        students: students || [],
+        specialStudents: specialStudents || [],
+        employees: employees || [],
+        admins: admins || [],
+        pendingStudents: pendingStudents || []
       };
+
+      console.log('Data preloaded successfully:', {
+        students: data.students.length,
+        specialStudents: data.specialStudents.length,
+        employees: data.employees.length,
+        admins: data.admins.length,
+        pendingStudents: data.pendingStudents.length
+      });
 
       setPreloadedData(data);
       
@@ -58,6 +81,7 @@ export const DataPreloaderProvider = ({ children }) => {
       return data;
     } catch (error) {
       console.error('Error preloading data:', error);
+      return null;
     } finally {
       setIsLoading(false);
     }
@@ -73,6 +97,17 @@ export const DataPreloaderProvider = ({ children }) => {
       [type]: data
     }));
   };
+
+  // Auto-preload on mount if no cached data exists
+  React.useEffect(() => {
+    const cached = sessionStorage.getItem('preloadedData');
+    if (!cached) {
+      console.log('No cached data found, preloading...');
+      preloadAllData();
+    } else {
+      console.log('Using cached preloaded data');
+    }
+  }, []);
 
   const value = {
     isLoading,

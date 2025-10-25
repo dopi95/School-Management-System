@@ -113,7 +113,13 @@ export const AuthProvider = ({ children }) => {
         
         // Preload all data immediately after successful login
         if (preloadData) {
-          preloadData();
+          console.log('Triggering data preload after login...');
+          // Don't await - let it load in background
+          preloadData().then(() => {
+            console.log('Data preload completed after login');
+          }).catch(err => {
+            console.error('Data preload failed after login:', err);
+          });
         }
         
         return { success: true };

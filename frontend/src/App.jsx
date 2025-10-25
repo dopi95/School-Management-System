@@ -11,6 +11,7 @@ import { SpecialPaymentsProvider } from './context/SpecialPaymentsContext.jsx';
 import { AdminsProvider } from './context/AdminsContext.jsx';
 import { DataPreloaderProvider } from './context/DataPreloaderContext.jsx';
 import Layout from './components/Layout.jsx';
+import DataLoader from './components/DataLoader.jsx';
 import Login from './pages/Login.jsx';
 import ResetPassword from './pages/ResetPassword.jsx';
 import Dashboard from './pages/Dashboard.jsx';
@@ -266,9 +267,11 @@ function App() {
                     <SpecialPaymentsProvider>
                       <AdminsProvider>
                         <Router>
-                          <div className="App min-h-screen bg-gray-50 dark:bg-gray-900">
-                            <AppRoutes />
-                          </div>
+                          <DataLoader>
+                            <div className="App min-h-screen bg-gray-50 dark:bg-gray-900">
+                              <AppRoutes />
+                            </div>
+                          </DataLoader>
                         </Router>
                       </AdminsProvider>
                     </SpecialPaymentsProvider>
