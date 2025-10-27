@@ -71,7 +71,7 @@ const Sidebar = () => {
     { path: '/activity-logs', icon: Activity, label: 'Activity Logs', permission: 'admins' },
     // { path: '/admin-profiles', icon: User, label: 'Admin Profiles', permission: 'superadmin', superAdminOnly: true },
     { path: '/profile', icon: User, label: getMenuLabel('profile'), permission: 'profile' },
-    { path: '/settings', icon: Settings, label: getMenuLabel('settings'), permission: 'settings' },
+    // { path: '/settings', icon: Settings, label: getMenuLabel('settings'), permission: 'settings' },
   ];
 
   const menuItems = allMenuItems.filter(item => {
@@ -127,22 +127,36 @@ const Sidebar = () => {
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       } top-0 h-screen overflow-hidden`}>
         {/* Header */}
-        <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <img
-              src={logo}
-              alt="Logo"
-              className="h-10 w-16"
-            />
-            <h1 className="text-sm font-bold text-primary-700 dark:text-primary-400 whitespace-nowrap">{t('bluelightAcademy')}</h1>
-          </div>
-          <button
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-          >
-            <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-          </button>
-        </div>
+<div className="p-3 border-b border-gray-200 dark:border-gray-700 flex flex-col items-center">
+  {/* Settings Icon */}
+  <Link
+    to="/settings"
+    className="mb-2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors mr-48"
+  >
+    <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+  </Link>
+
+  {/* Logo and Title */}
+  <div className="flex items-center space-x-2">
+    <img
+      src={logo}
+      alt="Logo"
+      className="h-10 w-16"
+    />
+    <h1 className="text-sm font-bold text-primary-700 dark:text-primary-400 whitespace-nowrap">
+      {t('bluelightAcademy')}
+    </h1>
+  </div>
+
+  {/* Mobile Close Button */}
+  <button
+    onClick={() => setIsMobileMenuOpen(false)}
+    className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded absolute top-3 right-3"
+  >
+    <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+  </button>
+</div>
+
 
         {/* User Profile */}
         <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
