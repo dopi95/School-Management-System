@@ -71,7 +71,6 @@ const Sidebar = () => {
     { path: '/activity-logs', icon: Activity, label: 'Activity Logs', permission: 'admins' },
     // { path: '/admin-profiles', icon: User, label: 'Admin Profiles', permission: 'superadmin', superAdminOnly: true },
     { path: '/profile', icon: User, label: getMenuLabel('profile'), permission: 'profile' },
-    { path: '/settings', icon: Settings, label: getMenuLabel('settings'), permission: 'settings' },
   ];
 
   const menuItems = allMenuItems.filter(item => {
@@ -126,6 +125,18 @@ const Sidebar = () => {
       <div className={`bg-white dark:bg-gray-800 shadow-lg w-64 fixed left-0 z-40 transform transition-transform duration-300 ease-in-out flex flex-col ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       } top-0 h-screen overflow-hidden`}>
+        {/* Settings Icon */}
+        <div className="p-2 flex justify-start">
+          <Link
+            to="/settings"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            title="Settings"
+          >
+            <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+          </Link>
+        </div>
+        
         {/* Header */}
         <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div className="flex items-center space-x-2">
