@@ -3,6 +3,8 @@ import { Search, Eye, Users, UserCheck, FileText, FileSpreadsheet, Trash2 } from
 import { useEmployees } from '../context/EmployeesContext.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
 import { exportEmployeesToPDF, exportEmployeesToExcel } from '../utils/exportUtils.js';
+ import { Download } from 'lucide-react'; 
+
 
 const InactiveEmployees = () => {
   const { employeesList, loading, updateEmployeeStatus, deleteEmployee } = useEmployees();
@@ -11,6 +13,8 @@ const InactiveEmployees = () => {
   const [showDeleteModal, setShowDeleteModal] = useState({ isOpen: false, employee: null });
 
   const inactiveEmployees = employeesList.filter(employee => employee.status === 'inactive');
+  const [isExportOpen, setIsExportOpen] = useState(false);
+
   
   const filteredEmployees = inactiveEmployees.filter(employee =>
     employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -35,24 +39,59 @@ const InactiveEmployees = () => {
         </div>
         
         {/* Export Buttons - Mobile Responsive */}
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => exportEmployeesToPDF(filteredEmployees, 'Inactive Employees List')}
-            className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
-            title="Export to PDF"
-          >
-            <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
-            <span>PDF</span>
-          </button>
-          <button
-            onClick={() => exportEmployeesToExcel(filteredEmployees, 'inactive_employees_list')}
-            className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
-            title="Export to Excel"
-          >
-            <FileSpreadsheet className="w-3 h-3 lg:w-4 lg:h-4" />
-            <span>Excel</span>
-          </button>
-        </div>
+        {/* Export Dropdown */}
+<div className="relative inline-block text-left">
+
+<button
+  type="button"
+  onClick={() => setShowExportDropdown(prev => !prev)}
+  className="inline-flex justify-center items-center w-full rounded-md border ml-4 mb-4 lg:ml-0 lg:mb-0 border-gray-300 shadow-sm px-4 py-2 bg-gray-200 dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+>
+  <Download className="w-5 h-5 mr-2" /> {/* Icon added before text */}
+  Export
+  <svg
+    className="-mr-1 ml-2 h-5 w-5"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 20 20"
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    <path
+      fillRule="evenodd"
+      d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+      clipRule="evenodd"
+    />
+  </svg>
+</button>
+
+  {isExportOpen && (
+    <div className="origin-top-right absolute right-0 mt-2 w-44 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+      <div className="py-1">
+        <button
+          onClick={() => {
+            exportEmployeesToPDF(filteredEmployees, 'Inactive Employees List');
+            setIsExportOpen(false);
+          }}
+          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+        >
+          <FileText className="w-4 h-4" />
+          <span>Export as PDF</span>
+        </button>
+        <button
+          onClick={() => {
+            exportEmployeesToExcel(filteredEmployees, 'inactive_employees_list');
+            setIsExportOpen(false);
+          }}
+          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+        >
+          <FileSpreadsheet className="w-4 h-4" />
+          <span>Export as Excel</span>
+        </button>
+      </div>
+    </div>
+  )}
+</div>
+
       </div>
 
       {/* Count Card */}

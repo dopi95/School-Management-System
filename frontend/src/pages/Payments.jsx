@@ -35,6 +35,8 @@ const Payments = () => {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [bulkDescription, setBulkDescription] = useState('');
   const [description, setDescription] = useState('');
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
+
 
   const months = [
     'September', 'October', 'November', 'December', 'January', 'February',
@@ -418,12 +420,53 @@ const Payments = () => {
     }}>
       <div className="w-full" style={{ maxWidth: '100vw', overflow: 'hidden' }}>
       {/* Header */}
-      <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Payments</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Track student payment status by month</p>
-        </div>
+<div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
+  <div className='lg:mb-10'>
+    <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Payments</h1>
+    <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Track student payment status by month</p>
+  </div>
+
+ 
+ {/* Export Dropdown */}
+<div className="relative inline-block text-left mr-20">
+  <button
+    type="button"
+    onClick={() => setShowExportDropdown(prev => !prev)}
+    className="inline-flex justify-center w-full rounded-md border ml-4 mb-4 lg:ml-0 lg:mb-0 border-gray-300 shadow-sm px-4 py-2 bg-gray-200 dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+  >
+    Download
+    <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
+    </svg>
+  </button>
+
+  {/* Dropdown menu */}
+  {showExportDropdown && (
+    <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-gray-100 dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+      <div className="py-1">
+        <button
+          onClick={() => { generatePDF('paid'); setShowExportDropdown(false); }}
+          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center gap-2"
+        >
+          <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+          Paid Students
+        </button>
+        <button
+          onClick={() => { generatePDF('unpaid'); setShowExportDropdown(false); }}
+          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center gap-2"
+        >
+          <span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
+          Unpaid Students
+        </button>
       </div>
+    </div>
+  )}
+</div>
+
+
+</div>
+
+
 
       {/* Stats Cards */}
       <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-6 mb-6" style={{
@@ -558,20 +601,8 @@ const Payments = () => {
                   <span>Mark Selected as Paid ({selectedStudents.length})</span>
                 </button>
               )}
-              <button
-                onClick={() => generatePDF('paid')}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm font-medium transition-colors w-fit self-start"
-                title="Download Paid Students PDF"
-              >
-                Download Paid Students
-              </button>
-              <button
-                onClick={() => generatePDF('unpaid')}
-                className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-medium transition-colors w-fit self-start"
-                title="Download Unpaid Students PDF"
-              >
-                Download Unpaid Students
-              </button>
+             
+             
             </div>
           </div>
 

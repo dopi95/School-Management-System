@@ -13,6 +13,8 @@ const Teachers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, employee: null });
   const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
+  const [isExportOpen, setIsExportOpen] = useState(false);
+
 
   const activeEmployees = employeesList.filter(emp => emp.status === 'active');
   
@@ -79,26 +81,53 @@ const Teachers = () => {
         
         {/* Action Buttons - Mobile Responsive */}
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => exportEmployeesToPDF(filteredEmployees, 'Active Employees List')}
-            className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
-            title="Export to PDF"
-          >
-            <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
-            <span>PDF</span>
-          </button>
-          <button
-            onClick={() => exportEmployeesToExcel(filteredEmployees, 'active_employees_list')}
-            className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
-            title="Export to Excel"
-          >
-            <FileSpreadsheet className="w-3 h-3 lg:w-4 lg:h-4" />
-            <span>Excel</span>
-          </button>
+         
           <Link to="/teachers/add" className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
             <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
             <span>Add Employee</span>
           </Link>
+          {/* Export Dropdown */}
+<div className="relative inline-block text-left">
+  <button
+    type="button"
+    onClick={() => setIsExportOpen(prev => !prev)}
+    className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2 rounded-lg"
+  >
+    <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
+    <span>Export</span>
+    <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
+  </button>
+
+  {isExportOpen && (
+    <div className="origin-top-right absolute right-0 mt-2 w-44 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+      <div className="py-1">
+        <button
+          onClick={() => {
+            exportEmployeesToPDF(filteredEmployees, 'Active Employees List');
+            setIsExportOpen(false);
+          }}
+          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+        >
+          <FileText className="w-4 h-4" />
+          <span>Export as PDF</span>
+        </button>
+        <button
+          onClick={() => {
+            exportEmployeesToExcel(filteredEmployees, 'active_employees_list');
+            setIsExportOpen(false);
+          }}
+          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+        >
+          <FileSpreadsheet className="w-4 h-4" />
+          <span>Export as Excel</span>
+        </button>
+      </div>
+    </div>
+  )}
+</div>
+
         </div>
       </div>
 
