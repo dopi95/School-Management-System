@@ -126,6 +126,18 @@ const Sidebar = () => {
       <div className={`bg-white dark:bg-gray-800 shadow-lg w-64 fixed left-0 z-40 transform transition-transform duration-300 ease-in-out flex flex-col ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       } top-0 h-screen overflow-hidden`}>
+        {/* Settings Icon */}
+        <div className="p-2 flex justify-start border-b border-gray-200 dark:border-gray-700">
+          <Link
+            to="/settings"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            title="Settings"
+          >
+            <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+          </Link>
+        </div>
+        
         {/* Header */}
         <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -136,22 +148,12 @@ const Sidebar = () => {
             />
             <h1 className="text-sm font-bold text-primary-700 dark:text-primary-400 whitespace-nowrap">{t('bluelightAcademy')}</h1>
           </div>
-          <div className="flex items-center space-x-2">
-            <Link
-              to="/settings"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-              title="Settings"
-            >
-              <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-            </Link>
-            <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-            >
-              <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-            </button>
-          </div>
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+          >
+            <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+          </button>
         </div>
 
         {/* User Profile */}
@@ -164,7 +166,6 @@ const Sidebar = () => {
                   alt="Profile"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    console.log('Sidebar profile picture failed to load:', e.target.src);
                     e.target.style.display = 'none';
                     const fallback = e.target.nextElementSibling;
                     if (fallback) {

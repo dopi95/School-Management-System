@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import apiService from '../services/api.js';
+import { useAuth } from './AuthContext.jsx';
 
 const PaymentsContext = createContext();
 
@@ -13,12 +14,15 @@ export const usePayments = () => {
 
 export const PaymentsProvider = ({ children }) => {
   const [paymentsList, setPaymentsList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    loadPayments();
-  }, []);
+    if (isAuthenticated) {
+      loadPayments();
+    }
+  }, [isAuthenticated]);
 
   const loadPayments = async () => {
     try {

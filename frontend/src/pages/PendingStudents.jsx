@@ -6,33 +6,32 @@ import { useAuth } from '../context/AuthContext.jsx';
 import 'react-toastify/dist/ReactToastify.css';
 
 const PendingStudents = () => {
-  const { admin } = useAuth();
+  const { admin, isAuthenticated } = useAuth();
   const [pendingStudents, setPendingStudents] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [selectedStudent, setSelectedStudent] = useState(null);
   
   const canApproveReject = admin?.role === 'superadmin' || admin?.role === 'admin';
 
   useEffect(() => {
-    loadPendingStudents();
-  }, []);
+    if (isAuthenticated && localStorage.getItem('token')) {
+      loadPendingStudents();
+    }
+  }, [isAuthenticated]);
 
   const loadPendingStudents = async () => {
+    if (!localStorage.getItem('token')) return;
+    
     setLoading(true);
     try {
-      // Add timeout to the request
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-      
+      console.log('Loading pending students...');
       const response = await apiService.request('/pending-students');
-      clearTimeout(timeoutId);
-      setPendingStudents(response);
+      console.log('Pending students response:', response);
+      setPendingStudents(response || []);
     } catch (error) {
       console.error('Failed to load pending students:', error);
-      if (error.name === 'AbortError') {
-        console.error('Request timed out');
-      }
+      setPendingStudents([]);
     } finally {
       setLoading(false);
     }
@@ -261,7 +260,7 @@ const PendingStudents = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 w-full">
             {loading ? (
               <div className="text-center py-12 w-full">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
                 <p className="text-gray-500 dark:text-gray-400">Loading pending students...</p>
               </div>
             ) : pendingStudents.length > 0 ? (

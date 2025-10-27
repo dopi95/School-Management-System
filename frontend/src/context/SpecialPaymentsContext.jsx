@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import apiService from '../services/api.js';
+import { useAuth } from './AuthContext.jsx';
 
 const SpecialPaymentsContext = createContext();
 
@@ -13,13 +14,16 @@ export const useSpecialPayments = () => {
 
 export const SpecialPaymentsProvider = ({ children }) => {
   const [specialPaymentsList, setSpecialPaymentsList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { isAuthenticated } = useAuth();
 
-  // Load special payments on mount
+  // Load special payments only when authenticated
   useEffect(() => {
-    loadSpecialPayments();
-  }, []);
+    if (isAuthenticated && localStorage.getItem('token')) {
+      loadSpecialPayments();
+    }
+  }, [isAuthenticated]);
 
   const loadSpecialPayments = async () => {
     try {
@@ -29,7 +33,6 @@ export const SpecialPaymentsProvider = ({ children }) => {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('Failed to load special payments:', err);
     } finally {
       setLoading(false);
     }
@@ -41,7 +44,7 @@ export const SpecialPaymentsProvider = ({ children }) => {
       setSpecialPaymentsList(payments);
       setError(null);
     } catch (err) {
-      console.error('Failed to refresh special payments:', err);
+      // Silent fail for refresh
     }
   };
 

@@ -20,8 +20,7 @@ export const EmployeesProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log('EmployeesContext: User authenticated, loading employees...');
+    if (isAuthenticated && localStorage.getItem('token')) {
       loadEmployees();
     }
   }, [isAuthenticated]);
@@ -31,13 +30,13 @@ export const EmployeesProvider = ({ children }) => {
     if (isEditing) return;
     
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
+      if (!document.hidden && localStorage.getItem('token')) {
         loadEmployees(false);
       }
     };
     
     const refreshInterval = setInterval(() => {
-      if (!document.hidden) {
+      if (!document.hidden && localStorage.getItem('token')) {
         loadEmployees(false);
       }
     }, 120000);
@@ -75,7 +74,6 @@ export const EmployeesProvider = ({ children }) => {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('Failed to load employees:', err);
     } finally {
       if (showLoading) setLoading(false);
     }

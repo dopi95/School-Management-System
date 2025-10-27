@@ -3,7 +3,18 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 class ApiService {
   constructor() {
     this.requestCache = new Map();
-    this.cacheTimeout = 10000; // 10 seconds cache for GET requests
+    this.cacheTimeout = 5000; // 5 seconds cache for GET requests
+    this.testConnection();
+  }
+
+  async testConnection() {
+    try {
+      console.log('Testing backend connection to:', API_BASE_URL);
+      const response = await fetch(`${API_BASE_URL.replace('/api', '')}`);
+      console.log('Backend connection test:', response.status, response.ok);
+    } catch (error) {
+      console.error('Backend connection failed:', error);
+    }
   }
 
   async request(endpoint, options = {}) {
@@ -31,14 +42,39 @@ class ApiService {
     }
 
     try {
+      console.log(`API: Making request to ${url}`);
       const response = await fetch(url, config);
+      console.log(`API: Response status for ${endpoint}:`, response.status);
       
       if (!response.ok) {
-        const error = await response.json();
+        const errorText = await response.text();
+        console.error(`API: Error response for ${endpoint}:`, errorText);
+        
+        // Log admin permissions for debugging permission issues
+        if (response.status === 403 && (endpoint.includes('students') || endpoint.includes('pending-students'))) {
+          const adminProfile = localStorage.getItem('adminProfile');
+          if (adminProfile) {
+            try {
+              const admin = JSON.parse(adminProfile);
+              console.error('API: Current admin permissions:', admin.permissions);
+              console.error('API: Admin role:', admin.role);
+            } catch (e) {
+              console.error('API: Could not parse admin profile');
+            }
+          }
+        }
+        
+        let error;
+        try {
+          error = JSON.parse(errorText);
+        } catch {
+          error = { message: errorText || 'Something went wrong' };
+        }
         throw new Error(error.message || 'Something went wrong');
       }
 
       const data = await response.json();
+      console.log(`API: Success response for ${endpoint}:`, data);
       
       // Cache GET requests
       if (!options.method || options.method === 'GET') {
@@ -57,20 +93,23 @@ class ApiService {
       
       return data;
     } catch (error) {
-      console.error('API Error:', error);
+      console.error(`API Error for ${endpoint}:`, error);
       throw error;
     }
   }
 
   // Student API methods
   async getStudents() {
-    console.log('API: Fetching students...');
     try {
+      console.log('API: Attempting to fetch students from:', `${API_BASE_URL}/students`);
       const result = await this.request('/students');
-      console.log('API: Students fetched successfully:', result?.length || 0, result);
-      return result || [];
+      console.log('API: Students response:', result);
+      return Array.isArray(result) ? result : [];
     } catch (error) {
-      console.error('API: Failed to fetch students:', error);
+      console.error('API: Students fetch failed:', error.message);
+      if (error.message.includes('Access denied') || error.message.includes('permission')) {
+        console.error('API: Permission denied for students endpoint');
+      }
       return [];
     }
   }
@@ -122,10 +161,8 @@ class ApiService {
 
   // Employee API methods
   async getEmployees() {
-    console.log('API: Fetching employees...');
     try {
       const result = await this.request('/employees');
-      console.log('API: Employees fetched successfully:', result.length);
       return result;
     } catch (error) {
       console.error('API: Failed to fetch employees:', error);
@@ -362,6 +399,41 @@ class ApiService {
 
   async getAdminActivityLogs() {
     return this.request('/auth/admins/activity-logs');
+  }
+
+  // Pending Students API methods
+  async getPendingStudents() {
+    try {
+      console.log('API: Attempting to fetch pending students from:', `${API_BASE_URL}/pending-students`);
+      const result = await this.request('/pending-students');
+      console.log('API: Pending students response:', result);
+      return Array.isArray(result) ? result : [];
+    } catch (error) {
+      console.error('API: Pending students fetch failed:', error.message);
+      if (error.message.includes('Access denied') || error.message.includes('permission')) {
+        console.error('API: Permission denied for pending students endpoint');
+      }
+      return [];
+    }
+  }
+
+  async approvePendingStudent(id) {
+    return this.request(`/pending-students/${encodeURIComponent(id)}/approve`, {
+      method: 'POST',
+    });
+  }
+
+  async rejectPendingStudent(id) {
+    return this.request(`/pending-students/${encodeURIComponent(id)}/reject`, {
+      method: 'DELETE',
+    });
+  }
+
+  async registerStudent(studentData) {
+    return this.request('/pending-students/register', {
+      method: 'POST',
+      body: studentData,
+    });
   }
 }
 

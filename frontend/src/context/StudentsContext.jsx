@@ -19,29 +19,24 @@ export const StudentsProvider = ({ children }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  // Load students when authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log('StudentsContext: User authenticated, loading students...');
+    if (isAuthenticated && localStorage.getItem('token')) {
       loadStudents();
     }
   }, [isAuthenticated]);
 
-  // Set up refresh mechanisms only when not editing
   useEffect(() => {
     if (isEditing) return;
     
-    // Refresh data when page becomes visible (switching between devices/tabs)
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        loadStudents(false); // Silent refresh
+      if (!document.hidden && localStorage.getItem('token')) {
+        loadStudents(false);
       }
     };
     
-    // Set up periodic refresh every 2 minutes (more frequent for better sync)
     const refreshInterval = setInterval(() => {
-      if (!document.hidden) {
-        loadStudents(false); // Silent refresh
+      if (!document.hidden && localStorage.getItem('token')) {
+        loadStudents(false);
       }
     }, 120000);
     
@@ -55,50 +50,17 @@ export const StudentsProvider = ({ children }) => {
 
   const loadStudents = async (showLoading = true) => {
     if (isEditing && !showLoading) return;
-    
-    // Check cache first for silent refreshes
-    if (!showLoading) {
-      const cached = sessionStorage.getItem('studentsCache');
-      if (cached) {
-        try {
-          const { data, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < 120000) { // 2 minutes cache
-            console.log('StudentsContext: Using cached data for silent refresh');
-            return;
-          }
-        } catch (e) {}
-      }
-    }
+    if (!localStorage.getItem('token')) return;
     
     try {
       if (showLoading) setLoading(true);
-      console.log('StudentsContext: Calling API to fetch students...');
+      console.log('StudentsContext: Loading students...');
       const students = await apiService.getStudents();
-      console.log('StudentsContext: Received students from API:', students?.length || 0, students);
-      
-      const studentsArray = Array.isArray(students) ? students : [];
-      
-      // Update both individual cache and preloaded data
-      sessionStorage.setItem('studentsCache', JSON.stringify({
-        data: studentsArray,
-        timestamp: Date.now()
-      }));
-      
-      // Update preloaded data if it exists
-      const preloaded = sessionStorage.getItem('preloadedData');
-      if (preloaded) {
-        try {
-          const parsed = JSON.parse(preloaded);
-          parsed.data.students = studentsArray;
-          sessionStorage.setItem('preloadedData', JSON.stringify(parsed));
-        } catch (e) {}
-      }
-      
-      setStudentsList(studentsArray);
-      console.log('StudentsContext: Students state updated, count:', studentsArray.length);
+      console.log('StudentsContext: Students loaded:', students);
+      setStudentsList(students || []);
       setError(null);
     } catch (err) {
-      console.error('StudentsContext: Failed to load students:', err);
+      console.error('StudentsContext: Error loading students:', err);
       setError(err.message);
       setStudentsList([]);
     } finally {
@@ -109,15 +71,7 @@ export const StudentsProvider = ({ children }) => {
   const addStudent = async (studentData) => {
     try {
       const newStudent = await apiService.createStudent(studentData);
-      const updatedList = [...studentsList, newStudent];
-      setStudentsList(updatedList);
-      
-      // Update cache immediately
-      sessionStorage.setItem('studentsCache', JSON.stringify({
-        data: updatedList,
-        timestamp: Date.now()
-      }));
-      
+      setStudentsList([...studentsList, newStudent]);
       return newStudent;
     } catch (err) {
       setError(err.message);
@@ -132,13 +86,6 @@ export const StudentsProvider = ({ children }) => {
         student.id === id ? updatedStudent : student
       );
       setStudentsList(updatedList);
-      
-      // Update cache immediately
-      sessionStorage.setItem('studentsCache', JSON.stringify({
-        data: updatedList,
-        timestamp: Date.now()
-      }));
-      
       return updatedStudent;
     } catch (err) {
       setError(err.message);
@@ -153,13 +100,6 @@ export const StudentsProvider = ({ children }) => {
         student.id === studentId ? updatedStudent : student
       );
       setStudentsList(updatedList);
-      
-      // Update cache immediately
-      sessionStorage.setItem('studentsCache', JSON.stringify({
-        data: updatedList,
-        timestamp: Date.now()
-      }));
-      
       return updatedStudent;
     } catch (err) {
       setError(err.message);
@@ -174,13 +114,6 @@ export const StudentsProvider = ({ children }) => {
         student.id === studentId ? updatedStudent : student
       );
       setStudentsList(updatedList);
-      
-      // Update cache immediately
-      sessionStorage.setItem('studentsCache', JSON.stringify({
-        data: updatedList,
-        timestamp: Date.now()
-      }));
-      
       return updatedStudent;
     } catch (err) {
       setError(err.message);
@@ -193,12 +126,6 @@ export const StudentsProvider = ({ children }) => {
       await apiService.deleteStudent(studentId);
       const updatedList = studentsList.filter(student => student.id !== studentId);
       setStudentsList(updatedList);
-      
-      // Update cache immediately
-      sessionStorage.setItem('studentsCache', JSON.stringify({
-        data: updatedList,
-        timestamp: Date.now()
-      }));
     } catch (err) {
       setError(err.message);
       throw err;
@@ -213,12 +140,6 @@ export const StudentsProvider = ({ children }) => {
         return updatedStudent || student;
       });
       setStudentsList(updatedList);
-      
-      // Update cache immediately
-      sessionStorage.setItem('studentsCache', JSON.stringify({
-        data: updatedList,
-        timestamp: Date.now()
-      }));
     } catch (err) {
       setError(err.message);
       throw err;

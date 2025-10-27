@@ -11,7 +11,6 @@ import { SpecialPaymentsProvider } from './context/SpecialPaymentsContext.jsx';
 import { AdminsProvider } from './context/AdminsContext.jsx';
 import { DataPreloaderProvider } from './context/DataPreloaderContext.jsx';
 import Layout from './components/Layout.jsx';
-import DataLoader from './components/DataLoader.jsx';
 import Login from './pages/Login.jsx';
 import ResetPassword from './pages/ResetPassword.jsx';
 import Dashboard from './pages/Dashboard.jsx';
@@ -258,15 +257,15 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <DataPreloaderProvider>
-          <LanguageProvider>
+        <LanguageProvider>
+          <DataPreloaderProvider>
             <StudentsProvider>
               <SpecialStudentsProvider>
                 <EmployeesProvider>
                   <PaymentsProvider>
                     <SpecialPaymentsProvider>
                       <AdminsProvider>
-                        <Router>
+                        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                           <div className="App min-h-screen bg-gray-50 dark:bg-gray-900">
                             <AppRoutes />
                           </div>
@@ -277,8 +276,8 @@ function App() {
                 </EmployeesProvider>
               </SpecialStudentsProvider>
             </StudentsProvider>
-          </LanguageProvider>
-        </DataPreloaderProvider>
+          </DataPreloaderProvider>
+        </LanguageProvider>
       </AuthProvider>
     </ThemeProvider>
   );

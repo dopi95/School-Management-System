@@ -335,7 +335,12 @@ const Students = () => {
       </div>
 
       {/* Students Table */}
-      {studentsList.length > 0 && (
+      {loading ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500 dark:text-gray-400">Loading students...</p>
+        </div>
+      ) : studentsList.length > 0 ? (
         <div className="card overflow-hidden" style={{ width: '100%', maxWidth: '100vw' }}>
         <div className="overflow-x-auto" style={{ width: '100%' }}>
           <table className="min-w-full divide-y divide-gray-200">
@@ -480,10 +485,15 @@ const Students = () => {
           </table>
         </div>
         </div>
+      ) : (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+          <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500 dark:text-gray-400">No students found</p>
+        </div>
       )}
 
       {/* Results Count */}
-      {studentsList.length > 0 && (
+      {!loading && studentsList.length > 0 && (
         <div className="text-sm text-gray-600 dark:text-gray-400">
           Showing {filteredStudents.length} of {studentsList.length} students
         </div>

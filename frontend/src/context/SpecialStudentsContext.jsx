@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import apiService from '../services/api.js';
+import { useAuth } from './AuthContext.jsx';
 
 const SpecialStudentsContext = createContext();
 
@@ -16,11 +17,13 @@ export const SpecialStudentsProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const { isAuthenticated } = useAuth();
 
-  // Load special students immediately
   useEffect(() => {
-    loadSpecialStudents();
-  }, []);
+    if (isAuthenticated && localStorage.getItem('token')) {
+      loadSpecialStudents();
+    }
+  }, [isAuthenticated]);
 
   // Set up refresh mechanisms only when not editing
   useEffect(() => {
@@ -28,14 +31,14 @@ export const SpecialStudentsProvider = ({ children }) => {
     
     // Refresh data when page becomes visible (switching between devices/tabs)
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
+      if (!document.hidden && localStorage.getItem('token')) {
         loadSpecialStudents(false); // Silent refresh
       }
     };
     
     // Set up periodic refresh every 2 minutes (more frequent for better sync)
     const refreshInterval = setInterval(() => {
-      if (!document.hidden) {
+      if (!document.hidden && localStorage.getItem('token')) {
         loadSpecialStudents(false); // Silent refresh
       }
     }, 120000);
@@ -57,7 +60,6 @@ export const SpecialStudentsProvider = ({ children }) => {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('Failed to load special students:', err);
     } finally {
       if (showLoading) setLoading(false);
     }

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import apiService from '../services/api.js';
+import { useAuth } from './AuthContext.jsx';
 
 const DataPreloaderContext = createContext();
 
@@ -12,6 +13,7 @@ export const useDataPreloader = () => {
 };
 
 export const DataPreloaderProvider = ({ children }) => {
+  const { isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [preloadedData, setPreloadedData] = useState(() => {
     // Try to load cached data immediately
@@ -35,15 +37,13 @@ export const DataPreloaderProvider = ({ children }) => {
   const preloadAllData = async () => {
     setIsLoading(true);
     try {
-      console.log('Starting data preload...');
-      
       // Fetch all data in parallel for maximum speed
       const promises = [
-        apiService.getStudents().catch(err => { console.error('Students fetch failed:', err); return []; }),
-        apiService.getSpecialStudents().catch(err => { console.error('Special students fetch failed:', err); return []; }),
-        apiService.getEmployees().catch(err => { console.error('Employees fetch failed:', err); return []; }),
-        apiService.getAdmins().then(res => res.admins || []).catch(err => { console.error('Admins fetch failed:', err); return []; }),
-        apiService.request('/pending-students').catch(err => { console.error('Pending students fetch failed:', err); return []; })
+        apiService.getStudents().then(res => Array.isArray(res) ? res : []).catch(() => []),
+        apiService.getSpecialStudents().then(res => Array.isArray(res) ? res : []).catch(() => []),
+        apiService.getEmployees().then(res => Array.isArray(res) ? res : []).catch(() => []),
+        apiService.getAdmins().then(res => Array.isArray(res?.admins) ? res.admins : []).catch(() => []),
+        apiService.request('/pending-students').then(res => Array.isArray(res) ? res : []).catch(() => [])
       ];
       
       const [
@@ -62,14 +62,6 @@ export const DataPreloaderProvider = ({ children }) => {
         pendingStudents: pendingStudents || []
       };
 
-      console.log('Data preloaded successfully:', {
-        students: data.students.length,
-        specialStudents: data.specialStudents.length,
-        employees: data.employees.length,
-        admins: data.admins.length,
-        pendingStudents: data.pendingStudents.length
-      });
-
       setPreloadedData(data);
       
       // Cache in sessionStorage for instant subsequent loads
@@ -80,7 +72,6 @@ export const DataPreloaderProvider = ({ children }) => {
 
       return data;
     } catch (error) {
-      console.error('Error preloading data:', error);
       return null;
     } finally {
       setIsLoading(false);
@@ -105,14 +96,21 @@ export const DataPreloaderProvider = ({ children }) => {
     }));
   };
 
-  // Auto-preload on mount if no cached data exists
+  // Auto-preload when authenticated
   React.useEffect(() => {
-    const cached = sessionStorage.getItem('preloadedData');
-    if (!cached) {
-      console.log('No cached data found, preloading...');
+    if (isAuthenticated && localStorage.getItem('token')) {
       preloadAllData();
-    } else {
-      console.log('Using cached preloaded data');
+    }
+  }, [isAuthenticated]);
+
+  // Auto-preload on mount if cached data exists
+  React.useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const cached = sessionStorage.getItem('preloadedData');
+      if (!cached) {
+        preloadAllData();
+      }
     }
   }, []);
 

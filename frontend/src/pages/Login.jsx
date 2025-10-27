@@ -2,12 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { useDataPreloader } from '../context/DataPreloaderContext.jsx';
 import logo from '../assets/logo.png'
 
 const Login = () => {
   const { login, isAuthenticated, loading, logout } = useAuth();
-  const { preloadAllData } = useDataPreloader();
   
   useEffect(() => {
     // Clear any existing session when login page loads
@@ -47,7 +45,7 @@ const Login = () => {
     setIsLoading(true);
     setError('');
 
-    const result = await login(formData.email, formData.password, preloadAllData);
+    const result = await login(formData.email, formData.password);
     
     if (!result.success) {
       setError(result.message || 'Login failed');
