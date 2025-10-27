@@ -61,11 +61,12 @@ const Sidebar = () => {
     { path: '/dashboard', icon: LayoutDashboard, label: getMenuLabel('dashboard'), permission: 'dashboard' },
     { path: '/students', icon: Users, label: admin?.role === 'teacher' ? 'My Students' : getMenuLabel('students'), permission: 'students' },
     { path: '/special-students', icon: Users, label: 'SP Students', permission: 'specialStudents' },
-    { path: '/inactive-students', icon: UserX, label: getMenuLabel('inactive-students'), permission: 'inactiveStudents' },
     { path: '/teachers', icon: GraduationCap, label: getMenuLabel('employees'), permission: 'employees' },
-    { path: '/inactive-employees', icon: UserX, label: getMenuLabel('inactive-employees'), permission: 'inactiveEmployees' },
     { path: '/payments', icon: CreditCard, label: getMenuLabel('payments'), permission: 'payments' },
     { path: '/special-payments', icon: CreditCard, label: 'SP Payments', permission: 'specialPayments' },
+        { path: '/inactive-students', icon: UserX, label: getMenuLabel('inactive-students'), permission: 'inactiveStudents' },
+    { path: '/inactive-employees', icon: UserX, label: getMenuLabel('inactive-employees'), permission: 'inactiveEmployees' },
+
     { path: '/notifications', icon: Send, label: getMenuLabel('notifications'), permission: 'notifications' },
     { path: '/admin-management', icon: UserCog, label: getMenuLabel('admins'), permission: 'admins' },
     { path: '/activity-logs', icon: Activity, label: 'Activity Logs', permission: 'admins' },
@@ -125,18 +126,6 @@ const Sidebar = () => {
       <div className={`bg-white dark:bg-gray-800 shadow-lg w-64 fixed left-0 z-40 transform transition-transform duration-300 ease-in-out flex flex-col ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       } top-0 h-screen overflow-hidden`}>
-        {/* Settings Icon */}
-        <div className="p-2 flex justify-start">
-          <Link
-            to="/settings"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-            title="Settings"
-          >
-            <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-          </Link>
-        </div>
-        
         {/* Header */}
         <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -147,12 +136,22 @@ const Sidebar = () => {
             />
             <h1 className="text-sm font-bold text-primary-700 dark:text-primary-400 whitespace-nowrap">{t('bluelightAcademy')}</h1>
           </div>
-          <button
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-          >
-            <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-          </button>
+          <div className="flex items-center space-x-2">
+            <Link
+              to="/settings"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              title="Settings"
+            >
+              <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            </Link>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            >
+              <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            </button>
+          </div>
         </div>
 
         {/* User Profile */}
