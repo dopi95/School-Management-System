@@ -61,11 +61,11 @@ const Sidebar = () => {
     { path: '/dashboard', icon: LayoutDashboard, label: getMenuLabel('dashboard'), permission: 'dashboard' },
     { path: '/students', icon: Users, label: admin?.role === 'teacher' ? 'My Students' : getMenuLabel('students'), permission: 'students' },
     { path: '/special-students', icon: Users, label: 'SP Students', permission: 'specialStudents' },
-    { path: '/inactive-students', icon: UserX, label: getMenuLabel('inactive-students'), permission: 'inactiveStudents' },
     { path: '/teachers', icon: GraduationCap, label: getMenuLabel('employees'), permission: 'employees' },
-    { path: '/inactive-employees', icon: UserX, label: getMenuLabel('inactive-employees'), permission: 'inactiveEmployees' },
     { path: '/payments', icon: CreditCard, label: getMenuLabel('payments'), permission: 'payments' },
     { path: '/special-payments', icon: CreditCard, label: 'SP Payments', permission: 'specialPayments' },
+    { path: '/inactive-students', icon: UserX, label: getMenuLabel('inactive-students'), permission: 'inactiveStudents' },
+    { path: '/inactive-employees', icon: UserX, label: getMenuLabel('inactive-employees'), permission: 'inactiveEmployees' },
     { path: '/notifications', icon: Send, label: getMenuLabel('notifications'), permission: 'notifications' },
     { path: '/admin-management', icon: UserCog, label: getMenuLabel('admins'), permission: 'admins' },
     { path: '/activity-logs', icon: Activity, label: 'Activity Logs', permission: 'admins' },
@@ -129,12 +129,14 @@ const Sidebar = () => {
         {/* Header */}
 <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex flex-col items-center">
   {/* Settings Icon */}
-  <Link
-    to="/settings"
-    className="mb-2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors mr-48"
-  >
-    <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-  </Link>
+<Link
+  to="/settings"
+  onClick={() => setIsMobileMenuOpen(false)} // <-- Close mobile sidebar on click
+  className="mb-2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors mr-48"
+>
+  <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+</Link>
+
 
   {/* Logo and Title */}
   <div className="flex items-center space-x-2">
