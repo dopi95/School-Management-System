@@ -27,6 +27,8 @@ const StudentRegistration = () => {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errors, setErrors] = useState({});
+
 
   const classes = ['KG-1', 'KG-2', 'KG-3'];
 
@@ -49,40 +51,96 @@ const StudentRegistration = () => {
     }
   };
 
-  const validateForm = () => {
-    const requiredFields = {
-      firstName: 'First Name',
-      middleName: 'Middle Name (Father Name)',
-      lastName: 'Last Name',
-      firstNameAm: 'First Name (Amharic)',
-      middleNameAm: 'Middle Name (Amharic)',
-      lastNameAm: 'Last Name (Amharic)',
-      gender: 'Gender',
-      dateOfBirth: 'Date of Birth',
-      joinedYear: 'Joined Year',
-      address: 'Address',
-      class: 'Class',
-      fatherName: 'Father Name',
-      fatherPhone: 'Father Phone',
-      motherName: 'Mother Name',
-      motherPhone: 'Mother Phone'
-    };
+  
+    const validateForm = () => {
+    const newErrors = {};
 
-    for (const [field, label] of Object.entries(requiredFields)) {
-      if (!formData[field] || formData[field].trim() === '') {
-        toast.error(`${label} is required!`, {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        return false;
-      }
-    }
-    return true;
+  // Required fields
+  const requiredFields = {
+    firstName: 'First Name',
+    middleName: 'Middle Name (Father Name)',
+    lastName: 'Last Name',
+    firstNameAm: 'First Name (Amharic)',
+    middleNameAm: 'Middle Name (Amharic)',
+    lastNameAm: 'Last Name (Amharic)',
+    gender: 'Gender',
+    dateOfBirth: 'Date of Birth',
+    joinedYear: 'Joined Year',
+    address: 'Address',
+    class: 'Class',
+    fatherName: 'Father Name',
+    fatherPhone: 'Father Phone',
+    motherName: 'Mother Name',
+    motherPhone: 'Mother Phone'
   };
+
+  // Step 1: Required fields
+  for (const [field, label] of Object.entries(requiredFields)) {
+    if (!formData[field] || formData[field].trim() === '') {
+      newErrors[field] = `${label} is required`;
+    }
+  }
+
+  // Step 2: Date format (dd/mm/yyyy)
+  const dateRegex = /^(0?[1-9]|[12][0-9]|3[01])\/(0?[1-9]|1[0-2])\/\d{4}$/;
+  if (formData.dateOfBirth && !dateRegex.test(formData.dateOfBirth)) {
+    newErrors.dateOfBirth = 'Use valid format: dd/mm/yyyy';
+  }
+
+  // Step 3: Joined Year (4 digits)
+  const yearRegex = /^\d{4}$/;
+  if (formData.joinedYear && !yearRegex.test(formData.joinedYear)) {
+    newErrors.joinedYear = 'Use 4-digit year only';
+  }
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+const validateField = (name, value) => {
+  let error = '';
+
+  // Date of Birth
+  if (name === 'dateOfBirth') {
+    const dateRegex = /^(0?[1-9]|[12][0-9]|3[01])\/(0?[1-9]|1[0-2])\/\d{4}$/;
+    if (!value.trim()) {
+      error = 'Date of Birth is required';
+    } else if (!dateRegex.test(value)) {
+      error = 'Use valid format: dd/mm/yyyy';
+    }
+  }
+
+  // Joined Year
+  if (name === 'joinedYear') {
+    const yearRegex = /^\d{4}$/;
+    if (!value.trim()) {
+      error = 'Joined Year is required';
+    } else if (!yearRegex.test(value)) {
+      error = 'Use 4-digit year only';
+    }
+  }
+
+  // Father Phone
+  if (name === 'fatherPhone') {
+    const phoneRegex = /^(09|07)\d{8}$/;
+    if (!value.trim()) {
+      error = 'Father Phone is required';
+    } else if (!phoneRegex.test(value)) {
+      error = 'Use valid format: starts with 09 or 07 and 10 digits total';
+    }
+  }
+
+  // Mother Phone
+  if (name === 'motherPhone') {
+    const phoneRegex = /^(09|07)\d{8}$/;
+    if (!value.trim()) {
+      error = 'Mother Phone is required';
+    } else if (!phoneRegex.test(value)) {
+      error = 'Use valid format: starts with 09 or 07 and 10 digits total';
+    }
+  }
+
+  setErrors(prev => ({ ...prev, [name]: error }));
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -136,6 +194,8 @@ const StudentRegistration = () => {
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Registration Submitted!</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">ምዝገባው ተሳክቷል!</h2>
+
           <button
             onClick={() => {
               setIsSubmitted(false);
@@ -185,6 +245,8 @@ const StudentRegistration = () => {
             {/* Student Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Student Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">የተማሪው መረጃ</h3>
+
               
               {/* Photo Upload */}
               <div className="flex items-center space-x-6">
@@ -224,7 +286,7 @@ const StudentRegistration = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    First Name *
+                    Student First Name *
                   </label>
                   <input
                     type="text"
@@ -252,7 +314,7 @@ const StudentRegistration = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Last Name *
+                    Last Name (Grand Father Name) *
                   </label>
                   <input
                     type="text"
@@ -266,7 +328,7 @@ const StudentRegistration = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    First Name (Amharic) *
+                    Student First Name (Amharic) *
                   </label>
                   <input
                     type="text"
@@ -274,7 +336,7 @@ const StudentRegistration = () => {
                     value={formData.firstNameAm}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="የመጀመሪያ ስም"
+                    placeholder="የተማሪው/ዋ ስም"
                     required
                   />
                 </div>
@@ -311,7 +373,7 @@ const StudentRegistration = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Gender *
+                    Gender(ፆታ) *
                   </label>
                   <select
                     name="gender"
@@ -338,40 +400,59 @@ const StudentRegistration = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
+                       <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Date of Birth (የትውልድ ቀን) *
+  </label>
+  <input
+    type="text"
+    name="dateOfBirth"
+    value={formData.dateOfBirth}
+    onChange={(e) => {
+      handleDateChange(e);
+      if (errors.dateOfBirth) validateField('dateOfBirth', e.target.value);
+    }}
+    onBlur={(e) => validateField('dateOfBirth', e.target.value)}
+    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+      errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
+    }`}
+    placeholder="dd/mm/yyyy E.C"
+    required
+  />
+  {errors.dateOfBirth && (
+    <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>
+  )}
+</div>
+
+
+
+              <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Joined Year (የገባበት/ችበት) *
+  </label>
+  <input
+    type="text"
+    name="joinedYear"
+    value={formData.joinedYear}
+    onChange={(e) => {
+      handleChange(e);
+      if (errors.joinedYear) validateField('joinedYear', e.target.value);
+    }}
+    onBlur={(e) => validateField('joinedYear', e.target.value)}
+    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+      errors.joinedYear ? 'border-red-500' : 'border-gray-300'
+    }`}
+    placeholder="e.g. 2018 E.C"
+    required
+  />
+  {errors.joinedYear && (
+    <p className="text-red-500 text-sm mt-1">{errors.joinedYear}</p>
+  )}
+</div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date of Birth *
-                  </label>
-                  <input
-                    type="text"
-                    name="dateOfBirth"
-                    value={formData.dateOfBirth}
-                    onChange={handleDateChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="dd/mm/yyyy"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Joined Year *
-                  </label>
-                  <input
-                    type="text"
-                    name="joinedYear"
-                    value={formData.joinedYear}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., 2018"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Class *
+                    Class (ክፍል) *
                   </label>
                   <select
                     name="class"
@@ -406,10 +487,12 @@ const StudentRegistration = () => {
             {/* Parent Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Parent Information</h3>
+               <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">የወላጅ መረጃ</h3>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Father Name *
+                    Father Full Name *
                   </label>
                   <input
                     type="text"
@@ -422,22 +505,33 @@ const StudentRegistration = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Father Phone *
-                  </label>
-                  <input
-                    type="tel"
-                    name="fatherPhone"
-                    value={formData.fatherPhone}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Father Phone (የአባት ስልክ) *
+  </label>
+  <input
+    type="text"
+    name="fatherPhone"
+    value={formData.fatherPhone}
+    onChange={(e) => {
+      handleChange(e);
+      if (errors.fatherPhone) validateField('fatherPhone', e.target.value);
+    }}
+    onBlur={(e) => validateField('fatherPhone', e.target.value)}
+    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+      errors.fatherPhone ? 'border-red-500' : 'border-gray-300'
+    }`}
+    placeholder="e.g. 0912345678"
+    required
+  />
+  {errors.fatherPhone && (
+    <p className="text-red-500 text-sm mt-1">{errors.fatherPhone}</p>
+  )}
+</div>
+
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mother Name *
+                    Mother Full Name *
                   </label>
                   <input
                     type="text"
@@ -450,18 +544,29 @@ const StudentRegistration = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mother Phone *
-                  </label>
-                  <input
-                    type="tel"
-                    name="motherPhone"
-                    value={formData.motherPhone}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Mother Phone (የእናት ስልክ) *
+  </label>
+  <input
+    type="text"
+    name="motherPhone"
+    value={formData.motherPhone}
+    onChange={(e) => {
+      handleChange(e);
+      if (errors.motherPhone) validateField('motherPhone', e.target.value);
+    }}
+    onBlur={(e) => validateField('motherPhone', e.target.value)}
+    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+      errors.motherPhone ? 'border-red-500' : 'border-gray-300'
+    }`}
+    placeholder="e.g. 0912345678"
+    required
+  />
+  {errors.motherPhone && (
+    <p className="text-red-500 text-sm mt-1">{errors.motherPhone}</p>
+  )}
+</div>
+
               </div>
             </div>
 
