@@ -23,6 +23,7 @@ const SpecialPayments = () => {
     return saved !== null ? parseInt(saved) : 2017;
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [descriptionSearchTerm, setDescriptionSearchTerm] = useState(''); // New state for description search
   const [classFilter, setClassFilter] = useState('all');
   const [sectionFilter, setSectionFilter] = useState('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
@@ -50,6 +51,9 @@ const SpecialPayments = () => {
   
   const filteredStudents = activeSpecialStudentsList.filter(student => {
     const searchLower = searchTerm.toLowerCase();
+    const descriptionSearchLower = descriptionSearchTerm.toLowerCase();
+    
+    // Main search filter
     const matchesSearch = !searchTerm || 
       student.name?.toLowerCase().includes(searchLower) ||
       student.id?.toLowerCase().includes(searchLower) ||
@@ -59,6 +63,16 @@ const SpecialPayments = () => {
       student.fatherPhone?.includes(searchTerm) ||
       student.motherPhone?.includes(searchTerm) ||
       `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
+    
+    // Description search filter
+    const matchesDescriptionSearch = !descriptionSearchTerm || 
+      // Check current month payment description
+      (student.payments[currentMonthKey]?.description?.toLowerCase().includes(descriptionSearchLower)) ||
+      // Check all payment descriptions in history
+      Object.values(student.payments || {}).some(payment => 
+        payment?.description?.toLowerCase().includes(descriptionSearchLower)
+      );
+    
     const matchesClass = classFilter === 'all' || student.class === classFilter;
     const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
     
@@ -90,7 +104,7 @@ const SpecialPayments = () => {
       if (!hasPaidInRange) return false;
     }
     
-    return matchesSearch && matchesClass && matchesSection && matchesPaymentStatus;
+    return matchesSearch && matchesDescriptionSearch && matchesClass && matchesSection && matchesPaymentStatus;
   }).sort((a, b) => {
     const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
     const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
@@ -132,6 +146,7 @@ const SpecialPayments = () => {
     if (classFilter !== 'all') filterText += ` | Class: ${classFilter}`;
     if (sectionFilter !== 'all') filterText += ` | Section: ${sectionFilter}`;
     if (searchTerm) filterText += ` | Search: "${searchTerm}"`;
+    if (descriptionSearchTerm) filterText += ` | Description: "${descriptionSearchTerm}"`;
     doc.text(filterText, pageWidth / 2, 50, { align: 'center' });
     
     // Table headers
@@ -145,6 +160,7 @@ const SpecialPayments = () => {
     doc.text('Section', margin + 150, yPos);
     if (type === 'paid') {
       doc.text('Payment Date', margin + 180, yPos);
+      doc.text('Description', margin + 210, yPos);
     }
     
     // Line under headers
@@ -172,8 +188,12 @@ const SpecialPayments = () => {
       doc.text(student.class, margin + 120, yPos);
       doc.text(student.section || 'N/A', margin + 150, yPos);
       
-      if (type === 'paid' && student.payments[currentMonthKey]?.date) {
-        doc.text(student.payments[currentMonthKey].date, margin + 180, yPos);
+      if (type === 'paid' && student.payments[currentMonthKey]) {
+        doc.text(student.payments[currentMonthKey].date || 'N/A', margin + 180, yPos);
+        // Truncate description if too long
+        const description = student.payments[currentMonthKey].description || '';
+        const truncatedDesc = description.length > 20 ? description.substring(0, 20) + '...' : description;
+        doc.text(truncatedDesc, margin + 210, yPos);
       }
       
       yPos += 8;
@@ -581,6 +601,18 @@ const SpecialPayments = () => {
               />
             </div>
 
+            {/* Description Search */}
+            <div className="relative">
+              <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search by description..."
+                value={descriptionSearchTerm}
+                onChange={(e) => setDescriptionSearchTerm(e.target.value)}
+                className="input-field pl-10"
+              />
+            </div>
+
             {/* Class Filter */}
             <div className="relative">
               <Filter className="absolute left-3 top-3 text-gray-400 w-5 h-5 pointer-events-none z-10" />
@@ -673,6 +705,27 @@ const SpecialPayments = () => {
             </>
           )}
         </div>
+
+        {/* Clear Filters */}
+        {(searchTerm || descriptionSearchTerm || classFilter !== 'all' || sectionFilter !== 'all' || paymentStatusFilter !== 'all' || showPaidOnly) && (
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setDescriptionSearchTerm('');
+                setClassFilter('all');
+                setSectionFilter('all');
+                setPaymentStatusFilter('all');
+                setShowPaidOnly(false);
+                setDateFromFilter('');
+                setDateToFilter('');
+              }}
+              className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 font-medium"
+            >
+              Clear all filters
+            </button>
+          </div>
+        )}
         </div>
       </div>
 
@@ -716,6 +769,8 @@ const SpecialPayments = () => {
               {filteredStudents.map((student) => {
                 const isPaid = student.payments[currentMonthKey]?.paid || false;
                 const isSelected = selectedStudents.includes(student.id);
+                const currentPaymentDescription = student.payments[currentMonthKey]?.description;
+                
                 return (
                   <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     {canEditSpecialPayments && (
@@ -745,6 +800,11 @@ const SpecialPayments = () => {
                               : student.name
                             }
                           </div>
+                          {currentPaymentDescription && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              Desc: {currentPaymentDescription}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
