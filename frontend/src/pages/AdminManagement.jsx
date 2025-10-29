@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit, Trash2, Users, UserCheck, UserX, Eye, EyeOff, Activity, Clock, UserCog, User } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Plus, Search, Edit, Trash2, Users, UserCheck, UserX, Eye, EyeOff, Activity, Clock, UserCog, User, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
+import apiService from '../services/api.js';
 import SuccessModal from '../components/SuccessModal.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
 import { canView, canCreate, canEdit, canDelete } from '../utils/permissions.js';
@@ -19,6 +20,7 @@ const AdminManagement = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, admin: null });
+  const [pendingCount, setPendingCount] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -54,6 +56,23 @@ const AdminManagement = () => {
     }
     fetchAdmins();
   }, []);
+
+  // Load pending students count
+  useEffect(() => {
+    const loadPendingCount = async () => {
+      try {
+        const response = await apiService.request('/pending-students');
+        setPendingCount(response.length);
+      } catch (error) {
+        console.error('Failed to load pending students count:', error);
+        setPendingCount(0);
+      }
+    };
+
+    if (admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) {
+      loadPendingCount();
+    }
+  }, [admin]);
 
   const fetchAdmins = async () => {
     try {
@@ -216,11 +235,35 @@ const AdminManagement = () => {
       overflow: 'visible'
     }}>
       <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Admin Management</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Manage system administrators</p>
+        <div className="flex items-center justify-between w-full lg:w-auto">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Admin Management</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Manage system administrators</p>
+          </div>
+          
+          {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
+            <Link to="/pending-students" className="relative p-2 ml-3 bg-white dark:bg-gray-800 rounded-full shadow hover:shadow-md border border-gray-200 dark:border-gray-700 lg:hidden">
+              <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          )}
         </div>
         <div className="flex items-center space-x-2">
+          {/* Bell Icon for Desktop */}
+          {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
+            <Link to="/pending-students" className="relative p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 dark:border-gray-700 hidden lg:block">
+              <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          )}
           <button
             onClick={() => navigate('/admin-profiles')}
             className="flex items-center space-x-1 bg-gray-600 hover:bg-gray-700 text-white font-medium text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md w-fit"

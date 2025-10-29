@@ -17,28 +17,30 @@ export const StudentsProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated && localStorage.getItem('token')) {
+    if (isAuthenticated && localStorage.getItem('token') && !hasLoaded) {
       loadStudents();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, hasLoaded]);
 
   useEffect(() => {
     if (isEditing) return;
     
     const handleVisibilityChange = () => {
       if (!document.hidden && localStorage.getItem('token')) {
-        loadStudents(false);
+        loadStudents(false, true);
       }
     };
     
+    // Reduced refresh interval from 2 minutes to 5 minutes
     const refreshInterval = setInterval(() => {
-      if (!document.hidden && localStorage.getItem('token')) {
-        loadStudents(false);
+      if (!document.hidden && localStorage.getItem('token') && !isEditing) {
+        loadStudents(false, true);
       }
-    }, 120000);
+    }, 300000);
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
@@ -48,16 +50,16 @@ export const StudentsProvider = ({ children }) => {
     };
   }, [isEditing]);
 
-  const loadStudents = async (showLoading = true) => {
+  const loadStudents = async (showLoading = true, forceReload = false) => {
     if (isEditing && !showLoading) return;
     if (!localStorage.getItem('token')) return;
+    if (hasLoaded && !forceReload) return;
     
     try {
       if (showLoading) setLoading(true);
-      console.log('StudentsContext: Loading students...');
       const students = await apiService.getStudents();
-      console.log('StudentsContext: Students loaded:', students);
       setStudentsList(students || []);
+      setHasLoaded(true);
       setError(null);
     } catch (err) {
       console.error('StudentsContext: Error loading students:', err);
@@ -72,6 +74,7 @@ export const StudentsProvider = ({ children }) => {
     try {
       const newStudent = await apiService.createStudent(studentData);
       setStudentsList([...studentsList, newStudent]);
+      apiService.invalidateCache('students');
       return newStudent;
     } catch (err) {
       setError(err.message);
@@ -86,6 +89,7 @@ export const StudentsProvider = ({ children }) => {
         student.id === id ? updatedStudent : student
       );
       setStudentsList(updatedList);
+      apiService.invalidateCache('students');
       return updatedStudent;
     } catch (err) {
       setError(err.message);
@@ -126,6 +130,7 @@ export const StudentsProvider = ({ children }) => {
       await apiService.deleteStudent(studentId);
       const updatedList = studentsList.filter(student => student.id !== studentId);
       setStudentsList(updatedList);
+      apiService.invalidateCache('students');
     } catch (err) {
       setError(err.message);
       throw err;
@@ -153,6 +158,7 @@ export const StudentsProvider = ({ children }) => {
     error,
     isEditing,
     setIsEditing,
+    hasLoaded,
     loadStudents,
     addStudent,
     updateStudent,

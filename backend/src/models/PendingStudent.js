@@ -26,8 +26,11 @@ const pendingStudentSchema = new mongoose.Schema({
 
 // Add indexes for better query performance
 pendingStudentSchema.index({ status: 1, createdAt: -1 });
-pendingStudentSchema.index({ id: 1 });
+pendingStudentSchema.index({ id: 1 }, { unique: true });
 pendingStudentSchema.index({ createdAt: -1 });
+pendingStudentSchema.index({ class: 1 });
+pendingStudentSchema.index({ fatherPhone: 1 });
+pendingStudentSchema.index({ firstName: 1, middleName: 1, lastName: 1 });
 
 const PendingStudent = mongoose.model('PendingStudent', pendingStudentSchema);
 export default PendingStudent;

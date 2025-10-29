@@ -44,9 +44,10 @@ router.post('/register', async (req, res) => {
 router.get('/', protect, async (req, res) => {
   try {
     const pendingStudents = await PendingStudent.find({ status: 'pending' })
+      .select('id firstName middleName lastName firstNameAm middleNameAm lastNameAm class fatherPhone createdAt')
       .sort({ createdAt: -1 })
       .lean()
-      .maxTimeMS(30000);
+      .maxTimeMS(10000);
     res.json(pendingStudents);
   } catch (error) {
     console.error('Error fetching pending students:', error);
@@ -108,6 +109,67 @@ router.post('/:id/approve', protect, async (req, res) => {
     res.json({ message: 'Student approved successfully', student });
   } catch (error) {
     console.error('Error approving student:', error);
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Approve pending student as special student
+router.post('/:id/approve-special', protect, async (req, res) => {
+  try {
+    const pendingStudent = await PendingStudent.findOne({ id: req.params.id }).lean();
+    if (!pendingStudent) {
+      return res.status(404).json({ message: 'Pending student not found' });
+    }
+
+    // Import SpecialStudent model
+    const SpecialStudent = (await import('../models/SpecialStudent.js')).default;
+
+    // Generate unique special student ID
+    const lastSpecialStudent = await SpecialStudent.findOne({ id: /^SP\d+$/ }).sort({ id: -1 }).lean();
+    let nextNumber = 1;
+    if (lastSpecialStudent) {
+      const lastNumber = parseInt(lastSpecialStudent.id.replace('SP', ''));
+      nextNumber = lastNumber + 1;
+    }
+    const specialStudentId = `SP${String(nextNumber).padStart(3, '0')}`;
+
+    // Create special student record
+    const specialStudentData = {
+      id: specialStudentId,
+      originalPendingId: pendingStudent.id,
+      firstName: pendingStudent.firstName,
+      middleName: pendingStudent.middleName,
+      lastName: pendingStudent.lastName,
+      firstNameAm: pendingStudent.firstNameAm,
+      middleNameAm: pendingStudent.middleNameAm,
+      lastNameAm: pendingStudent.lastNameAm,
+      gender: pendingStudent.gender,
+      email: pendingStudent.email,
+      dateOfBirth: pendingStudent.dateOfBirth,
+      joinedYear: pendingStudent.joinedYear,
+      address: pendingStudent.address,
+      class: pendingStudent.class,
+      fatherName: pendingStudent.fatherName,
+      fatherPhone: pendingStudent.fatherPhone,
+      motherName: pendingStudent.motherName,
+      motherPhone: pendingStudent.motherPhone,
+      photo: pendingStudent.photo,
+      name: `${pendingStudent.firstName} ${pendingStudent.middleName} ${pendingStudent.lastName}`.trim(),
+      phone: pendingStudent.fatherPhone,
+      status: 'active',
+      payments: {}
+    };
+
+    const specialStudent = new SpecialStudent(specialStudentData);
+    await specialStudent.save();
+
+    // Remove from pending
+    await PendingStudent.findOneAndDelete({ id: req.params.id });
+
+    await logActivity(req, 'SPECIAL_STUDENT_APPROVED', 'SpecialStudent', specialStudent.id, specialStudent.name, `Special student approved from pending: ${specialStudent.name}`);
+    res.json({ message: 'Special student approved successfully', student: specialStudent });
+  } catch (error) {
+    console.error('Error approving special student:', error);
     res.status(400).json({ message: error.message });
   }
 });

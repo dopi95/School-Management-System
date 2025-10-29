@@ -1,18 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Eye, Trash2, Users, UserX, Edit, FileText, FileSpreadsheet } from 'lucide-react';
+import { Plus, Search, Eye, Trash2, Users, UserX, Edit, FileText, FileSpreadsheet, Bell } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useEmployees } from '../context/EmployeesContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
 import { exportEmployeesToPDF, exportEmployeesToExcel } from '../utils/exportUtils.js';
+import apiService from '../services/api.js';
 
 const Teachers = () => {
   const { t } = useLanguage();
+  const { admin } = useAuth();
   const { employeesList, loading, updateEmployeeStatus, deleteEmployee } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, employee: null });
   const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
+  const [pendingCount, setPendingCount] = useState(0);
 
   const activeEmployees = employeesList.filter(emp => emp.status === 'active');
   
@@ -63,6 +67,23 @@ const Teachers = () => {
   const activeCount = employeesList.filter(e => e.status === 'active').length;
   const inactiveCount = employeesList.filter(e => e.status === 'inactive').length;
 
+  // Load pending students count
+  useEffect(() => {
+    const loadPendingCount = async () => {
+      try {
+        const response = await apiService.request('/pending-students');
+        setPendingCount(response.length);
+      } catch (error) {
+        console.error('Failed to load pending students count:', error);
+        setPendingCount(0);
+      }
+    };
+
+    if (admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) {
+      loadPendingCount();
+    }
+  }, [admin]);
+
   return (
     <div className="space-y-6" style={{ 
       zoom: '0.9', 
@@ -72,13 +93,37 @@ const Teachers = () => {
       overflow: 'visible'
     }}>
       <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Employees</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Manage employee information and records</p>
+        <div className="flex items-center justify-between w-full lg:w-auto">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Employees</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Manage employee information and records</p>
+          </div>
+          
+          {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
+            <Link to="/pending-students" className="relative p-2 ml-3 bg-white dark:bg-gray-800 rounded-full shadow hover:shadow-md border border-gray-200 dark:border-gray-700 lg:hidden">
+              <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          )}
         </div>
         
         {/* Action Buttons - Mobile Responsive */}
         <div className="flex flex-wrap gap-2">
+          {/* Bell Icon for Desktop */}
+          {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
+            <Link to="/pending-students" className="relative p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 dark:border-gray-700 hidden lg:block">
+              <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          )}
           <button
             onClick={() => exportEmployeesToPDF(filteredEmployees, 'Active Employees List')}
             className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
