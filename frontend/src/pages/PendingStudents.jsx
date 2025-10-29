@@ -1,34 +1,117 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Check, X, Eye, Users, Clock } from 'lucide-react';
 import apiService from '../services/api.js';
 import { toast, ToastContainer } from 'react-toastify';
 import { useAuth } from '../context/AuthContext.jsx';
 import 'react-toastify/dist/ReactToastify.css';
 
+const PendingStudentRow = React.memo(({ student, canApproveReject, onViewDetails, onApprove, onReject }) => {
+  return (
+    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700">
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span className="text-sm font-medium text-orange-600">{student.id}</span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="flex items-center">
+          <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-sm font-medium text-orange-600">
+              {student.firstName.charAt(0)}
+            </span>
+          </div>
+          <div className="ml-4">
+            <div className="text-sm font-medium text-gray-900 dark:text-white">
+              {`${student.firstName} ${student.middleName} ${student.lastName}`}
+            </div>
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+          {student.class}
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+        {student.fatherPhone}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+        {new Date(student.createdAt).toLocaleDateString()}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => onViewDetails(student)}
+            className="text-blue-600 hover:text-blue-700"
+            title="View Details"
+          >
+            <Eye className="w-5 h-5" />
+          </button>
+          {canApproveReject && (
+            <>
+              <button
+                onClick={() => onApprove(student.id, 'regular')}
+                className="text-green-600 hover:text-green-700"
+                title="Approve as Student"
+              >
+                <Check className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => onApprove(student.id, 'special')}
+                className="text-purple-600 hover:text-purple-700"
+                title="Approve as SP Student"
+              >
+                <Check className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => onReject(student.id)}
+                className="text-red-600 hover:text-red-700"
+                title="Reject"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+});
+
 const PendingStudents = () => {
   const { admin, isAuthenticated } = useAuth();
   const [pendingStudents, setPendingStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const [selectedStudent, setSelectedStudent] = useState(null);
   
   const canApproveReject = admin?.role === 'superadmin' || admin?.role === 'admin';
 
   useEffect(() => {
-    if (isAuthenticated && localStorage.getItem('token')) {
+    if (isAuthenticated && localStorage.getItem('token') && !hasLoaded) {
       loadPendingStudents();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, hasLoaded]);
 
-  const loadPendingStudents = async () => {
+  // Auto-refresh every 5 minutes
+  useEffect(() => {
+    const refreshInterval = setInterval(() => {
+      if (!document.hidden && localStorage.getItem('token')) {
+        loadPendingStudents(true);
+      }
+    }, 300000);
+    
+    return () => clearInterval(refreshInterval);
+  }, []);
+
+  const loadPendingStudents = async (forceReload = false) => {
     if (!localStorage.getItem('token')) return;
+    if (hasLoaded && !forceReload) return;
     
     setLoading(true);
     try {
-      console.log('Loading pending students...');
-      const response = await apiService.request('/pending-students');
-      console.log('Pending students response:', response);
+      const response = await apiService.getPendingStudents();
       setPendingStudents(response || []);
+      setHasLoaded(true);
     } catch (error) {
       console.error('Failed to load pending students:', error);
       setPendingStudents([]);
@@ -37,11 +120,12 @@ const PendingStudents = () => {
     }
   };
 
-  const handleApprove = async (studentId, type = 'regular') => {
+  const handleApprove = useCallback(async (studentId, type = 'regular') => {
     try {
       const endpoint = type === 'special' ? `/pending-students/${studentId}/approve-special` : `/pending-students/${studentId}/approve`;
       await apiService.request(endpoint, { method: 'POST' });
       setPendingStudents(prev => prev.filter(s => s.id !== studentId));
+      apiService.invalidateCache('students');
       const message = type === 'special' ? 'Student approved and added to special students list!' : 'Student approved and added to students list!';
       toast.success(message, {
         position: "top-right",
@@ -61,9 +145,9 @@ const PendingStudents = () => {
         draggable: true,
       });
     }
-  };
+  }, []);
 
-  const handleReject = async (studentId) => {
+  const handleReject = useCallback(async (studentId) => {
     if (window.confirm('Are you sure you want to reject this student registration? This action cannot be undone.')) {
       try {
         await apiService.request(`/pending-students/${studentId}/reject`, { method: 'DELETE' });
@@ -87,7 +171,7 @@ const PendingStudents = () => {
         });
       }
     }
-  };
+  }, []);
 
   const StudentDetailModal = ({ student, onClose }) => {
     if (!student) return null;
@@ -290,72 +374,14 @@ const PendingStudents = () => {
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {pendingStudents.map((student) => (
-                      <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-medium text-orange-600">{student.id}</span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                              <span className="text-sm font-medium text-orange-600">
-                                {student.firstName.charAt(0)}
-                              </span>
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                {`${student.firstName} ${student.middleName} ${student.lastName}`}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {student.class}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                          {student.fatherPhone}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                          {new Date(student.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex items-center space-x-3">
-                            <button
-                              onClick={() => setSelectedStudent(student)}
-                              className="text-blue-600 hover:text-blue-700"
-                              title="View Details"
-                            >
-                              <Eye className="w-5 h-5" />
-                            </button>
-                            {canApproveReject && (
-                              <>
-                                <button
-                                  onClick={() => handleApprove(student.id, 'regular')}
-                                  className="text-green-600 hover:text-green-700"
-                                  title="Approve as Student"
-                                >
-                                  <Check className="w-5 h-5" />
-                                </button>
-                                <button
-                                  onClick={() => handleApprove(student.id, 'special')}
-                                  className="text-purple-600 hover:text-purple-700"
-                                  title="Approve as SP Student"
-                                >
-                                  <Check className="w-5 h-5" />
-                                </button>
-                                <button
-                                  onClick={() => handleReject(student.id)}
-                                  className="text-red-600 hover:text-red-700"
-                                  title="Reject"
-                                >
-                                  <X className="w-5 h-5" />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
+                      <PendingStudentRow 
+                        key={student.id} 
+                        student={student} 
+                        canApproveReject={canApproveReject}
+                        onViewDetails={setSelectedStudent}
+                        onApprove={handleApprove}
+                        onReject={handleReject}
+                      />
                     ))}
                   </tbody>
                 </table>

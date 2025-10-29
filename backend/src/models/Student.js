@@ -58,4 +58,14 @@ studentSchema.pre('validate', function(next) {
   next();
 });
 
+// Add indexes for better query performance
+studentSchema.index({ id: 1 }, { unique: true });
+studentSchema.index({ status: 1 });
+studentSchema.index({ class: 1, section: 1 });
+studentSchema.index({ name: 1 });
+studentSchema.index({ firstName: 1, middleName: 1, lastName: 1 });
+studentSchema.index({ fatherPhone: 1 });
+studentSchema.index({ motherPhone: 1 });
+studentSchema.index({ joinedYear: 1 });
+
 export default mongoose.model('Student', studentSchema);

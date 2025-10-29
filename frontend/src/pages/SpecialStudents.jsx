@@ -1,14 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Eye, Filter, Trash2, Users, UserX, Edit, CheckSquare, Square, FileText, FileSpreadsheet } from 'lucide-react';
+import { Plus, Search, Eye, Filter, Trash2, Users, UserX, Edit, CheckSquare, Square, FileText, FileSpreadsheet, Bell } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
 import { exportSpecialStudentsToPDF, exportSpecialStudentsToExcel } from '../utils/exportUtils.js';
+import apiService from '../services/api.js';
 
 const SpecialStudents = () => {
   const { t, language } = useLanguage();
+  const { admin } = useAuth();
   const { specialStudentsList, loading, updateSpecialStudentStatus, deleteSpecialStudent, bulkUpdateSpecialStudents } = useSpecialStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
@@ -17,6 +20,7 @@ const SpecialStudents = () => {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [classEditModal, setClassEditModal] = useState({ isOpen: false, newClass: '' });
   const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
+  const [pendingCount, setPendingCount] = useState(0);
 
   const classes = ['KG-1', 'KG-2', 'KG-3'];
   const sections = ['A', 'B', 'C', 'D'];
@@ -139,6 +143,23 @@ const SpecialStudents = () => {
   const isAllSelected = filteredStudents.length > 0 && selectedStudents.length === filteredStudents.length;
   const isIndeterminate = selectedStudents.length > 0 && selectedStudents.length < filteredStudents.length;
 
+  // Load pending students count
+  useEffect(() => {
+    const loadPendingCount = async () => {
+      try {
+        const response = await apiService.request('/pending-students');
+        setPendingCount(response.length);
+      } catch (error) {
+        console.error('Failed to load pending students count:', error);
+        setPendingCount(0);
+      }
+    };
+
+    if (admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) {
+      loadPendingCount();
+    }
+  }, [admin]);
+
   return (
     <div className="space-y-6" style={{ 
       zoom: '0.9', 
@@ -149,13 +170,37 @@ const SpecialStudents = () => {
     }}>
       {/* Header */}
       <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Special Students</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Manage special student information and records</p>
+        <div className="flex items-center justify-between w-full lg:w-auto">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Special Students</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Manage special student information and records</p>
+          </div>
+          
+          {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
+            <Link to="/pending-students" className="relative p-2 ml-3 bg-white dark:bg-gray-800 rounded-full shadow hover:shadow-md border border-gray-200 dark:border-gray-700 lg:hidden">
+              <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          )}
         </div>
         
         {/* Action Buttons - Mobile Responsive */}
         <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-3">
+          {/* Bell Icon for Desktop */}
+          {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
+            <Link to="/pending-students" className="relative p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 dark:border-gray-700 hidden lg:block">
+              <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          )}
           {/* Export Buttons Row */}
           <div className="flex flex-wrap gap-2">
             <button

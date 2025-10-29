@@ -1,9 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { History, Check, CreditCard, Calendar, Users, Search, Filter, FileText, Download, Plus, Trash2 } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { History, Check, CreditCard, Calendar, Users, Search, Filter, FileText, Download, Plus, Trash2, Bell } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
 import { usePayments } from '../context/PaymentsContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import apiService from '../services/api.js';
 import jsPDF from 'jspdf';
 
 const Payments = () => {
@@ -11,6 +13,22 @@ const Payments = () => {
   const { admin } = useAuth();
   const { studentsList = [], updateStudentPayment, loadStudents, loading: studentsLoading } = useStudents() || {};
   const { paymentsList = [], loading = false, addPayment } = usePayments() || {};
+  
+  // Force load students if not loaded
+  React.useEffect(() => {
+    if (loadStudents && studentsList.length === 0 && !studentsLoading) {
+      loadStudents();
+    }
+  }, [loadStudents, studentsList.length, studentsLoading]);
+  
+  // Show loading state
+  if (studentsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
   
   // Check if user can edit payments (not just view)
   const canEditPayments = admin?.role === 'superadmin' || admin?.permissions?.payments?.edit;
@@ -36,6 +54,7 @@ const Payments = () => {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [bulkDescription, setBulkDescription] = useState('');
   const [description, setDescription] = useState('');
+  const [pendingCount, setPendingCount] = useState(0);
 
   const months = [
     'September', 'October', 'November', 'December', 'January', 'February',
@@ -51,6 +70,10 @@ const Payments = () => {
   
   const filteredStudents = useMemo(() => {
     return activeStudentsList.filter(student => {
+      // Initialize payments object if it doesn't exist
+      if (!student.payments) {
+        student.payments = {};
+      }
       const searchLower = searchTerm.toLowerCase();
       const descriptionSearchLower = descriptionSearchTerm.toLowerCase();
       
@@ -120,6 +143,23 @@ const Payments = () => {
     const unpaid = filteredStudents.length - paid;
     return { paidStudents: paid, unpaidStudents: unpaid };
   }, [filteredStudents, currentMonthKey]);
+
+  // Load pending students count
+  useEffect(() => {
+    const loadPendingCount = async () => {
+      try {
+        const response = await apiService.request('/pending-students');
+        setPendingCount(response.length);
+      } catch (error) {
+        console.error('Failed to load pending students count:', error);
+        setPendingCount(0);
+      }
+    };
+
+    if (admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) {
+      loadPendingCount();
+    }
+  }, [admin]);
 
   const generatePDF = (type) => {
     const studentsToExport = type === 'paid' 
@@ -431,6 +471,18 @@ const Payments = () => {
     setBulkDescription('');
   };
 
+  // Show message if no students found
+  if (!studentsLoading && studentsList.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">No Students Found</h2>
+          <p className="text-gray-600 dark:text-gray-400">Please add students first to manage payments.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6" style={{ 
       zoom: '0.9', 
@@ -442,10 +494,35 @@ const Payments = () => {
       <div className="w-full" style={{ maxWidth: '100vw', overflow: 'hidden' }}>
       {/* Header */}
       <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Payments</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Track student payment status by month</p>
+        <div className="flex items-center justify-between w-full lg:w-auto">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Payments</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Track student payment status by month</p>
+          </div>
+          
+          {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
+            <Link to="/pending-students" className="relative p-2 ml-3 mr-10 bg-white dark:bg-gray-800 rounded-full shadow hover:shadow-md border border-gray-200 dark:border-gray-700 lg:hidden">
+              <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          )}
         </div>
+        
+        {/* Bell Icon for Desktop */}
+        {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
+          <Link to="/pending-students" className="relative p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 dark:border-gray-700 hidden lg:block" style={{ marginRight: '20px' }}>
+            <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            {pendingCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {pendingCount}
+              </span>
+            )}
+          </Link>
+        )}
       </div>
 
       {/* Stats Cards */}

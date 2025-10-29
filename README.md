@@ -9,16 +9,25 @@ A comprehensive full-stack school management system built specifically for **Blu
 - **Role-Based Access Control**: Granular permissions for different admin roles
 - **Superadmin Management**: Complete system control and admin creation
 - **Profile Management**: Update personal information and change passwords
+- **Password Reset**: Secure password reset via email
 
-### 👨‍🎓 Student Management
+### 👨🎓 Student Management
 - **Complete Student Records**: Add, edit, view, and manage student information
 - **Student Status Control**: Mark students as active/inactive
 - **Bulk Operations**: Update multiple students simultaneously
 - **Advanced Search**: Search by name, ID, joined year, or class
-- **Class Management**: Organize students by classes (KG-1, KG-2, KG-3)
+- **Class Management**: Organize students by classes (KG-1, KG-2, KG-3) with sections
 - **Inactive Student Tracking**: Separate management for inactive students
+- **Student Registration**: Public registration form for new students
+- **Pending Students**: Review and approve student registrations
 
-### 👨‍🏫 Employee Management
+### 🌟 Special Students Management
+- **Special Student Records**: Dedicated management for special needs students
+- **SP Student Tracking**: Separate payment and record system
+- **Special Payments**: Independent payment tracking for special students
+- **Approval System**: Convert pending students to special students
+
+### 👨🏫 Employee Management
 - **Staff Records**: Manage teachers, assistants, and other staff
 - **Role Assignment**: Assign specific roles and responsibilities
 - **Class Assignment**: Assign teachers to specific classes
@@ -31,12 +40,21 @@ A comprehensive full-stack school management system built specifically for **Blu
 - **Payment Status**: Mark payments as paid/unpaid with timestamps
 - **PDF Reports**: Generate payment reports for paid and unpaid students
 - **Flexible Payment Periods**: Support for academic year payment cycles
+- **Bulk Payment Processing**: Mark multiple students as paid simultaneously
+- **Special Payment System**: Separate payment tracking for special students
 
 ### 📊 Dashboard & Analytics
 - **Real-time Statistics**: Live counts of students, employees, and admins
 - **Quick Actions**: Fast access to common tasks
 - **Status Overview**: Visual representation of active/inactive records
 - **Permission-based Display**: Show only accessible sections
+- **Activity Monitoring**: Track system activities and changes
+
+### 🔔 Notifications & Activity Logs
+- **System Notifications**: Real-time notifications for important events
+- **Activity Logging**: Comprehensive logging of all system activities
+- **Admin Activity Tracking**: Monitor admin actions and changes
+- **Email Notifications**: Automated email notifications for key events
 
 ### ⚙️ System Settings
 - **Theme Control**: Dark/Light mode toggle
@@ -46,10 +64,11 @@ A comprehensive full-stack school management system built specifically for **Blu
 - **System Information**: Version and database status
 
 ### 🛡️ Advanced Security
-- **Permission System**: 9 different permission levels
+- **Permission System**: Granular permission levels for different features
 - **Route Protection**: API and frontend route security
 - **Token Management**: Automatic token refresh and validation
 - **Access Control**: Prevent unauthorized access with clear messaging
+- **File Upload Security**: Secure profile image upload system
 
 ## 🛠️ Tech Stack
 
@@ -60,6 +79,10 @@ A comprehensive full-stack school management system built specifically for **Blu
 - **Lucide React**: Beautiful and consistent icons
 - **Context API**: State management for authentication and data
 - **Responsive Design**: Mobile-first approach with adaptive layouts
+- **Chart.js**: Interactive charts and data visualization
+- **React Toastify**: Toast notifications for user feedback
+- **jsPDF**: PDF generation for reports
+- **XLSX**: Excel file export functionality
 
 ### Backend
 - **Node.js**: JavaScript runtime environment
@@ -69,6 +92,8 @@ A comprehensive full-stack school management system built specifically for **Blu
 - **bcryptjs**: Password hashing and security
 - **CORS**: Cross-origin resource sharing enabled
 - **RESTful API**: Clean and organized API endpoints
+- **Multer**: File upload handling for profile images
+- **Nodemailer**: Email service integration
 
 ### Security & Authentication
 - **JWT Tokens**: Access and refresh token system
@@ -76,6 +101,7 @@ A comprehensive full-stack school management system built specifically for **Blu
 - **Role-based Permissions**: Granular access control
 - **Route Protection**: Both API and frontend security
 - **Environment Variables**: Secure configuration management
+- **File Upload Security**: Secure image upload with validation
 
 ## 🚀 Setup Instructions
 
@@ -110,12 +136,10 @@ JWT_REFRESH_SECRET=your_refresh_token_secret_key
 JWT_EXPIRE=15m
 JWT_REFRESH_EXPIRE=7d
 
-# Email Configuration
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_app_password
+# Email Configuration (Brevo/Sendinblue)
+BREVO_API_KEY=your_brevo_api_key
 EMAIL_FROM=noreply@bluelight.com
+EMAIL_FROM_NAME=Bluelight Academy
 
 # URLs
 FRONTEND_URL=http://localhost:5173
@@ -132,7 +156,17 @@ npm run seed
 npm run seed-admin
 ```
 
-6. **Start the backend server:**
+6. **Seed special students data (optional):**
+```bash
+npm run seed-special
+```
+
+7. **Run migrations if needed:**
+```bash
+npm run migrate-permissions
+```
+
+8. **Start the backend server:**
 ```bash
 npm run dev
 ```
@@ -175,6 +209,8 @@ After running the seed-admin command, use these credentials to log in:
 
 ### Authentication
 - `POST /api/auth/login` - Admin login
+- `POST /api/auth/forgot-password` - Request password reset
+- `POST /api/auth/reset-password` - Reset password with token
 - `GET /api/auth/profile` - Get current admin profile
 - `PUT /api/auth/profile` - Update admin profile
 - `GET /api/auth/admins` - Get all admins (superadmin only)
@@ -192,6 +228,23 @@ After running the seed-admin command, use these credentials to log in:
 - `PATCH /api/students/bulk/update` - Bulk update students
 - `DELETE /api/students/:id` - Delete student
 
+### Special Students
+- `GET /api/special-students` - Get all special students
+- `GET /api/special-students/:id` - Get special student by ID
+- `POST /api/special-students` - Create new special student
+- `PUT /api/special-students/:id` - Update special student
+- `PATCH /api/special-students/:id/status` - Update special student status
+- `PATCH /api/special-students/:id/payment` - Update special student payment
+- `PATCH /api/special-students/bulk/update` - Bulk update special students
+- `DELETE /api/special-students/:id` - Delete special student
+
+### Pending Students
+- `POST /api/pending-students/register` - Submit student registration (public)
+- `GET /api/pending-students` - Get all pending students
+- `POST /api/pending-students/:id/approve` - Approve as regular student
+- `POST /api/pending-students/:id/approve-special` - Approve as special student
+- `DELETE /api/pending-students/:id/reject` - Reject registration
+
 ### Employees
 - `GET /api/employees` - Get all employees
 - `GET /api/employees/:id` - Get employee by ID
@@ -204,8 +257,27 @@ After running the seed-admin command, use these credentials to log in:
 - `GET /api/payments` - Get all payments
 - `GET /api/payments/student/:id` - Get student payments
 - `POST /api/payments` - Create payment record
+- `POST /api/payments/bulk` - Bulk payment processing
 - `PUT /api/payments/:id` - Update payment
 - `DELETE /api/payments/:id` - Delete payment
+
+### Special Payments
+- `GET /api/special-payments` - Get all special payments
+- `GET /api/special-payments/student/:id` - Get special student payments
+- `POST /api/special-payments` - Create special payment record
+- `POST /api/special-payments/bulk` - Bulk special payment processing
+- `PUT /api/special-payments/:id` - Update special payment
+- `DELETE /api/special-payments/:id` - Delete special payment
+
+### Notifications
+- `GET /api/notifications` - Get all notifications
+- `POST /api/notifications` - Create notification
+- `PATCH /api/notifications/:id/read` - Mark notification as read
+- `DELETE /api/notifications/:id` - Delete notification
+
+### Activity Logs
+- `GET /api/activity-logs` - Get activity logs
+- `GET /api/activity-logs/admin/:id` - Get admin activity logs
 
 ## 📚 Usage Guide
 
@@ -216,15 +288,7 @@ After running the seed-admin command, use these credentials to log in:
 
 ### 👥 Admin Management (Superadmin Only)
 1. **Create Admins**: Go to Admin Management and click "Add Admin"
-2. **Set Permissions**: Select which sections each admin can access:
-   - Dashboard (always enabled)
-   - Students Management
-   - Inactive Students
-   - Employees Management
-   - Inactive Employees
-   - Payments Management
-   - Admin Management
-   - Settings
+2. **Set Permissions**: Select which sections each admin can access
 3. **Manage Roles**: Assign roles (admin, manager) with specific permissions
 4. **Edit/Delete**: Update admin information or remove access
 
@@ -235,14 +299,6 @@ After running the seed-admin command, use these credentials to log in:
 4. **Managing Status**: Toggle between active/inactive status
 5. **Bulk Operations**: Select multiple students for bulk status updates
 6. **Search & Filter**: Find students by name, ID, joined year, or class
-7. **Class Organization**: Organize students in KG-1, KG-2, KG-3 classes
-
-### 👨🏫 Employee Management
-1. **Add Employees**: Create records for teachers, assistants, and staff
-2. **Role Assignment**: Set specific roles and responsibilities
-3. **Class Assignment**: Assign teachers to specific classes
-4. **Status Management**: Track active and inactive employees
-5. **Contact Information**: Store phone numbers and addresses
 
 ### 💰 Payment Tracking
 1. **Monthly Payments**: Track payments by month and academic year
@@ -251,17 +307,10 @@ After running the seed-admin command, use these credentials to log in:
 4. **Bulk Updates**: Update multiple student payments at once
 5. **Reports**: Generate payment reports for administrative use
 
-### ⚙️ System Settings
-1. **Theme**: Switch between light and dark modes
-2. **Language**: Toggle between English and Amharic
-3. **Notifications**: Configure system alerts and email notifications
-4. **Security**: Set session timeout and login attempt limits
-5. **Profile**: Update personal information and change passwords
-
 ## 📁 Project Structure
 
 ```
-Bluelight-Academy-Management-System/
+School-Management-System/
 ├── backend/
 │   ├── src/
 │   │   ├── config/
@@ -269,22 +318,42 @@ Bluelight-Academy-Management-System/
 │   │   ├── models/
 │   │   │   ├── Admin.js              # Admin user model
 │   │   │   ├── Student.js            # Student model
+│   │   │   ├── SpecialStudent.js     # Special student model
+│   │   │   ├── PendingStudent.js     # Pending student model
 │   │   │   ├── Employee.js           # Employee model
-│   │   │   └── Payment.js            # Payment model
+│   │   │   ├── Payment.js            # Payment model
+│   │   │   ├── SpecialPayment.js     # Special payment model
+│   │   │   ├── Notification.js       # Notification model
+│   │   │   ├── ActivityLog.js        # Activity log model
+│   │   │   └── AdminActivityLog.js   # Admin activity log model
 │   │   ├── routes/
 │   │   │   ├── auth.js               # Authentication routes
 │   │   │   ├── students.js           # Student CRUD routes
+│   │   │   ├── specialStudents.js    # Special student routes
+│   │   │   ├── pendingStudents.js    # Pending student routes
 │   │   │   ├── employees.js          # Employee CRUD routes
-│   │   │   └── payments.js           # Payment routes
+│   │   │   ├── payments.js           # Payment routes
+│   │   │   ├── specialPayments.js    # Special payment routes
+│   │   │   ├── notifications.js      # Notification routes
+│   │   │   └── activityLogs.js       # Activity log routes
 │   │   ├── middleware/
 │   │   │   ├── auth.js               # JWT authentication
 │   │   │   └── permissions.js        # Role-based permissions
+│   │   ├── utils/
+│   │   │   └── activityLogger.js     # Activity logging utility
+│   │   ├── migrations/
+│   │   │   └── addSpecialPermissions.js # Database migrations
+│   │   ├── uploads/
+│   │   │   └── profiles/             # Profile image uploads
 │   │   ├── seedData.js               # Sample data seeding
-│   │   └── seedAdmin.js              # Superadmin creation
+│   │   ├── seedAdmin.js              # Superadmin creation
+│   │   └── seedSpecialData.js        # Special students seeding
 │   ├── server.js                     # Express server setup
 │   ├── package.json                  # Backend dependencies
 │   └── .env                          # Environment variables
 ├── frontend/
+│   ├── public/
+│   │   └── cool-s.mp3               # Audio assets
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── Layout.jsx            # Main layout wrapper
@@ -295,29 +364,48 @@ Bluelight-Academy-Management-System/
 │   │   ├── context/
 │   │   │   ├── AuthContext.jsx       # Authentication state
 │   │   │   ├── StudentsContext.jsx   # Student data management
+│   │   │   ├── SpecialStudentsContext.jsx # Special student management
 │   │   │   ├── EmployeesContext.jsx  # Employee data management
 │   │   │   ├── PaymentsContext.jsx   # Payment data management
+│   │   │   ├── SpecialPaymentsContext.jsx # Special payment management
 │   │   │   ├── AdminsContext.jsx     # Admin data management
 │   │   │   ├── ThemeContext.jsx      # Dark/Light theme
 │   │   │   └── LanguageContext.jsx   # Multi-language support
 │   │   ├── pages/
 │   │   │   ├── Login.jsx             # Login page
+│   │   │   ├── ForgotPassword.jsx    # Password reset request
+│   │   │   ├── ResetPassword.jsx     # Password reset form
 │   │   │   ├── Dashboard.jsx         # Main dashboard
 │   │   │   ├── Students.jsx          # Student management
+│   │   │   ├── SpecialStudents.jsx   # Special student management
+│   │   │   ├── PendingStudents.jsx   # Pending student approval
+│   │   │   ├── StudentRegistration.jsx # Public registration form
+│   │   │   ├── InactiveStudents.jsx  # Inactive student management
 │   │   │   ├── Teachers.jsx          # Employee management
+│   │   │   ├── InactiveEmployees.jsx # Inactive employee management
 │   │   │   ├── AdminManagement.jsx   # Admin management
 │   │   │   ├── Payments.jsx          # Payment tracking
+│   │   │   ├── SpecialPayments.jsx   # Special payment tracking
+│   │   │   ├── Notifications.jsx     # Notification management
+│   │   │   ├── ActivityLogs.jsx      # Activity log viewing
 │   │   │   ├── Profile.jsx           # User profile
 │   │   │   ├── Settings.jsx          # System settings
 │   │   │   └── AccessDenied.jsx      # Access denied page
 │   │   ├── services/
 │   │   │   └── api.js                # API service layer
+│   │   ├── hooks/
+│   │   │   └── useNotifications.js   # Notification hooks
+│   │   ├── utils/
+│   │   │   └── dateUtils.js          # Date utility functions
+│   │   ├── assets/
+│   │   │   └── images/               # Static images
 │   │   ├── App.jsx                   # Main app component
 │   │   └── main.jsx                  # React entry point
 │   ├── package.json                  # Frontend dependencies
 │   ├── .env                          # Frontend environment
-│   ├── tailwind.config.js            # Tailwind CSS config
-│   └── vite.config.js                # Vite build config
+│   ├── tailwind.config.cjs           # Tailwind CSS config
+│   ├── vite.config.js                # Vite build config
+│   └── vercel.json                   # Vercel deployment config
 ├── README.md                         # Project documentation
 └── .gitignore                        # Git ignore rules
 ```
@@ -329,11 +417,16 @@ The system includes a comprehensive role-based access control:
 ### Available Permissions
 - **Dashboard**: Access to main dashboard (always enabled)
 - **Students Management**: Manage active students
+- **Special Students**: Manage special needs students
 - **Inactive Students**: Access to inactive student records
+- **Pending Students**: Review and approve student registrations
 - **Employees Management**: Manage active employees
 - **Inactive Employees**: Access to inactive employee records
-- **Payments Management**: Handle payment tracking
+- **Payments Management**: Handle regular payment tracking
+- **Special Payments**: Handle special student payments
 - **Admin Management**: Create and manage other admins (superadmin only)
+- **Notifications**: Manage system notifications
+- **Activity Logs**: View system activity logs
 - **Settings**: Access to system configuration
 - **Profile**: Personal profile management (always enabled)
 
@@ -342,36 +435,11 @@ The system includes a comprehensive role-based access control:
 2. **Admin**: Customizable permissions based on assigned access
 3. **Manager**: Customizable permissions with limited administrative access
 
-## 🛡️ Security Features
-
-- **JWT Authentication**: Secure token-based authentication
-- **Password Hashing**: bcrypt with salt rounds for password security
-- **Route Protection**: Both API and frontend route security
-- **Permission Guards**: Component-level access control
-- **Session Management**: Configurable session timeout
-- **Access Logging**: Track admin login activities
-
-## 🌍 Multi-language Support
-
-- **English**: Full system support
-- **Amharic (አማርኛ)**: Complete translation for Ethiopian users
-- **RTL Support**: Right-to-left text support for Amharic
-- **Dynamic Switching**: Change language without page reload
-
-## 🎨 UI/UX Features
-
-- **Dark/Light Theme**: Toggle between themes with system preference detection
-- **Responsive Design**: Mobile-first approach with adaptive layouts
-- **Loading States**: Smooth loading indicators throughout the app
-- **Error Handling**: User-friendly error messages and fallbacks
-- **Accessibility**: WCAG compliant with keyboard navigation support
-
-## 📊 Reporting & Analytics
-
-- **Dashboard Statistics**: Real-time counts and status overview
-- **Payment Reports**: Generate reports for paid/unpaid students
-- **Student Analytics**: Track enrollment and status changes
-- **Employee Reports**: Staff management and assignment tracking
+### Permission Levels
+- **View**: Read-only access to data
+- **Edit**: Ability to modify existing records
+- **Create**: Ability to add new records
+- **Delete**: Ability to remove records
 
 ## 🔧 Development
 
@@ -379,9 +447,14 @@ The system includes a comprehensive role-based access control:
 
 **Backend:**
 ```bash
-npm run dev          # Start development server
-npm run seed         # Seed sample data
-npm run seed-admin   # Create superadmin account
+npm run dev                        # Start development server
+npm run start                      # Start production server
+npm run seed                       # Seed sample data
+npm run seed-admin                 # Create superadmin account
+npm run seed-special               # Seed special students data
+npm run migrate-sections           # Migrate student sections
+npm run migrate-permissions        # Add special permissions
+npm run migrate-granular-permissions # Update permission structure
 ```
 
 **Frontend:**
@@ -389,22 +462,8 @@ npm run seed-admin   # Create superadmin account
 npm run dev          # Start development server
 npm run build        # Build for production
 npm run preview      # Preview production build
+npm run lint         # Run ESLint
 ```
-
-### Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Code Style
-
-- **ESLint**: JavaScript linting
-- **Prettier**: Code formatting
-- **Tailwind CSS**: Utility-first styling
-- **Component Structure**: Organized and reusable components
 
 ## 📞 Support
 

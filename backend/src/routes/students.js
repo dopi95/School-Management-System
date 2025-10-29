@@ -7,7 +7,11 @@ const router = express.Router();
 // Get all students
 router.get('/', async (req, res) => {
   try {
-    const students = await Student.find().sort({ class: 1, section: 1, name: 1 });
+    const students = await Student.find()
+      .select('id name firstName middleName lastName firstNameAm middleNameAm lastNameAm class section phone status fatherPhone motherPhone joinedYear')
+      .sort({ class: 1, section: 1, name: 1 })
+      .lean()
+      .maxTimeMS(10000);
     res.json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });
