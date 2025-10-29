@@ -75,7 +75,7 @@ router.delete('/:id', async (req, res) => {
 // Bulk special payment update
 router.post('/bulk', protect, async (req, res) => {
   try {
-    const { studentIds, description, amount } = req.body;
+    const { studentIds, description, amount, month, year } = req.body;
     
     if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
       return res.status(400).json({ message: 'Student IDs array is required' });
@@ -84,8 +84,18 @@ router.post('/bulk', protect, async (req, res) => {
     const results = [];
     const errors = [];
     
+    // Import SpecialStudent model
+    const SpecialStudent = (await import('../models/SpecialStudent.js')).default;
+    
     for (const studentId of studentIds) {
       try {
+        // Get student info
+        const student = await SpecialStudent.findOne({ id: studentId });
+        if (!student) {
+          errors.push(`Special student ${studentId} not found`);
+          continue;
+        }
+        
         // Generate unique payment ID
         const timestamp = Date.now().toString().slice(-6);
         const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
@@ -95,10 +105,13 @@ router.post('/bulk', protect, async (req, res) => {
         const payment = new SpecialPayment({
           id: paymentId,
           studentId,
+          studentName: student.name,
           amount: amount || 0,
+          month: month || 'September',
+          year: year || '2017',
           description,
           status: 'paid',
-          paymentDate: new Date()
+          date: new Date()
         });
         
         await payment.save();

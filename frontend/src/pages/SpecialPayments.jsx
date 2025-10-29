@@ -136,6 +136,11 @@ const SpecialPayments = () => {
     }
   }, [admin]);
 
+  // Clear selections when month/year changes
+  useEffect(() => {
+    setSelectedStudents([]);
+  }, [selectedMonth, selectedYear]);
+
   const generatePDF = (type) => {
     const studentsToExport = type === 'paid' 
       ? filteredStudents.filter(student => student.payments[currentMonthKey]?.paid)
@@ -283,9 +288,15 @@ const SpecialPayments = () => {
       try {
         console.log('Unchecking special payment for student:', studentId, 'monthKey:', currentMonthKey);
         
+        // Get current payment data to preserve description and date
+        const student = specialStudentsList.find(s => s.id === studentId);
+        const currentPayment = student?.payments?.[currentMonthKey];
+        
         // Remove special payment record from database
         const paymentToDelete = specialPaymentsList.find(p => 
-          p.studentId === studentId
+          p.studentId === studentId && 
+          p.month === months[selectedMonth] && 
+          p.year === selectedYear.toString()
         );
         
         if (paymentToDelete) {
@@ -299,9 +310,17 @@ const SpecialPayments = () => {
           console.log('Database special payment deleted:', response.ok);
         }
         
-        // Remove from special student payment record - this will delete the entry completely
+        // Remove payment data completely when unchecked
         const result = await updateSpecialStudentPayment(studentId, currentMonthKey, null);
         console.log('Special student payment updated:', result);
+        
+        // Force reload special students data to ensure UI consistency
+        if (loadSpecialStudents) {
+          await loadSpecialStudents(false, true);
+        }
+        
+        // Remove from selected students if it was selected
+        setSelectedStudents(prev => prev.filter(id => id !== studentId));
         
       } catch (error) {
         console.error('Error updating special payment:', error);
@@ -338,6 +357,9 @@ const SpecialPayments = () => {
       
       setShowDescModal({ isOpen: false, student: null });
       setDescription('');
+      
+      // Remove from selected students if it was selected
+      setSelectedStudents(prev => prev.filter(id => id !== student.id));
     } catch (error) {
       alert('Error recording payment: ' + error.message);
     }
@@ -451,6 +473,8 @@ const SpecialPayments = () => {
         },
         body: JSON.stringify({
           studentIds: selectedStudents,
+          month: months[selectedMonth],
+          year: selectedYear.toString(),
           description: bulkDescription
         })
       });
@@ -459,7 +483,7 @@ const SpecialPayments = () => {
       
       if (result.success) {
         // Update local state for each processed student
-        for (const studentId of selectedStudents) {
+        const updatePromises = selectedStudents.map(async (studentId) => {
           const paymentData = {
             paid: true,
             date: new Date().toISOString().split('T')[0],
@@ -467,10 +491,19 @@ const SpecialPayments = () => {
             month: months[selectedMonth],
             year: selectedYear
           };
-          await updateSpecialStudentPayment(studentId, currentMonthKey, paymentData);
-        }
+          return updateSpecialStudentPayment(studentId, currentMonthKey, paymentData);
+        });
+        
+        await Promise.all(updatePromises);
+        
+        // Clear selections after successful update
+        setSelectedStudents([]);
         
         alert(`Successfully processed ${result.processed} special payments${result.errors.length > 0 ? ` with ${result.errors.length} errors` : ''}`);
+        
+        if (result.errors.length > 0) {
+          console.error('Bulk payment errors:', result.errors);
+        }
       } else {
         alert('Error processing bulk special payments: ' + result.message);
       }
@@ -479,7 +512,6 @@ const SpecialPayments = () => {
     }
     
     setShowBulkModal(false);
-    setSelectedStudents([]);
     setBulkDescription('');
   };
 
@@ -888,7 +920,7 @@ const SpecialPayments = () => {
                               : student.name
                             }
                           </div>
-                          {currentPaymentDescription && (
+                          {currentPaymentDescription && isPaid && (
                             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                               Desc: {currentPaymentDescription}
                             </div>

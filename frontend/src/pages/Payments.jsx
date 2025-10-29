@@ -74,6 +74,11 @@ const Payments = () => {
       if (!student.payments) {
         student.payments = {};
       }
+      
+      // Debug: Log payment data for troubleshooting
+      if (student.id === 'ST001') {
+        console.log('Debug - Student ST001 payments:', student.payments);
+      }
       const searchLower = searchTerm.toLowerCase();
       const descriptionSearchLower = descriptionSearchTerm.toLowerCase();
       
@@ -160,6 +165,13 @@ const Payments = () => {
       loadPendingCount();
     }
   }, [admin]);
+
+  // Clear selections when month/year changes
+  useEffect(() => {
+    setSelectedStudents([]);
+  }, [selectedMonth, selectedYear]);
+
+
 
   const generatePDF = (type) => {
     const studentsToExport = type === 'paid' 
@@ -308,6 +320,10 @@ const Payments = () => {
       try {
         console.log('Unchecking payment for student:', studentId, 'monthKey:', currentMonthKey);
         
+        // Get current payment data to preserve description and date
+        const student = studentsList.find(s => s.id === studentId);
+        const currentPayment = student?.payments?.[currentMonthKey];
+        
         // Remove payment record from database
         const paymentToDelete = paymentsList.find(p => 
           p.studentId === studentId && 
@@ -326,9 +342,17 @@ const Payments = () => {
           console.log('Database payment deleted:', response.ok);
         }
         
-        // Remove from student payment record - this will delete the entry completely
+        // Remove payment data completely when unchecked
         const result = await updateStudentPayment(studentId, currentMonthKey, null);
         console.log('Student payment updated:', result);
+        
+        // Force reload students data to ensure UI consistency
+        if (loadStudents) {
+          await loadStudents(false, true);
+        }
+        
+        // Remove from selected students if it was selected
+        setSelectedStudents(prev => prev.filter(id => id !== studentId));
         
       } catch (error) {
         console.error('Error updating payment:', error);
@@ -365,6 +389,9 @@ const Payments = () => {
       
       setShowDescModal({ isOpen: false, student: null });
       setDescription('');
+      
+      // Remove from selected students if it was selected
+      setSelectedStudents(prev => prev.filter(id => id !== student.id));
     } catch (error) {
       alert('Error recording payment: ' + error.message);
     }
@@ -446,11 +473,13 @@ const Payments = () => {
   };
 
   const handleStudentSelect = (studentId, isSelected) => {
-    if (isSelected) {
-      setSelectedStudents(prev => [...prev, studentId]);
-    } else {
-      setSelectedStudents(prev => prev.filter(id => id !== studentId));
-    }
+    setSelectedStudents(prev => {
+      if (isSelected) {
+        return [...prev, studentId];
+      } else {
+        return prev.filter(id => id !== studentId);
+      }
+    });
   };
 
   const handleSelectAll = (isSelected) => {
@@ -490,7 +519,7 @@ const Payments = () => {
       
       if (result.success) {
         // Update local state for each processed student
-        for (const studentId of selectedStudents) {
+        const updatePromises = selectedStudents.map(async (studentId) => {
           const paymentData = {
             paid: true,
             date: new Date().toISOString().split('T')[0],
@@ -498,8 +527,18 @@ const Payments = () => {
             month: months[selectedMonth],
             year: selectedYear
           };
-          await updateStudentPayment(studentId, currentMonthKey, paymentData);
+          return updateStudentPayment(studentId, currentMonthKey, paymentData);
+        });
+        
+        await Promise.all(updatePromises);
+        
+        // Force reload students data to ensure consistency
+        if (loadStudents) {
+          await loadStudents(false, true);
         }
+        
+        // Clear selections after successful update
+        setSelectedStudents([]);
         
         alert(`Successfully processed ${result.processed} payments${result.errors.length > 0 ? ` with ${result.errors.length} errors` : ''}`);
       } else {
@@ -510,7 +549,6 @@ const Payments = () => {
     }
     
     setShowBulkModal(false);
-    setSelectedStudents([]);
     setBulkDescription('');
   };
 
@@ -701,6 +739,7 @@ const Payments = () => {
                   <span>Mark Selected as Paid ({selectedStudents.length})</span>
                 </button>
               )}
+
               <button
                 onClick={() => generatePDF('paid')}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm font-medium transition-colors w-fit self-start"
@@ -870,7 +909,7 @@ const Payments = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     <input
                       type="checkbox"
-                      checked={selectedStudents.length > 0 && selectedStudents.length === filteredStudents.filter(s => !s.payments[currentMonthKey]?.paid).length}
+                      checked={filteredStudents.filter(s => !s.payments[currentMonthKey]?.paid).length > 0 && selectedStudents.length === filteredStudents.filter(s => !s.payments[currentMonthKey]?.paid).length}
                       onChange={(e) => handleSelectAll(e.target.checked)}
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
@@ -931,7 +970,7 @@ const Payments = () => {
                             : student.name
                           }
                           </div>
-                          {currentPaymentDescription && (
+                          {currentPaymentDescription && isPaid && (
                             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                               Desc: {currentPaymentDescription}
                             </div>
