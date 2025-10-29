@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const students = await Student.find()
-      .select('id name firstName middleName lastName firstNameAm middleNameAm lastNameAm class section phone status fatherPhone motherPhone joinedYear payments')
+      .select('id name firstName middleName lastName firstNameAm middleNameAm lastNameAm class section phone status fatherPhone motherPhone joinedYear payments email address dateOfBirth gender motherName fatherName photo paymentCode')
       .sort({ class: 1, section: 1, name: 1 })
       .lean()
       .maxTimeMS(10000);

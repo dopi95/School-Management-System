@@ -1,16 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Phone, Mail, MapPin, Calendar, User, Edit } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
+import apiService from '../services/api.js';
 
 const StudentDetail = () => {
   const { id } = useParams();
   const { t, language } = useLanguage();
   const { studentsList } = useStudents();
+  const [student, setStudent] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const decodedId = decodeURIComponent(id);
-  const student = studentsList.find(s => s.id === decodedId);
+
+  useEffect(() => {
+    const fetchStudent = async () => {
+      try {
+        setLoading(true);
+        const response = await apiService.request(`/students/${decodedId}`);
+        setStudent(response);
+      } catch (error) {
+        console.error('Error fetching student:', error);
+        // Fallback to context data if API fails
+        const contextStudent = studentsList.find(s => s.id === decodedId);
+        setStudent(contextStudent || null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudent();
+  }, [decodedId, studentsList]);
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-500 dark:text-gray-400">Loading student details...</p>
+      </div>
+    );
+  }
 
   if (!student) {
     return (
@@ -42,10 +72,22 @@ const StudentDetail = () => {
         <div className="lg:col-span-2">
           <div className="card">
             <div className="flex items-center space-x-6 mb-6">
-              <div className="w-24 h-24 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
-                <span className="text-3xl font-bold text-primary-600 dark:text-primary-400">
-                  {student.name.charAt(0)}
-                </span>
+              <div className="w-24 h-24 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center overflow-hidden">
+                {student.photo ? (
+                  <img 
+                    src={student.photo.startsWith('http') ? student.photo : `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}/${student.photo}`} 
+                    alt={student.name || 'Student'} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.parentElement.innerHTML = `<span class="text-3xl font-bold text-primary-600 dark:text-primary-400">${(student.firstName || student.name || 'S').charAt(0)}</span>`;
+                    }}
+                  />
+                ) : (
+                  <span className="text-3xl font-bold text-primary-600 dark:text-primary-400">
+                    {(student.firstName || student.name || 'S').charAt(0)}
+                  </span>
+                )}
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -163,7 +205,15 @@ const StudentDetail = () => {
             <div className="card">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Student Photo</h3>
               <div className="w-32 h-32 border-2 border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
+                <img 
+                  src={student.photo.startsWith('http') ? student.photo : `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}/${student.photo}`} 
+                  alt={student.name || 'Student'} 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerHTML = '<div class="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-400">No Image</div>';
+                  }}
+                />
               </div>
             </div>
           )}
