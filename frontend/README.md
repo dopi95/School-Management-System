@@ -1,4 +1,4 @@
-# Bluelight Academy - School Management System Frontend
+# Bluelight Academy - School Management System 
 
 A modern, responsive school management system built with React, Vite, and Tailwind CSS.
 
