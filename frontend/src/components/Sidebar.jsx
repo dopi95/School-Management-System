@@ -127,7 +127,7 @@ const Sidebar = () => {
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       } top-0 h-screen overflow-hidden`}>
         {/* Settings Icon */}
-        <div className="p-2 flex justify-start border-b border-gray-200 dark:border-gray-700">
+        <div className="p-2 flex justify-start">
           <Link
             to="/settings"
             onClick={() => setIsMobileMenuOpen(false)}
