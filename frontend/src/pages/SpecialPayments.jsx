@@ -169,18 +169,28 @@ const SpecialPayments = () => {
     if (descriptionSearchTerm) filterText += ` | Description: "${descriptionSearchTerm}"`;
     doc.text(filterText, pageWidth / 2, 50, { align: 'center' });
     
-    // Table headers
-    doc.setFontSize(12);
+    // Table headers with better spacing
+    doc.setFontSize(11);
     doc.setFont(undefined, 'bold');
     let yPos = 70;
-    doc.text('No.', margin, yPos);
-    doc.text('Student Name', margin + 20, yPos);
-    doc.text('ID Number', margin + 80, yPos);
-    doc.text('Class', margin + 120, yPos);
-    doc.text('Section', margin + 150, yPos);
+    
+    // Column positions
+    const cols = {
+      no: margin,
+      name: margin + 15,
+      id: margin + 70,
+      class: margin + 105,
+      section: margin + 130,
+      desc: margin + 155
+    };
+    
+    doc.text('No.', cols.no, yPos);
+    doc.text('Student Name', cols.name, yPos);
+    doc.text('ID Number', cols.id, yPos);
+    doc.text('Class', cols.class, yPos);
+    doc.text('Section', cols.section, yPos);
     if (type === 'paid') {
-      doc.text('Payment Date', margin + 180, yPos);
-      doc.text('Description', margin + 210, yPos);
+      doc.text('Description', cols.desc, yPos);
     }
     
     // Line under headers
@@ -188,44 +198,77 @@ const SpecialPayments = () => {
     
     // Table content
     doc.setFont(undefined, 'normal');
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     yPos += 10;
     
     studentsToExport.forEach((student, index) => {
-      if (yPos > 270) { // New page if needed
-        doc.addPage();
-        yPos = 30;
-      }
-      
-      doc.text((index + 1).toString(), margin, yPos);
       const studentName = language === 'am' && student.firstNameAm && student.middleNameAm
         ? `${student.firstNameAm} ${student.middleNameAm}`
         : student.firstName && student.middleName 
         ? `${student.firstName} ${student.middleName}`
         : student.name;
-      doc.text(studentName, margin + 20, yPos);
-      doc.text(student.id, margin + 80, yPos);
-      doc.text(student.class, margin + 120, yPos);
-      doc.text(student.section || 'N/A', margin + 150, yPos);
       
-      if (type === 'paid' && student.payments[currentMonthKey]) {
-        doc.text(student.payments[currentMonthKey].date || 'N/A', margin + 180, yPos);
-        // Truncate description if too long
-        const description = student.payments[currentMonthKey].description || '';
-        const truncatedDesc = description.length > 20 ? description.substring(0, 20) + '...' : description;
-        doc.text(truncatedDesc, margin + 210, yPos);
+      // Calculate row height based on description length
+      let rowHeight = 8;
+      let descriptionLines = [];
+      
+      if (type === 'paid' && student.payments[currentMonthKey]?.description) {
+        const description = student.payments[currentMonthKey].description;
+        const maxWidth = pageWidth - cols.desc - margin;
+        const words = description.split(' ');
+        let currentLine = '';
+        
+        words.forEach(word => {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          const textWidth = doc.getTextWidth(testLine);
+          
+          if (textWidth > maxWidth && currentLine) {
+            descriptionLines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        });
+        
+        if (currentLine) {
+          descriptionLines.push(currentLine);
+        }
+        
+        rowHeight = Math.max(8, descriptionLines.length * 4 + 4);
       }
       
-      yPos += 8;
+      // Check if we need a new page
+      if (yPos + rowHeight > 270) {
+        doc.addPage();
+        yPos = 30;
+      }
+      
+      // Draw row data
+      doc.text((index + 1).toString(), cols.no, yPos);
+      doc.text(studentName.length > 25 ? studentName.substring(0, 25) + '...' : studentName, cols.name, yPos);
+      doc.text(student.id, cols.id, yPos);
+      doc.text(student.class, cols.class, yPos);
+      doc.text(student.section || 'N/A', cols.section, yPos);
+      
+      // Draw description with proper wrapping
+      if (type === 'paid' && descriptionLines.length > 0) {
+        descriptionLines.forEach((line, lineIndex) => {
+          doc.text(line, cols.desc, yPos + (lineIndex * 4));
+        });
+      }
+      
+      yPos += rowHeight;
     });
     
-    // Footer
+    // Footer with better formatting
     const totalPages = doc.internal.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, doc.internal.pageSize.height - 10);
-      doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, doc.internal.pageSize.height - 10);
+      doc.setTextColor(100);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, margin, doc.internal.pageSize.height - 10);
+      doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 30, doc.internal.pageSize.height - 10);
+      doc.setTextColor(0);
     }
     
     // Download
