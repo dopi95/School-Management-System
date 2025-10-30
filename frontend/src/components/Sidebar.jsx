@@ -49,7 +49,7 @@ const Sidebar = () => {
       employees: 'Employees',
       'inactive-employees': 'Inactive Employees',
       admins: 'Admins',
-      payments: 'Payments',
+      payments: 'Monthly Payments',
       notifications: 'Send Notifications',
       profile: 'My Profile',
       settings: 'Settings'
@@ -63,7 +63,7 @@ const Sidebar = () => {
     { path: '/special-students', icon: Users, label: 'SP Students', permission: 'specialStudents' },
     { path: '/teachers', icon: GraduationCap, label: getMenuLabel('employees'), permission: 'employees' },
     { path: '/payments', icon: CreditCard, label: getMenuLabel('payments'), permission: 'payments' },
-    { path: '/special-payments', icon: CreditCard, label: 'SP Payments', permission: 'specialPayments' },
+    { path: '/special-payments', icon: CreditCard, label: 'Monthly SP Payments', permission: 'specialPayments' },
         { path: '/inactive-students', icon: UserX, label: getMenuLabel('inactive-students'), permission: 'inactiveStudents' },
     { path: '/inactive-employees', icon: UserX, label: getMenuLabel('inactive-employees'), permission: 'inactiveEmployees' },
 

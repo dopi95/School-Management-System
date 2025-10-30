@@ -37,6 +37,7 @@ const specialStudentSchema = new mongoose.Schema({
   photo: { type: String },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
   payments: { type: Map, of: paymentSchema },
+  otherPayments: { type: Map, of: mongoose.Schema.Types.Mixed },
   isSpecial: { type: Boolean, default: true }
 }, {
   timestamps: true

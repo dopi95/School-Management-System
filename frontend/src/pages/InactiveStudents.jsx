@@ -6,6 +6,7 @@ import { useStudents } from '../context/StudentsContext.jsx';
 import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
+import PermissionGuard from '../components/PermissionGuard.jsx';
 import { exportStudentsToPDF, exportStudentsToExcel } from '../utils/exportUtils.js';
 import apiService from '../services/api.js';
 
@@ -292,13 +293,18 @@ const InactiveStudents = () => {
                         >
                           <History className="w-5 h-5" />
                         </button>
-                        <button
-                          onClick={() => setShowDeleteModal({ isOpen: true, student })}
-                          className="text-red-600 hover:text-red-700 dark:text-red-400"
-                          title="Delete Student"
+                        <PermissionGuard 
+                          permission={student.id.startsWith('SP') ? 'specialStudents' : 'inactiveStudents'} 
+                          action="delete"
                         >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                          <button
+                            onClick={() => setShowDeleteModal({ isOpen: true, student })}
+                            className="text-red-600 hover:text-red-700 dark:text-red-400"
+                            title="Delete Student"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </PermissionGuard>
                       </div>
                     </td>
                   </tr>

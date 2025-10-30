@@ -17,30 +17,29 @@ export const StudentsProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated && localStorage.getItem('token') && !hasLoaded) {
+    if (isAuthenticated && localStorage.getItem('token')) {
       loadStudents();
     }
-  }, [isAuthenticated, hasLoaded]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (isEditing) return;
     
     const handleVisibilityChange = () => {
       if (!document.hidden && localStorage.getItem('token')) {
-        loadStudents(false, true);
+        loadStudents(false);
       }
     };
     
-    // Reduced refresh interval from 2 minutes to 5 minutes
+    // Set up periodic refresh every 2 minutes (same as special students)
     const refreshInterval = setInterval(() => {
-      if (!document.hidden && localStorage.getItem('token') && !isEditing) {
-        loadStudents(false, true);
+      if (!document.hidden && localStorage.getItem('token')) {
+        loadStudents(false);
       }
-    }, 300000);
+    }, 120000);
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
@@ -50,16 +49,14 @@ export const StudentsProvider = ({ children }) => {
     };
   }, [isEditing]);
 
-  const loadStudents = async (showLoading = true, forceReload = false) => {
+  const loadStudents = async (showLoading = true) => {
     if (isEditing && !showLoading) return;
     if (!localStorage.getItem('token')) return;
-    if (hasLoaded && !forceReload) return;
     
     try {
       if (showLoading) setLoading(true);
       const students = await apiService.getStudents();
       setStudentsList(students || []);
-      setHasLoaded(true);
       setError(null);
     } catch (err) {
       console.error('StudentsContext: Error loading students:', err);
@@ -158,7 +155,6 @@ export const StudentsProvider = ({ children }) => {
     error,
     isEditing,
     setIsEditing,
-    hasLoaded,
     loadStudents,
     addStudent,
     updateStudent,

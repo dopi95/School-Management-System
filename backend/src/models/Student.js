@@ -37,7 +37,8 @@ const studentSchema = new mongoose.Schema({
   phone: { type: String },
   photo: { type: String },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
-  payments: { type: Map, of: paymentSchema }
+  payments: { type: Map, of: paymentSchema },
+  otherPayments: { type: Map, of: mongoose.Schema.Types.Mixed }
 }, {
   timestamps: true
 });

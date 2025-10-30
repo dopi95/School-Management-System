@@ -80,43 +80,39 @@ const PendingStudents = () => {
   const { admin, isAuthenticated } = useAuth();
   const [pendingStudents, setPendingStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [hasLoaded, setHasLoaded] = useState(false);
-
   const [selectedStudent, setSelectedStudent] = useState(null);
   
   const canApproveReject = admin?.role === 'superadmin' || admin?.role === 'admin';
 
   useEffect(() => {
-    if (isAuthenticated && localStorage.getItem('token') && !hasLoaded) {
+    if (isAuthenticated && localStorage.getItem('token')) {
       loadPendingStudents();
     }
-  }, [isAuthenticated, hasLoaded]);
+  }, [isAuthenticated]);
 
-  // Auto-refresh every 5 minutes
+  // Auto-refresh every 2 minutes (same as special students)
   useEffect(() => {
     const refreshInterval = setInterval(() => {
       if (!document.hidden && localStorage.getItem('token')) {
-        loadPendingStudents(true);
+        loadPendingStudents(false);
       }
-    }, 300000);
+    }, 120000);
     
     return () => clearInterval(refreshInterval);
   }, []);
 
-  const loadPendingStudents = async (forceReload = false) => {
+  const loadPendingStudents = async (showLoading = true) => {
     if (!localStorage.getItem('token')) return;
-    if (hasLoaded && !forceReload) return;
     
-    setLoading(true);
+    if (showLoading) setLoading(true);
     try {
       const response = await apiService.getPendingStudents();
       setPendingStudents(response || []);
-      setHasLoaded(true);
     } catch (error) {
       console.error('Failed to load pending students:', error);
       setPendingStudents([]);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -126,6 +122,7 @@ const PendingStudents = () => {
       await apiService.request(endpoint, { method: 'POST' });
       setPendingStudents(prev => prev.filter(s => s.id !== studentId));
       apiService.invalidateCache('students');
+      apiService.invalidateCache('special-students');
       const message = type === 'special' ? 'Student approved and added to special students list!' : 'Student approved and added to students list!';
       toast.success(message, {
         position: "top-right",
@@ -195,17 +192,25 @@ const PendingStudents = () => {
             <div className="space-y-4">
               {student.photo && (
                 <div className="flex justify-center mb-4">
-                  <img src={student.photo} alt="Student" className="w-32 h-32 object-cover rounded-lg border" />
+                  <img 
+                    src={student.photo.startsWith('http') ? student.photo : `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}${student.photo}`} 
+                    alt="Student" 
+                    className="w-32 h-32 object-cover rounded-lg border"
+                    onError={(e) => {
+                      console.log('Image failed to load:', e.target.src);
+                      e.target.style.display = 'none';
+                    }}
+                  />
                 </div>
               )}
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Full Name:</label>
-                  <p className="text-gray-900 dark:text-white">{`${student.firstName} ${student.middleName} ${student.lastName}`}</p>
+                  <p className="text-gray-900 dark:text-white">{`${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.trim()}</p>
                 </div>
                 
-                {student.firstNameAm && (
+                {(student.firstNameAm || student.middleNameAm || student.lastNameAm) && (
                   <div>
                     <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Name (Amharic):</label>
                     <p className="text-gray-900 dark:text-white">{`${student.firstNameAm || ''} ${student.middleNameAm || ''} ${student.lastNameAm || ''}`.trim()}</p>

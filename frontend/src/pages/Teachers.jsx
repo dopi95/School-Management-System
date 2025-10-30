@@ -6,6 +6,7 @@ import { useEmployees } from '../context/EmployeesContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
+import PermissionGuard from '../components/PermissionGuard.jsx';
 import { exportEmployeesToPDF, exportEmployeesToExcel } from '../utils/exportUtils.js';
 import apiService from '../services/api.js';
 
@@ -301,13 +302,15 @@ const Teachers = () => {
                       >
                         <UserX className="w-5 h-5" />
                       </button>
-                      <button
-                        onClick={() => handleDeleteClick(employee)}
-                        className="text-red-600 hover:text-red-700"
-                        title="Delete Employee"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      <PermissionGuard permission="employees" action="delete">
+                        <button
+                          onClick={() => handleDeleteClick(employee)}
+                          className="text-red-600 hover:text-red-700"
+                          title="Delete Employee"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </PermissionGuard>
                     </div>
                   </td>
                 </tr>

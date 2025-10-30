@@ -1,6 +1,7 @@
 import express from 'express';
 import Student from '../models/Student.js';
 import { logActivity } from '../utils/activityLogger.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -8,7 +9,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const students = await Student.find()
-      .select('id name firstName middleName lastName firstNameAm middleNameAm lastNameAm class section phone status fatherPhone motherPhone joinedYear payments email address dateOfBirth gender motherName fatherName photo paymentCode')
+      .select('id name firstName middleName lastName firstNameAm middleNameAm lastNameAm class section phone status fatherPhone motherPhone joinedYear payments otherPayments email address dateOfBirth gender motherName fatherName photo paymentCode')
       .sort({ class: 1, section: 1, name: 1 })
       .lean()
       .maxTimeMS(10000);
@@ -137,6 +138,56 @@ router.patch('/:id/payment', async (req, res) => {
     res.json(student);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+// Update student other payment (book/material)
+router.patch('/:id/other-payment', protect, async (req, res) => {
+  try {
+    const { year, paymentType, paid, description } = req.body;
+    const student = await Student.findOne({ id: req.params.id });
+    
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+    
+    // Initialize otherPayments if it doesn't exist
+    if (!student.otherPayments) {
+      student.otherPayments = new Map();
+    }
+    
+    // Get or create year entry
+    const yearPayments = student.otherPayments.get(year.toString()) || {};
+    
+    // Update the specific payment type
+    yearPayments[paymentType] = paid;
+    if (paid) {
+      yearPayments[`${paymentType}Date`] = new Date().toISOString().split('T')[0];
+      yearPayments[`${paymentType}Description`] = description;
+    } else {
+      delete yearPayments[`${paymentType}Date`];
+      delete yearPayments[`${paymentType}Description`];
+    }
+    
+    // Set the updated payments for the year
+    student.otherPayments.set(year.toString(), yearPayments);
+    
+    await student.save();
+    
+    // Log activity
+    await logActivity(
+      req,
+      'STUDENT_OTHER_PAYMENT_UPDATE',
+      'Student',
+      student.id,
+      student.name,
+      `Updated ${paymentType} payment for ${year}: ${paid ? 'Paid' : 'Unpaid'}`
+    );
+    
+    res.json({ success: true, student });
+  } catch (error) {
+    console.error('Error updating other payment:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 

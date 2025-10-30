@@ -5,6 +5,7 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
 import { usePayments } from '../context/PaymentsContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import PermissionGuard from '../components/PermissionGuard.jsx';
 import apiService from '../services/api.js';
 import jsPDF from 'jspdf';
 
@@ -360,6 +361,8 @@ const Payments = () => {
       }
     }
   };
+
+
 
   const handleDescSubmit = async () => {
     const student = showDescModal.student;
@@ -1100,7 +1103,7 @@ const Payments = () => {
                         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
                           Paid
                         </span>
-                        {canEditPayments && (
+                        <PermissionGuard permission="payments" action="delete">
                           <button
                             onClick={() => handleDeleteHistory(showHistoryModal.student, payment.key)}
                             className="text-red-600 hover:text-red-700 dark:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -1108,7 +1111,7 @@ const Payments = () => {
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
-                        )}
+                        </PermissionGuard>
                       </div>
                     </div>
                   </div>

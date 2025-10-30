@@ -249,6 +249,8 @@ const AppRoutes = () => {
           </Layout>
         </ProtectedRoute>
       } />
+      
+
     </Routes>
   );
 };

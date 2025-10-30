@@ -4,6 +4,7 @@ import { Search, Eye, Users, UserCheck, FileText, FileSpreadsheet, Trash2, Bell 
 import { useEmployees } from '../context/EmployeesContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
+import PermissionGuard from '../components/PermissionGuard.jsx';
 import { exportEmployeesToPDF, exportEmployeesToExcel } from '../utils/exportUtils.js';
 import apiService from '../services/api.js';
 
@@ -226,13 +227,15 @@ const InactiveEmployees = () => {
                         >
                           <UserCheck className="w-5 h-5" />
                         </button>
-                        <button
-                          onClick={() => setShowDeleteModal({ isOpen: true, employee })}
-                          className="text-red-600 hover:text-red-700 dark:text-red-400"
-                          title="Delete Employee"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        <PermissionGuard permission="inactiveEmployees" action="delete">
+                          <button
+                            onClick={() => setShowDeleteModal({ isOpen: true, employee })}
+                            className="text-red-600 hover:text-red-700 dark:text-red-400"
+                            title="Delete Employee"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </PermissionGuard>
                       </div>
                     </td>
                   </tr>
