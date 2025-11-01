@@ -34,12 +34,12 @@ export const StudentsProvider = ({ children }) => {
       }
     };
     
-    // Set up periodic refresh every 2 minutes (same as special students)
+    // Set up periodic refresh every 5 minutes
     const refreshInterval = setInterval(() => {
       if (!document.hidden && localStorage.getItem('token')) {
         loadStudents(false);
       }
-    }, 120000);
+    }, 300000);
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
@@ -56,7 +56,7 @@ export const StudentsProvider = ({ children }) => {
     try {
       if (showLoading) setLoading(true);
       const students = await apiService.getStudents();
-      setStudentsList(students || []);
+      setStudentsList(Array.isArray(students) ? students : []);
       setError(null);
     } catch (err) {
       console.error('StudentsContext: Error loading students:', err);

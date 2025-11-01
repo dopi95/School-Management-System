@@ -391,6 +391,7 @@ class ApiService {
       const result = await this.request('/pending-students');
       return Array.isArray(result) ? result : [];
     } catch (error) {
+      console.error('Failed to fetch pending students:', error);
       return [];
     }
   }

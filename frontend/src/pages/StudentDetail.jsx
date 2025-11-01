@@ -15,29 +15,44 @@ const StudentDetail = () => {
   const decodedId = decodeURIComponent(id);
 
   useEffect(() => {
-    const fetchStudent = async () => {
-      try {
-        setLoading(true);
-        const response = await apiService.request(`/students/${decodedId}`);
-        setStudent(response);
-      } catch (error) {
-        console.error('Error fetching student:', error);
-        // Fallback to context data if API fails
-        const contextStudent = studentsList.find(s => s.id === decodedId);
-        setStudent(contextStudent || null);
-      } finally {
+    const loadStudentDetail = async () => {
+      // First check if we have basic data in context
+      const contextStudent = studentsList.find(s => s.id === decodedId);
+      
+      if (contextStudent) {
+        // Show basic data immediately
+        setStudent(contextStudent);
         setLoading(false);
+        
+        // Then fetch full details in background
+        try {
+          const fullStudent = await apiService.getStudent(decodedId);
+          setStudent(fullStudent);
+        } catch (error) {
+          console.error('Error loading full student details:', error);
+        }
+      } else {
+        // No context data, fetch from API
+        try {
+          const fullStudent = await apiService.getStudent(decodedId);
+          setStudent(fullStudent);
+        } catch (error) {
+          console.error('Error loading student:', error);
+          setStudent(null);
+        } finally {
+          setLoading(false);
+        }
       }
     };
 
-    fetchStudent();
+    loadStudentDetail();
   }, [decodedId, studentsList]);
 
   if (loading) {
     return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-500 dark:text-gray-400">Loading student details...</p>
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Loading...</p>
       </div>
     );
   }
@@ -114,19 +129,55 @@ const StudentDetail = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
+                {/* Personal Information */}
+                <div className="flex items-center space-x-3">
+                  <User className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Full Name (English)</p>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {student.firstName && student.middleName && student.lastName 
+                        ? `${student.firstName} ${student.middleName} ${student.lastName}`
+                        : student.name || 'Not provided'
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                {(student.firstNameAm || student.middleNameAm || student.lastNameAm) && (
+                  <div className="flex items-center space-x-3">
+                    <User className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Full Name (Amharic)</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {`${student.firstNameAm || ''} ${student.middleNameAm || ''} ${student.lastNameAm || ''}`.trim() || 'Not provided'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center space-x-3">
+                  <User className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Gender</p>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {student.gender ? (student.gender === 'male' ? 'Male' : 'Female') : 'Not provided'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <Calendar className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Date of Birth</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{student.dateOfBirth ? `${student.dateOfBirth} E.C` : 'Not provided'}</p>
+                  </div>
+                </div>
+
                 <div className="flex items-center space-x-3">
                   <Mail className="w-5 h-5 text-gray-400" />
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
                     <p className="font-medium text-gray-900 dark:text-white">{student.email || 'Not provided'}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <Phone className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Father's Phone</p>
-                    <p className="font-medium text-gray-900 dark:text-white">{student.fatherPhone || student.phone || 'Not provided'}</p>
                   </div>
                 </div>
 
@@ -140,19 +191,12 @@ const StudentDetail = () => {
               </div>
 
               <div className="space-y-4">
+                {/* Academic Information */}
                 <div className="flex items-center space-x-3">
-                  <Calendar className="w-5 h-5 text-gray-400" />
+                  <User className="w-5 h-5 text-gray-400" />
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Date of Birth</p>
-                    <p className="font-medium text-gray-900 dark:text-white">{student.dateOfBirth ? `${student.dateOfBirth} E.C` : 'Not provided'}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <Calendar className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Joined Year</p>
-                    <p className="font-medium text-gray-900 dark:text-white">{student.joinedYear || 'Not provided'}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Student ID</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{student.id}</p>
                   </div>
                 </div>
 
@@ -172,24 +216,28 @@ const StudentDetail = () => {
                   </div>
                 </div>
 
+                <div className="flex items-center space-x-3">
+                  <Calendar className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Joined Year</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{student.joinedYear || 'Not provided'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <User className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
+                    <p className="font-medium text-gray-900 dark:text-white capitalize">{student.status || 'Active'}</p>
+                  </div>
+                </div>
+
                 {student.paymentCode && (
                   <div className="flex items-center space-x-3">
                     <User className="w-5 h-5 text-gray-400" />
                     <div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Payment Code</p>
                       <p className="font-medium text-gray-900 dark:text-white">{student.paymentCode}</p>
-                    </div>
-                  </div>
-                )}
-
-                {student.gender && (
-                  <div className="flex items-center space-x-3">
-                    <User className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Gender</p>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {student.gender === 'male' ? 'Male' : 'Female'}
-                      </p>
                     </div>
                   </div>
                 )}
@@ -221,24 +269,72 @@ const StudentDetail = () => {
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Parent Information</h3>
             <div className="space-y-4">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Father Name</p>
-                <p className="font-medium text-gray-900 dark:text-white">{student.fatherName || 'Not provided'}</p>
+              <div className="flex items-center space-x-3">
+                <User className="w-5 h-5 text-gray-400" />
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Father Name</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{student.fatherName || 'Not provided'}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Father Phone</p>
-                <p className="font-medium text-gray-900 dark:text-white">{student.fatherPhone || 'Not provided'}</p>
+              <div className="flex items-center space-x-3">
+                <Phone className="w-5 h-5 text-gray-400" />
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Father Phone</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{student.fatherPhone || student.phone || 'Not provided'}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Mother Name</p>
-                <p className="font-medium text-gray-900 dark:text-white">{student.motherName || 'Not provided'}</p>
+              <div className="flex items-center space-x-3">
+                <User className="w-5 h-5 text-gray-400" />
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Mother Name</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{student.motherName || 'Not provided'}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Mother Phone</p>
-                <p className="font-medium text-gray-900 dark:text-white">{student.motherPhone || 'Not provided'}</p>
+              <div className="flex items-center space-x-3">
+                <Phone className="w-5 h-5 text-gray-400" />
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Mother Phone</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{student.motherPhone || 'Not provided'}</p>
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Additional Information */}
+          {(student.originalPendingId || student.createdAt || student.updatedAt) && (
+            <div className="card">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Additional Information</h3>
+              <div className="space-y-4">
+                {student.originalPendingId && (
+                  <div className="flex items-center space-x-3">
+                    <User className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Original Pending ID</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{student.originalPendingId}</p>
+                    </div>
+                  </div>
+                )}
+                {student.createdAt && (
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Registration Date</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{new Date(student.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                )}
+                {student.updatedAt && (
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Last Updated</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{new Date(student.updatedAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Quick Actions */}
           <div className="card">

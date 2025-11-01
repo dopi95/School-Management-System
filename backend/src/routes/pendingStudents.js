@@ -43,10 +43,14 @@ router.post('/register', async (req, res) => {
 // Get all pending students (auth required)
 router.get('/', protect, async (req, res) => {
   try {
-    const pendingStudents = await PendingStudent.find({ status: 'pending' })
+    const pendingStudents = await PendingStudent.find(
+      { status: 'pending' },
+      'id firstName middleName lastName class fatherPhone createdAt'
+    )
       .sort({ createdAt: -1 })
       .lean()
-      .maxTimeMS(10000);
+      .limit(100)
+      .maxTimeMS(5000);
     res.json(pendingStudents);
   } catch (error) {
     console.error('Error fetching pending students:', error);

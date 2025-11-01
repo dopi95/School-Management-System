@@ -26,41 +26,43 @@ const Students = () => {
   const classes = ['KG-1', 'KG-2', 'KG-3'];
   const sections = ['A', 'B', 'C', 'D'];
 
-  const filteredStudents = useMemo(() => {
+  const activeStudents = useMemo(() => {
     if (!Array.isArray(studentsList) || studentsList.length === 0) return [];
+    return studentsList.filter(student => student.status === 'active');
+  }, [studentsList]);
+
+  const filteredStudents = useMemo(() => {
+    if (activeStudents.length === 0) return [];
     
-    const activeStudents = studentsList.filter(student => student.status === 'active');
+    const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
+    const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
     
-    if (!searchTerm && classFilter === 'all' && sectionFilter === 'all') {
-      return activeStudents.sort((a, b) => {
-        const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
-        const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
-        const classComparison = classOrder[a.class || ''] - classOrder[b.class || ''];
-        if (classComparison !== 0) return classComparison;
-        return (sectionOrder[a.section || ''] || 0) - (sectionOrder[b.section || ''] || 0);
+    let filtered = activeStudents;
+    
+    // Apply filters
+    if (searchTerm || classFilter !== 'all' || sectionFilter !== 'all') {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = activeStudents.filter(student => {
+        const matchesSearch = !searchTerm || 
+          student.name?.toLowerCase().includes(searchLower) ||
+          student.id?.toLowerCase().includes(searchLower) ||
+          student.joinedYear?.includes(searchTerm) ||
+          student.fatherPhone?.includes(searchTerm) ||
+          student.motherPhone?.includes(searchTerm) ||
+          `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
+        const matchesClass = classFilter === 'all' || student.class === classFilter;
+        const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
+        return matchesSearch && matchesClass && matchesSection;
       });
     }
     
-    return activeStudents.filter(student => {
-      const searchLower = searchTerm.toLowerCase();
-      const matchesSearch = !searchTerm || 
-        student.name?.toLowerCase().includes(searchLower) ||
-        student.id?.toLowerCase().includes(searchLower) ||
-        student.joinedYear?.includes(searchTerm) ||
-        student.fatherPhone?.includes(searchTerm) ||
-        student.motherPhone?.includes(searchTerm) ||
-        `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
-      const matchesClass = classFilter === 'all' || student.class === classFilter;
-      const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
-      return matchesSearch && matchesClass && matchesSection;
-    }).sort((a, b) => {
-      const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
-      const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
-      const classComparison = classOrder[a.class || ''] - classOrder[b.class || ''];
+    // Sort results
+    return filtered.sort((a, b) => {
+      const classComparison = (classOrder[a.class] || 0) - (classOrder[b.class] || 0);
       if (classComparison !== 0) return classComparison;
-      return (sectionOrder[a.section || ''] || 0) - (sectionOrder[b.section || ''] || 0);
+      return (sectionOrder[a.section] || 0) - (sectionOrder[b.section] || 0);
     });
-  }, [studentsList, searchTerm, classFilter, sectionFilter]);
+  }, [activeStudents, searchTerm, classFilter, sectionFilter]);
 
   const handleDeleteClick = (student) => {
     setDeleteModal({ isOpen: true, student });
@@ -95,9 +97,9 @@ const Students = () => {
     }
   };
 
-  const { activeStudents, inactiveStudents } = useMemo(() => {
+  const { activeCount, inactiveCount } = useMemo(() => {
     if (!Array.isArray(studentsList) || studentsList.length === 0) {
-      return { activeStudents: 0, inactiveStudents: 0 };
+      return { activeCount: 0, inactiveCount: 0 };
     }
     let active = 0;
     let inactive = 0;
@@ -105,7 +107,7 @@ const Students = () => {
       if (student.status === 'active') active++;
       else if (student.status === 'inactive') inactive++;
     }
-    return { activeStudents: active, inactiveStudents: inactive };
+    return { activeCount: active, inactiveCount: inactive };
   }, [studentsList]);
 
   const handleDeleteCancel = () => {
@@ -303,7 +305,7 @@ const Students = () => {
               <Users className="w-5 h-5 lg:w-6 lg:h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{activeStudents}</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{activeCount}</p>
               <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Active Students</p>
             </div>
           </div>
@@ -315,7 +317,7 @@ const Students = () => {
               <UserX className="w-5 h-5 lg:w-6 lg:h-6 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{inactiveStudents}</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{inactiveCount}</p>
               <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Inactive Students</p>
             </div>
           </div>
@@ -396,13 +398,15 @@ const Students = () => {
       </div>
 
       {/* Students Table */}
-      {loading ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500 dark:text-gray-400">Loading students...</p>
+      {loading && studentsList.length === 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center min-h-[200px] flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Loading...</p>
+          </div>
         </div>
-      ) : studentsList.length > 0 ? (
-        <div className="card overflow-hidden" style={{ width: '100%', maxWidth: '100vw' }}>
+      ) : filteredStudents.length > 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden" style={{ width: '100%', maxWidth: '100vw' }}>
         <div className="overflow-x-auto" style={{ width: '100%' }}>
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50 dark:bg-gray-700">

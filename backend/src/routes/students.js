@@ -5,16 +5,18 @@ import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get all students
+// Get all students (table view - minimal data)
 router.get('/', async (req, res) => {
   try {
     const students = await Student.find()
-      .select('id name firstName middleName lastName firstNameAm middleNameAm lastNameAm class section phone status fatherPhone motherPhone joinedYear payments otherPayments email address dateOfBirth gender motherName fatherName photo paymentCode')
+      .select('id name firstName middleName lastName firstNameAm middleNameAm lastNameAm class section phone status fatherPhone motherPhone joinedYear gender')
       .sort({ class: 1, section: 1, name: 1 })
       .lean()
-      .maxTimeMS(10000);
+      .limit(500)
+      .maxTimeMS(3000);
     res.json(students);
   } catch (error) {
+    console.error('Error fetching students:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -23,12 +25,15 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const studentId = req.params.id;
-    const student = await Student.findOne({ id: studentId });
+    const student = await Student.findOne({ id: studentId })
+      .lean()
+      .maxTimeMS(5000);
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
     res.json(student);
   } catch (error) {
+    console.error('Error fetching student by ID:', error);
     res.status(500).json({ message: error.message });
   }
 });

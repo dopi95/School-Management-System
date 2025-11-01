@@ -90,18 +90,18 @@ const PendingStudents = () => {
     }
   }, [isAuthenticated]);
 
-  // Auto-refresh every 2 minutes (same as special students)
+  // Auto-refresh every 5 minutes
   useEffect(() => {
     const refreshInterval = setInterval(() => {
       if (!document.hidden && localStorage.getItem('token')) {
         loadPendingStudents(false);
       }
-    }, 120000);
+    }, 300000);
     
     return () => clearInterval(refreshInterval);
   }, []);
 
-  const loadPendingStudents = async (showLoading = true) => {
+  const loadPendingStudents = useCallback(async (showLoading = true) => {
     if (!localStorage.getItem('token')) return;
     
     if (showLoading) setLoading(true);
@@ -114,7 +114,7 @@ const PendingStudents = () => {
     } finally {
       if (showLoading) setLoading(false);
     }
-  };
+  }, []);
 
   const handleApprove = useCallback(async (studentId, type = 'regular') => {
     try {
@@ -346,11 +346,11 @@ const PendingStudents = () => {
 
         {/* Table Container - Only table scrolls */}
         <div className="px-4 lg:px-0 w-full">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 w-full">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 w-full min-h-[200px]">
             {loading ? (
-              <div className="text-center py-12 w-full">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-                <p className="text-gray-500 dark:text-gray-400">Loading pending students...</p>
+              <div className="text-center py-8 w-full">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Loading...</p>
               </div>
             ) : pendingStudents.length > 0 ? (
               <div className="overflow-x-auto w-full">

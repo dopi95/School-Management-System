@@ -1,16 +1,61 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Phone, Mail, MapPin, Calendar, User, Edit } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
+import apiService from '../services/api.js';
 
 const SpecialStudentDetail = () => {
   const { id } = useParams();
   const { t, language } = useLanguage();
   const { specialStudentsList } = useSpecialStudents();
+  const [student, setStudent] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const decodedId = decodeURIComponent(id);
-  const student = specialStudentsList.find(s => s.id === decodedId);
+
+  useEffect(() => {
+    const loadStudentDetail = async () => {
+      // First check if we have basic data in context
+      const contextStudent = specialStudentsList.find(s => s.id === decodedId);
+      
+      if (contextStudent) {
+        // Show basic data immediately
+        setStudent(contextStudent);
+        setLoading(false);
+        
+        // Then fetch full details in background
+        try {
+          const fullStudent = await apiService.getSpecialStudent(decodedId);
+          setStudent(fullStudent);
+        } catch (error) {
+          console.error('Error loading full special student details:', error);
+        }
+      } else {
+        // No context data, fetch from API
+        try {
+          const fullStudent = await apiService.getSpecialStudent(decodedId);
+          setStudent(fullStudent);
+        } catch (error) {
+          console.error('Error loading special student:', error);
+          setStudent(null);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadStudentDetail();
+  }, [decodedId, specialStudentsList]);
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Loading...</p>
+      </div>
+    );
+  }
 
   if (!student) {
     return (

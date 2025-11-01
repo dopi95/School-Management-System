@@ -5,16 +5,18 @@ import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get all special students
+// Get all special students (table view - minimal data)
 router.get('/', async (req, res) => {
   try {
     const students = await SpecialStudent.find()
-      .select('id name firstName middleName lastName firstNameAm middleNameAm lastNameAm class section phone status fatherPhone motherPhone joinedYear payments otherPayments email address dateOfBirth gender motherName fatherName photo paymentCode')
+      .select('id name firstName middleName lastName firstNameAm middleNameAm lastNameAm class section phone status fatherPhone motherPhone joinedYear gender')
       .sort({ class: 1, section: 1, name: 1 })
       .lean()
-      .maxTimeMS(10000);
+      .limit(500)
+      .maxTimeMS(3000);
     res.json(students);
   } catch (error) {
+    console.error('Error fetching special students:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -23,12 +25,15 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const decodedId = decodeURIComponent(req.params.id);
-    const student = await SpecialStudent.findOne({ id: decodedId });
+    const student = await SpecialStudent.findOne({ id: decodedId })
+      .lean()
+      .maxTimeMS(3000);
     if (!student) {
       return res.status(404).json({ message: 'Special student not found' });
     }
     res.json(student);
   } catch (error) {
+    console.error('Error fetching special student by ID:', error);
     res.status(500).json({ message: error.message });
   }
 });

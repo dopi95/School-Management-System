@@ -68,5 +68,8 @@ studentSchema.index({ firstName: 1, middleName: 1, lastName: 1 });
 studentSchema.index({ fatherPhone: 1 });
 studentSchema.index({ motherPhone: 1 });
 studentSchema.index({ joinedYear: 1 });
+// Compound index for main query
+studentSchema.index({ class: 1, section: 1, name: 1 });
+studentSchema.index({ status: 1, class: 1, section: 1 });
 
 export default mongoose.model('Student', studentSchema);
