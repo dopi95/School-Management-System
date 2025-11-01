@@ -335,20 +335,107 @@ export const exportStudentsToExcel = (students, filename = 'students_list', lang
     
     return {
       '#': index + 1,
+      'Student ID': student.id || '',
+      'First Name': student.firstName || '',
+      'Middle Name': student.middleName || '',
+      'Last Name': student.lastName || '',
+      'First Name (Amharic)': student.firstNameAm || '',
+      'Middle Name (Amharic)': student.middleNameAm || '',
+      'Last Name (Amharic)': student.lastNameAm || '',
       'Full Name': fullName,
-      'ID': student.id || 'N/A',
-      'Payment Code': student.paymentCode || 'N/A',
-      'Class': student.class || 'N/A',
-      'Section': student.section || 'N/A',
-      'Mother Name': student.motherName || 'N/A',
-      'Father Name': student.fatherName || 'N/A',
-      'Phone': student.phone || 'N/A',
-      'Joined Year': student.joinedYear || 'N/A',
-      'Address': student.address || 'N/A'
+      'Payment Code': student.paymentCode || '',
+      'Gender': student.gender ? (student.gender === 'male' ? 'Male' : 'Female') : '',
+      'Email': student.email || '',
+      'Date of Birth': student.dateOfBirth || '',
+      'Joined Year': student.joinedYear || '',
+      'Address': student.address || '',
+      'Class': student.class || '',
+      'Section': student.section || '',
+      'Father Name': student.fatherName || '',
+      'Father Phone': student.fatherPhone || '',
+      'Mother Name': student.motherName || '',
+      'Mother Phone': student.motherPhone || '',
+      'Main Phone': student.phone || '',
+      'Status': student.status ? student.status.charAt(0).toUpperCase() + student.status.slice(1) : 'Active',
+      'Created Date': student.createdAt ? new Date(student.createdAt).toLocaleDateString() : '',
+      'Updated Date': student.updatedAt ? new Date(student.updatedAt).toLocaleDateString() : ''
     };
   });
   
   const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+  
+  // Set column widths for better formatting
+  const columnWidths = [
+    { wch: 5 },   // #
+    { wch: 12 },  // Student ID
+    { wch: 15 },  // First Name
+    { wch: 15 },  // Middle Name
+    { wch: 15 },  // Last Name
+    { wch: 18 },  // First Name (Amharic)
+    { wch: 18 },  // Middle Name (Amharic)
+    { wch: 18 },  // Last Name (Amharic)
+    { wch: 25 },  // Full Name
+    { wch: 12 },  // Payment Code
+    { wch: 8 },   // Gender
+    { wch: 25 },  // Email
+    { wch: 12 },  // Date of Birth
+    { wch: 12 },  // Joined Year
+    { wch: 30 },  // Address
+    { wch: 8 },   // Class
+    { wch: 8 },   // Section
+    { wch: 20 },  // Father Name
+    { wch: 15 },  // Father Phone
+    { wch: 20 },  // Mother Name
+    { wch: 15 },  // Mother Phone
+    { wch: 15 },  // Main Phone
+    { wch: 10 },  // Status
+    { wch: 12 },  // Created Date
+    { wch: 12 }   // Updated Date
+  ];
+  worksheet['!cols'] = columnWidths;
+  
+  // Add header styling
+  const range = XLSX.utils.decode_range(worksheet['!ref']);
+  for (let col = range.s.c; col <= range.e.c; col++) {
+    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+    if (!worksheet[cellAddress]) continue;
+    
+    worksheet[cellAddress].s = {
+      font: { bold: true, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "366092" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } }
+      }
+    };
+  }
+  
+  // Add data row styling
+  for (let row = 1; row <= range.e.r; row++) {
+    for (let col = range.s.c; col <= range.e.c; col++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+      if (!worksheet[cellAddress]) continue;
+      
+      worksheet[cellAddress].s = {
+        alignment: { horizontal: "left", vertical: "center" },
+        border: {
+          top: { style: "thin", color: { rgb: "CCCCCC" } },
+          bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+          left: { style: "thin", color: { rgb: "CCCCCC" } },
+          right: { style: "thin", color: { rgb: "CCCCCC" } }
+        },
+        fill: { fgColor: { rgb: row % 2 === 0 ? "F8F9FA" : "FFFFFF" } }
+      };
+    }
+  }
+  
+  // Set row height
+  worksheet['!rows'] = Array(range.e.r + 1).fill({ hpt: 20 });
+  worksheet['!rows'][0] = { hpt: 25 }; // Header row height
+  
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
   

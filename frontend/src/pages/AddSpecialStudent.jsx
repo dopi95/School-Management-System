@@ -20,6 +20,7 @@ const AddSpecialStudent = () => {
     firstNameAm: '',
     middleNameAm: '',
     lastNameAm: '',
+    paymentCode: '',
     gender: '',
     name: '', // Keep for backward compatibility
     email: '',
@@ -53,6 +54,7 @@ const AddSpecialStudent = () => {
           firstNameAm: student.firstNameAm || '',
           middleNameAm: student.middleNameAm || '',
           lastNameAm: student.lastNameAm || '',
+          paymentCode: student.paymentCode || '',
           gender: student.gender || '',
           name: student.name || '',
           email: student.email || '',
@@ -340,6 +342,20 @@ const AddSpecialStudent = () => {
                   onChange={handleChange}
                   className="input-field"
                   placeholder="የአያት ስም"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Payment Code
+                </label>
+                <input
+                  type="number"
+                  name="paymentCode"
+                  value={formData.paymentCode}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="Enter payment code (numbers only)"
                 />
               </div>
 
