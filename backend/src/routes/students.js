@@ -5,8 +5,22 @@ import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get all students
+// Get students table data (basic info for fast loading)
 router.get('/', async (req, res) => {
+  try {
+    const students = await Student.find()
+      .select('id name firstName middleName lastName firstNameAm middleNameAm lastNameAm class section phone status gender payments')
+      .sort({ class: 1, section: 1, name: 1 })
+      .lean()
+      .maxTimeMS(5000);
+    res.json(students);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get all students with full details (for exports and detailed operations)
+router.get('/full', async (req, res) => {
   try {
     const students = await Student.find()
       .select('id name firstName middleName lastName firstNameAm middleNameAm lastNameAm class section phone status fatherPhone motherPhone joinedYear payments otherPayments email address dateOfBirth gender motherName fatherName photo paymentCode')

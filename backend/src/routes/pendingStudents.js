@@ -40,13 +40,14 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Get all pending students (auth required)
+// Get pending students table data (basic info for fast loading)
 router.get('/', protect, async (req, res) => {
   try {
     const pendingStudents = await PendingStudent.find({ status: 'pending' })
+      .select('id firstName middleName lastName class fatherPhone createdAt')
       .sort({ createdAt: -1 })
       .lean()
-      .maxTimeMS(10000);
+      .maxTimeMS(5000);
     res.json(pendingStudents);
   } catch (error) {
     console.error('Error fetching pending students:', error);

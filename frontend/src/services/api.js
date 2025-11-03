@@ -98,6 +98,15 @@ class ApiService {
     }
   }
 
+  async getStudentsFull() {
+    try {
+      const result = await this.request('/students/full');
+      return Array.isArray(result) ? result : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
   async getStudent(id) {
     return this.request(`/students/${encodeURIComponent(id)}`);
   }

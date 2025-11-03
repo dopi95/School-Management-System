@@ -65,6 +65,18 @@ export const SpecialStudentsProvider = ({ children }) => {
     }
   };
 
+  const loadSpecialStudentsFull = async () => {
+    if (!localStorage.getItem('token')) return [];
+    
+    try {
+      const students = await apiService.getSpecialStudentsFull();
+      return students || [];
+    } catch (err) {
+      console.error('SpecialStudentsContext: Error loading full special students:', err);
+      return [];
+    }
+  };
+
   const addSpecialStudent = async (studentData) => {
     try {
       const newStudent = await apiService.createSpecialStudent(studentData);
@@ -150,6 +162,7 @@ export const SpecialStudentsProvider = ({ children }) => {
     isEditing,
     setIsEditing,
     loadSpecialStudents,
+    loadSpecialStudentsFull,
     addSpecialStudent,
     updateSpecialStudent,
     updateSpecialStudentStatus,

@@ -13,7 +13,7 @@ import apiService from '../services/api.js';
 const SpecialStudents = () => {
   const { t, language } = useLanguage();
   const { admin } = useAuth();
-  const { specialStudentsList, loading, updateSpecialStudentStatus, deleteSpecialStudent, bulkUpdateSpecialStudents } = useSpecialStudents();
+  const { specialStudentsList, loading, updateSpecialStudentStatus, deleteSpecialStudent, bulkUpdateSpecialStudents, loadSpecialStudentsFull } = useSpecialStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [sectionFilter, setSectionFilter] = useState('all');
@@ -205,10 +205,11 @@ const SpecialStudents = () => {
           {/* Export Buttons Row */}
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => {
+              onClick={async () => {
+                const fullStudents = await loadSpecialStudentsFull();
                 const dataToExport = selectedStudents.length > 0 
-                  ? filteredStudents.filter(s => selectedStudents.includes(s.id))
-                  : filteredStudents;
+                  ? fullStudents.filter(s => selectedStudents.includes(s.id) && s.status === 'active')
+                  : fullStudents.filter(s => s.status === 'active');
                 const title = selectedStudents.length > 0 
                   ? `Selected Special Students (${selectedStudents.length})`
                   : 'Special Students List';
@@ -221,10 +222,11 @@ const SpecialStudents = () => {
               <span>PDF</span>
             </button>
             <button
-              onClick={() => {
+              onClick={async () => {
+                const fullStudents = await loadSpecialStudentsFull();
                 const dataToExport = selectedStudents.length > 0 
-                  ? filteredStudents.filter(s => selectedStudents.includes(s.id))
-                  : filteredStudents;
+                  ? fullStudents.filter(s => selectedStudents.includes(s.id) && s.status === 'active')
+                  : fullStudents.filter(s => s.status === 'active');
                 const filename = selectedStudents.length > 0 
                   ? `selected_special_students_${selectedStudents.length}`
                   : 'special_students_list';

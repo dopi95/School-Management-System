@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Check, X, Eye, Users, Clock } from 'lucide-react';
+import { Check, X, Users, Clock } from 'lucide-react';
 import apiService from '../services/api.js';
 import { toast, ToastContainer } from 'react-toastify';
 import { useAuth } from '../context/AuthContext.jsx';
 import 'react-toastify/dist/ReactToastify.css';
 
-const PendingStudentRow = React.memo(({ student, canApproveReject, onViewDetails, onApprove, onReject }) => {
+const PendingStudentRow = React.memo(({ student, canApproveReject, onApprove, onReject }) => {
   return (
     <tr className="hover:bg-gray-50 dark:hover:bg-gray-700">
       <td className="px-6 py-4 whitespace-nowrap">
@@ -38,13 +38,6 @@ const PendingStudentRow = React.memo(({ student, canApproveReject, onViewDetails
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
         <div className="flex items-center space-x-3">
-          <button
-            onClick={() => onViewDetails(student)}
-            className="text-blue-600 hover:text-blue-700"
-            title="View Details"
-          >
-            <Eye className="w-5 h-5" />
-          </button>
           {canApproveReject && (
             <>
               <button
@@ -80,7 +73,7 @@ const PendingStudents = () => {
   const { admin, isAuthenticated } = useAuth();
   const [pendingStudents, setPendingStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedStudent, setSelectedStudent] = useState(null);
+
   
   const canApproveReject = admin?.role === 'superadmin' || admin?.role === 'admin';
 
@@ -170,151 +163,7 @@ const PendingStudents = () => {
     }
   }, []);
 
-  const StudentDetailModal = ({ student, onClose }) => {
-    if (!student) return null;
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-600">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Student Details</h3>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-6">
-            <div className="space-y-4">
-              {student.photo && (
-                <div className="flex justify-center mb-4">
-                  <img 
-                    src={student.photo.startsWith('http') ? student.photo : `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000'}${student.photo}`} 
-                    alt="Student" 
-                    className="w-32 h-32 object-cover rounded-lg border"
-                    onError={(e) => {
-                      console.log('Image failed to load:', e.target.src);
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                </div>
-              )}
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Full Name:</label>
-                  <p className="text-gray-900 dark:text-white">{`${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.trim()}</p>
-                </div>
-                
-                {(student.firstNameAm || student.middleNameAm || student.lastNameAm) && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Name (Amharic):</label>
-                    <p className="text-gray-900 dark:text-white">{`${student.firstNameAm || ''} ${student.middleNameAm || ''} ${student.lastNameAm || ''}`.trim()}</p>
-                  </div>
-                )}
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Gender:</label>
-                  <p className="text-gray-900 dark:text-white capitalize">{student.gender}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Date of Birth:</label>
-                  <p className="text-gray-900 dark:text-white">{student.dateOfBirth}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Class:</label>
-                  <p className="text-gray-900 dark:text-white">{student.class}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Joined Year:</label>
-                  <p className="text-gray-900 dark:text-white">{student.joinedYear}</p>
-                </div>
-                
-                {student.email && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Email:</label>
-                    <p className="text-gray-900 dark:text-white">{student.email}</p>
-                  </div>
-                )}
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Address:</label>
-                  <p className="text-gray-900 dark:text-white">{student.address}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Father Name:</label>
-                  <p className="text-gray-900 dark:text-white">{student.fatherName}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Father Phone:</label>
-                  <p className="text-gray-900 dark:text-white">{student.fatherPhone}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Mother Name:</label>
-                  <p className="text-gray-900 dark:text-white">{student.motherName}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Mother Phone:</label>
-                  <p className="text-gray-900 dark:text-white">{student.motherPhone}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Submitted:</label>
-                  <p className="text-gray-900 dark:text-white">{new Date(student.createdAt).toLocaleDateString()}</p>
-                </div>
-              </div>
-              
-              {canApproveReject && (
-                <div className="flex flex-col sm:flex-row gap-2 mt-6">
-                  <button
-                    onClick={() => {
-                      handleApprove(student.id, 'regular');
-                      onClose();
-                    }}
-                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg flex items-center justify-center space-x-1 text-sm flex-1"
-                  >
-                    <Check className="w-4 h-4" />
-                    <span>Approve as Student</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleApprove(student.id, 'special');
-                      onClose();
-                    }}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg flex items-center justify-center space-x-1 text-sm flex-1"
-                  >
-                    <Check className="w-4 h-4" />
-                    <span>Approve as SP Student</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleReject(student.id);
-                      onClose();
-                    }}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 flex-1"
-                  >
-                    <X className="w-4 h-4" />
-                    <span>Reject</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
 
 
@@ -383,7 +232,7 @@ const PendingStudents = () => {
                         key={student.id} 
                         student={student} 
                         canApproveReject={canApproveReject}
-                        onViewDetails={setSelectedStudent}
+
                         onApprove={handleApprove}
                         onReject={handleReject}
                       />
@@ -401,11 +250,7 @@ const PendingStudents = () => {
         </div>
       </div>
 
-      {/* Student Detail Modal */}
-      <StudentDetailModal 
-        student={selectedStudent} 
-        onClose={() => setSelectedStudent(null)} 
-      />
+
 
       <ToastContainer />
     </div>

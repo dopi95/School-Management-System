@@ -13,7 +13,7 @@ import apiService from '../services/api.js';
 const Students = () => {
   const { t, language } = useLanguage();
   const { admin } = useAuth();
-  const { studentsList, loading, updateStudentStatus, deleteStudent, bulkUpdateStudents } = useStudents();
+  const { studentsList, loading, updateStudentStatus, deleteStudent, bulkUpdateStudents, loadStudentsFull } = useStudents();
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [sectionFilter, setSectionFilter] = useState('all');
@@ -223,10 +223,11 @@ const Students = () => {
           {/* Export Buttons Row */}
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => {
+              onClick={async () => {
+                const fullStudents = await loadStudentsFull();
                 const dataToExport = selectedStudents.length > 0 
-                  ? filteredStudents.filter(s => selectedStudents.includes(s.id))
-                  : filteredStudents;
+                  ? fullStudents.filter(s => selectedStudents.includes(s.id) && s.status === 'active')
+                  : fullStudents.filter(s => s.status === 'active');
                 const title = selectedStudents.length > 0 
                   ? `Selected Students (${selectedStudents.length})`
                   : 'Active Students List';
@@ -239,10 +240,11 @@ const Students = () => {
               <span>PDF</span>
             </button>
             <button
-              onClick={() => {
+              onClick={async () => {
+                const fullStudents = await loadStudentsFull();
                 const dataToExport = selectedStudents.length > 0 
-                  ? filteredStudents.filter(s => selectedStudents.includes(s.id))
-                  : filteredStudents;
+                  ? fullStudents.filter(s => selectedStudents.includes(s.id) && s.status === 'active')
+                  : fullStudents.filter(s => s.status === 'active');
                 const filename = selectedStudents.length > 0 
                   ? `selected_students_${selectedStudents.length}`
                   : 'active_students_list';

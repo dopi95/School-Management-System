@@ -67,6 +67,18 @@ export const StudentsProvider = ({ children }) => {
     }
   };
 
+  const loadStudentsFull = async () => {
+    if (!localStorage.getItem('token')) return [];
+    
+    try {
+      const students = await apiService.getStudentsFull();
+      return students || [];
+    } catch (err) {
+      console.error('StudentsContext: Error loading full students:', err);
+      return [];
+    }
+  };
+
   const addStudent = async (studentData) => {
     try {
       const newStudent = await apiService.createStudent(studentData);
@@ -156,6 +168,7 @@ export const StudentsProvider = ({ children }) => {
     isEditing,
     setIsEditing,
     loadStudents,
+    loadStudentsFull,
     addStudent,
     updateStudent,
     updateStudentStatus,
