@@ -43,12 +43,35 @@ const Students = () => {
     
     return activeStudents.filter(student => {
       const searchLower = searchTerm.toLowerCase();
+      // Build comprehensive search strings for parents
+      const fatherNames = [
+        student.fatherName,
+        student.fatherFirstName,
+        student.fatherMiddleName,
+        student.fatherLastName,
+        `${student.fatherFirstName || ''} ${student.fatherMiddleName || ''}`.trim(),
+        `${student.fatherFirstName || ''} ${student.fatherLastName || ''}`.trim(),
+        `${student.fatherFirstName || ''} ${student.fatherMiddleName || ''} ${student.fatherLastName || ''}`.trim()
+      ].filter(name => name && name.trim());
+      
+      const motherNames = [
+        student.motherName,
+        student.motherFirstName,
+        student.motherMiddleName,
+        student.motherLastName,
+        `${student.motherFirstName || ''} ${student.motherMiddleName || ''}`.trim(),
+        `${student.motherFirstName || ''} ${student.motherLastName || ''}`.trim(),
+        `${student.motherFirstName || ''} ${student.motherMiddleName || ''} ${student.motherLastName || ''}`.trim()
+      ].filter(name => name && name.trim());
+      
       const matchesSearch = !searchTerm || 
         student.name?.toLowerCase().includes(searchLower) ||
         student.id?.toLowerCase().includes(searchLower) ||
         student.joinedYear?.includes(searchTerm) ||
         student.fatherPhone?.includes(searchTerm) ||
         student.motherPhone?.includes(searchTerm) ||
+        fatherNames.some(name => name.toLowerCase().includes(searchLower)) ||
+        motherNames.some(name => name.toLowerCase().includes(searchLower)) ||
         `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
       const matchesClass = classFilter === 'all' || student.class === classFilter;
       const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
@@ -339,7 +362,7 @@ const Students = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 lg:w-5 lg:h-5" />
               <input
                 type="text"
-                placeholder="Search students..."
+                placeholder="Search by name, ID, father name, mother name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full max-w-64 px-3 py-2 pl-9 lg:pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm lg:text-base"
@@ -481,7 +504,7 @@ const Students = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <Link
-                      to={`/students/${student.id}`}
+                      to={`/students/${encodeURIComponent(student.id)}`}
                       className="text-sm text-primary-600 hover:text-primary-700 font-medium"
                     >
                       {student.id}
@@ -505,7 +528,7 @@ const Students = () => {
                       <div className="flex items-center space-x-3">
                         {canView(admin, 'students') && (
                           <Link
-                            to={`/students/${student.id}`}
+                            to={`/students/${encodeURIComponent(student.id)}`}
                             className="text-primary-600 hover:text-primary-700"
                             title="View Details"
                           >
@@ -514,7 +537,7 @@ const Students = () => {
                         )}
                         {canEdit(admin, 'students') && (
                           <Link
-                            to={`/students/edit/${student.id}`}
+                            to={`/students/edit/${encodeURIComponent(student.id)}`}
                             className="text-blue-600 hover:text-blue-700"
                             title="Edit Student"
                           >
@@ -558,7 +581,7 @@ const Students = () => {
       {/* Results Count */}
       {!loading && studentsList.length > 0 && (
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          Showing {filteredStudents.length} of {studentsList.length} students
+          Showing {filteredStudents.length} of {activeStudents} active students
         </div>
       )}
 

@@ -32,8 +32,8 @@ export const AdminsProvider = ({ children }) => {
         } catch (e) {}
       }
       
-      const hasAdminsAccess = admin.role === 'superadmin' || admin.permissions?.admins;
-      if (hasAdminsAccess) {
+      // Only superadmins can access admin list
+      if (admin.role === 'superadmin') {
         fetchAdmins();
       } else {
         setLoading(false);

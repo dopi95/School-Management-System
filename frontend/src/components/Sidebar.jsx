@@ -64,6 +64,7 @@ const Sidebar = () => {
     { path: '/teachers', icon: GraduationCap, label: getMenuLabel('employees'), permission: 'employees' },
     { path: '/payments', icon: CreditCard, label: getMenuLabel('payments'), permission: 'payments' },
     { path: '/special-payments', icon: CreditCard, label: 'Monthly SP Payments', permission: 'specialPayments' },
+    { path: '/other-payments', icon: CreditCard, label: 'Other Payments', permission: 'otherPayments' },
         { path: '/inactive-students', icon: UserX, label: getMenuLabel('inactive-students'), permission: 'inactiveStudents' },
     { path: '/inactive-employees', icon: UserX, label: getMenuLabel('inactive-employees'), permission: 'inactiveEmployees' },
 
@@ -84,6 +85,11 @@ const Sidebar = () => {
     if (admin?.role === 'teacher') {
       const allowedPaths = ['/dashboard', '/students', '/profile', '/settings'];
       return allowedPaths.includes(item.path);
+    }
+    
+    // Special case for Other Payments - show for admin and executive roles
+    if (item.permission === 'otherPayments') {
+      return admin?.role === 'admin' || admin?.role === 'user';
     }
     
     // Check for granular permissions (object with actions)

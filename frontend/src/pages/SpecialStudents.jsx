@@ -513,7 +513,7 @@ const SpecialStudents = () => {
       {/* Results Count */}
       {specialStudentsList.length > 0 && (
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          Showing {filteredStudents.length} of {specialStudentsList.length} special students
+          Showing {filteredStudents.length} of {activeStudents} active special students
         </div>
       )}
 

@@ -21,6 +21,7 @@ import SpecialStudents from './pages/SpecialStudents';
 import SpecialStudentDetail from './pages/SpecialStudentDetail';
 import AddSpecialStudent from './pages/AddSpecialStudent';
 import SpecialPayments from './pages/SpecialPayments';
+import OtherPayments from './pages/OtherPayments';
 import Teachers from './pages/Teachers';
 import EmployeeDetail from './pages/EmployeeDetail';
 import AddTeacher from './pages/AddTeacher';
@@ -215,6 +216,16 @@ const AppRoutes = () => {
       <Route path="/special-payments" element={
         <ProtectedRoute>
           <Layout><SpecialPayments /></Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/other-payments" element={
+        <ProtectedRoute>
+          <Layout>
+            <PermissionRoute permission="payments" section="payments management">
+              <OtherPayments />
+            </PermissionRoute>
+          </Layout>
         </ProtectedRoute>
       } />
       

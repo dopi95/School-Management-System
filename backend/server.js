@@ -7,6 +7,7 @@ import employeeRoutes from "./src/routes/employees.js";
 import paymentRoutes from "./src/routes/payments.js";
 import specialStudentRoutes from "./src/routes/specialStudents.js";
 import specialPaymentRoutes from "./src/routes/specialPayments.js";
+import otherPaymentRoutes from "./src/routes/otherPayments.js";
 import notificationRoutes from "./src/routes/notifications.js";
 import authRoutes from "./src/routes/auth.js";
 import activityLogRoutes from "./src/routes/activityLogs.js";
@@ -103,6 +104,7 @@ app.use('/api/special-payments', protect, (req, res, next) => {
   }
   return checkPermission('specialPayments')(req, res, next);
 }, specialPaymentRoutes);
+app.use('/api/other-payments', otherPaymentRoutes);
 app.use('/api/notifications', protect, (req, res, next) => {
   const writeActions = ['POST', 'PUT', 'PATCH', 'DELETE'];
   if (writeActions.includes(req.method)) {

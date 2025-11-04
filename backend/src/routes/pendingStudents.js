@@ -58,7 +58,8 @@ router.get('/', protect, async (req, res) => {
 // Approve pending student
 router.post('/:id/approve', protect, async (req, res) => {
   try {
-    const pendingStudent = await PendingStudent.findOne({ id: req.params.id }).lean();
+    const decodedId = decodeURIComponent(req.params.id);
+    const pendingStudent = await PendingStudent.findOne({ id: decodedId }).lean();
     if (!pendingStudent) {
       return res.status(404).json({ message: 'Pending student not found' });
     }
@@ -103,7 +104,7 @@ router.post('/:id/approve', protect, async (req, res) => {
     await student.save();
 
     // Remove from pending
-    await PendingStudent.findOneAndDelete({ id: req.params.id });
+    await PendingStudent.findOneAndDelete({ id: decodedId });
 
     await logActivity(req, 'STUDENT_APPROVED', 'Student', student.id, student.name, `Student approved from pending: ${student.name}`);
     res.json({ message: 'Student approved successfully', student });
@@ -116,7 +117,8 @@ router.post('/:id/approve', protect, async (req, res) => {
 // Approve pending student as special student
 router.post('/:id/approve-special', protect, async (req, res) => {
   try {
-    const pendingStudent = await PendingStudent.findOne({ id: req.params.id }).lean();
+    const decodedId = decodeURIComponent(req.params.id);
+    const pendingStudent = await PendingStudent.findOne({ id: decodedId }).lean();
     if (!pendingStudent) {
       return res.status(404).json({ message: 'Pending student not found' });
     }
@@ -164,7 +166,7 @@ router.post('/:id/approve-special', protect, async (req, res) => {
     await specialStudent.save();
 
     // Remove from pending
-    await PendingStudent.findOneAndDelete({ id: req.params.id });
+    await PendingStudent.findOneAndDelete({ id: decodedId });
 
     await logActivity(req, 'SPECIAL_STUDENT_APPROVED', 'SpecialStudent', specialStudent.id, specialStudent.name, `Special student approved from pending: ${specialStudent.name}`);
     res.json({ message: 'Special student approved successfully', student: specialStudent });
@@ -177,7 +179,8 @@ router.post('/:id/approve-special', protect, async (req, res) => {
 // Reject pending student
 router.delete('/:id/reject', protect, async (req, res) => {
   try {
-    const pendingStudent = await PendingStudent.findOneAndDelete({ id: req.params.id }).lean();
+    const decodedId = decodeURIComponent(req.params.id);
+    const pendingStudent = await PendingStudent.findOneAndDelete({ id: decodedId }).lean();
     if (!pendingStudent) {
       return res.status(404).json({ message: 'Pending student not found' });
     }

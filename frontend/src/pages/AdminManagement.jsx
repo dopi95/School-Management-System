@@ -31,9 +31,12 @@ const AdminManagement = () => {
       dashboard: true,
       students: false,
       inactiveStudents: false,
+      pendingStudents: false,
       employees: false,
       inactiveEmployees: false,
       payments: false,
+      specialStudents: false,
+      specialPayments: false,
       notifications: false,
       admins: false,
       profile: true,
@@ -116,6 +119,7 @@ const AdminManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log('Submitting admin with permissions:', formData.permissions);
       if (editingAdmin) {
         const response = await api.updateAdmin(editingAdmin._id, formData);
         if (response.success) {
@@ -144,26 +148,59 @@ const AdminManagement = () => {
 
   const handleEdit = (adminItem) => {
     setEditingAdmin(adminItem);
+    
+    // Merge existing permissions with default structure to ensure all fields exist
+    const defaultPermissions = {
+      dashboard: true,
+      students: false,
+      inactiveStudents: false,
+      pendingStudents: false,
+      employees: false,
+      inactiveEmployees: false,
+      payments: false,
+      specialStudents: false,
+      specialPayments: false,
+      notifications: false,
+      admins: false,
+      profile: true,
+      settings: true
+    };
+    
+    // Handle both old boolean permissions and new object permissions
+    const mergedPermissions = {};
+    Object.keys(defaultPermissions).forEach(key => {
+      if (adminItem.permissions && adminItem.permissions[key] !== undefined) {
+        // If it's an object (new format), keep it as is
+        if (typeof adminItem.permissions[key] === 'object') {
+          mergedPermissions[key] = adminItem.permissions[key];
+        } else {
+          // If it's a boolean (old format), keep as boolean for simple permissions
+          // or convert to object for complex permissions
+          const complexPermissions = ['students', 'inactiveStudents', 'pendingStudents', 'employees', 'inactiveEmployees', 'payments', 'otherPayments', 'specialStudents', 'specialPayments', 'admins'];
+          if (complexPermissions.includes(key) && adminItem.permissions[key] === true) {
+            // Convert boolean true to full permissions object
+            mergedPermissions[key] = {
+              view: true,
+              create: true,
+              edit: true,
+              delete: true
+            };
+          } else {
+            mergedPermissions[key] = adminItem.permissions[key];
+          }
+        }
+      } else {
+        mergedPermissions[key] = defaultPermissions[key];
+      }
+    });
+    
     setFormData({
       name: adminItem.name,
       email: adminItem.email,
       password: '',
       role: adminItem.role,
       status: adminItem.status,
-      permissions: adminItem.permissions || {
-        dashboard: true,
-        students: false,
-        inactiveStudents: false,
-        employees: false,
-        inactiveEmployees: false,
-        payments: false,
-        specialStudents: false,
-        specialPayments: false,
-        notifications: false,
-        admins: false,
-        profile: true,
-        settings: true
-      }
+      permissions: mergedPermissions
     });
     setShowModal(true);
   };
@@ -196,6 +233,7 @@ const AdminManagement = () => {
         dashboard: true,
         students: false,
         inactiveStudents: false,
+        pendingStudents: false,
         employees: false,
         inactiveEmployees: false,
         payments: false,
@@ -432,13 +470,20 @@ const AdminManagement = () => {
                       <span className="text-xs text-gray-500">All Access</span>
                     ) : (
                       <div className="flex flex-wrap gap-1">
-                        {Object.entries(adminItem.permissions || {}).map(([key, value]) => 
-                          value && key !== 'dashboard' ? (
+                        {Object.entries(adminItem.permissions || {}).map(([key, value]) => {
+                          // Handle both boolean and object permissions
+                          const hasPermission = typeof value === 'object' ? value.view : value;
+                          return hasPermission && key !== 'dashboard' && key !== 'profile' ? (
                             <span key={key} className="inline-flex px-1 py-0.5 text-xs font-medium rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                              {key}
+                              {key === 'otherPayments' ? 'Other Payments' : 
+                               key === 'specialStudents' ? 'SP Students' : 
+                               key === 'specialPayments' ? 'SP Payments' : 
+                               key === 'inactiveStudents' ? 'Inactive Students' : 
+                               key === 'inactiveEmployees' ? 'Inactive Employees' : 
+                               key}
                             </span>
-                          ) : null
-                        )}
+                          ) : null;
+                        })}
                       </div>
                     )}
                   </td>
@@ -657,7 +702,8 @@ const AdminManagement = () => {
                       { key: 'pendingStudents', label: 'Pending Students', actions: ['view', 'approve'] },
                       { key: 'employees', label: 'Employees Management' },
                       { key: 'inactiveEmployees', label: 'Inactive Employees' },
-                      { key: 'payments', label: 'Payments Management' },
+                      { key: 'payments', label: 'Monthly Payments' },
+
                       { key: 'specialStudents', label: 'SP Students' },
                       { key: 'specialPayments', label: 'SP Payments' },
                       { key: 'admins', label: 'Admin Management', actions: ['view', 'create', 'edit', 'delete'] }
@@ -675,7 +721,14 @@ const AdminManagement = () => {
                               <label key={action} className="flex items-center space-x-2 cursor-pointer">
                                 <input
                                   type="checkbox"
-                                  checked={formData.permissions?.[module.key]?.[action] || false}
+                                  checked={(() => {
+                                    const permission = formData.permissions?.[module.key];
+                                    if (typeof permission === 'object') {
+                                      return permission?.[action] || false;
+                                    }
+                                    // For boolean permissions, only check 'view' action
+                                    return action === 'view' ? (permission || false) : false;
+                                  })()}
                                   onChange={(e) => {
                                     if (formData.role === 'admin' && action === 'view') {
                                       // For admin role, when checking view, also enable all actions
@@ -694,15 +747,19 @@ const AdminManagement = () => {
                                         }
                                       });
                                     } else {
+                                      // For user role or individual action changes
+                                      const currentPermissions = formData.permissions?.[module.key] || {};
+                                      const updatedPermissions = {
+                                        ...currentPermissions,
+                                        [action]: e.target.checked
+                                      };
+                                      
                                       setFormData({
                                         ...formData,
                                         permissions: {
                                           ...formData.permissions,
                                           profile: true,
-                                          [module.key]: {
-                                            ...formData.permissions?.[module.key],
-                                            [action]: e.target.checked
-                                          }
+                                          [module.key]: updatedPermissions
                                         }
                                       });
                                     }

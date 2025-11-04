@@ -11,7 +11,8 @@
     "seed-special": "node src/seedSpecialData.js",
     "migrate-sections": "node src/migrateSections.js",
     "migrate-permissions": "node src/migrations/addSpecialPermissions.js",
-    "migrate-granular-permissions": "node src/migratePermissions.js"
+    "migrate-granular-permissions": "node src/migratePermissions.js",
+    "migrate-other-payments": "node src/migrations/addOtherPaymentsPermission.js"
   },
   "keywords": [],
   "author": "",

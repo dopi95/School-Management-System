@@ -580,7 +580,7 @@ const Payments = () => {
       <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
         <div className="flex items-center justify-between w-full lg:w-auto">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Payments</h1>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Monthly Payments</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Track student payment status by month</p>
           </div>
           
