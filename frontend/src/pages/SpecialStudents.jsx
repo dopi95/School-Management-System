@@ -18,6 +18,7 @@ const SpecialStudents = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [sectionFilter, setSectionFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, student: null });
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [classEditModal, setClassEditModal] = useState({ isOpen: false, newClass: '' });
@@ -41,8 +42,14 @@ const SpecialStudents = () => {
         `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
       const matchesClass = classFilter === 'all' || student.class === classFilter;
       const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
+      
+      // Type filter based on payment code
+      const matchesType = typeFilter === 'all' || 
+        (typeFilter === 'regular' && student.paymentCode && student.paymentCode.trim() !== '') ||
+        (typeFilter === 'special' && (!student.paymentCode || student.paymentCode.trim() === ''));
+      
       const isActive = student.status === 'active';
-      return matchesSearch && matchesClass && matchesSection && isActive;
+      return matchesSearch && matchesClass && matchesSection && matchesType && isActive;
     }).sort((a, b) => {
       const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
       const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
@@ -50,7 +57,7 @@ const SpecialStudents = () => {
       if (classComparison !== 0) return classComparison;
       return (sectionOrder[a.section || ''] || 0) - (sectionOrder[b.section || ''] || 0);
     });
-  }, [specialStudentsList, searchTerm, classFilter, sectionFilter]);
+  }, [specialStudentsList, searchTerm, classFilter, sectionFilter, typeFilter]);
 
   const handleDeleteClick = (student) => {
     setDeleteModal({ isOpen: true, student });
@@ -371,6 +378,27 @@ const SpecialStudents = () => {
                   {sections.map(section => (
                     <option key={section} value={section}>Section {section}</option>
                   ))}
+                </select>
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Type Filter */}
+            <div>
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="w-40 px-3 py-2 pl-9 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none text-sm lg:text-base"
+                >
+                  <option value="all">All Types</option>
+                  <option value="regular">Regular Students</option>
+                  <option value="special">Special Students</option>
                 </select>
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
                   <svg className="w-3 h-3 lg:w-4 lg:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

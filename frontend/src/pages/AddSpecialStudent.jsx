@@ -350,12 +350,12 @@ const AddSpecialStudent = () => {
                   Payment Code
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   name="paymentCode"
                   value={formData.paymentCode}
                   onChange={handleChange}
                   className="input-field"
-                  placeholder="Enter payment code (numbers only)"
+                  placeholder="Enter payment code"
                 />
               </div>
 

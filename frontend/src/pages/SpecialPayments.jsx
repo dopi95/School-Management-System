@@ -533,7 +533,7 @@ const SpecialPayments = () => {
         
         {/* Bell Icon for Desktop */}
         {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
-          <Link to="/pending-students" className="relative p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 dark:border-gray-700 hidden lg:block" style={{ marginRight: '20px' }}>
+          <Link to="/pending-students" className="relative p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 dark:border-gray-700 hidden lg:block" style={{ marginRight: '50px' }}>
             <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
             {pendingCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
@@ -542,6 +542,14 @@ const SpecialPayments = () => {
             )}
           </Link>
         )}
+      </div>
+
+      {/* Export Options */}
+      <div className="flex justify-center mb-6">
+        <PaymentExportDropdown
+          onExportPaid={() => generatePDF('paid')}
+          onExportUnpaid={() => generatePDF('unpaid')}
+        />
       </div>
 
       {/* Stats Cards */}
@@ -581,14 +589,6 @@ const SpecialPayments = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Export Options */}
-      <div className="flex justify-center">
-        <PaymentExportDropdown
-          onExportPaid={() => generatePDF('paid')}
-          onExportUnpaid={() => generatePDF('unpaid')}
-        />
       </div>
 
       {/* Filters */}

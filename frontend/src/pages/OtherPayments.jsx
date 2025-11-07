@@ -76,8 +76,14 @@ const OtherPayments = () => {
   }, [admin]);
 
   const allStudents = useMemo(() => {
-    const activeStudents = studentsList.filter(s => s.status === 'active').map(s => ({ ...s, type: 'regular' }));
-    const activeSpecialStudents = specialStudentsList.filter(s => s.status === 'active').map(s => ({ ...s, type: 'special' }));
+    const activeStudents = studentsList.filter(s => s.status === 'active').map(s => ({ 
+      ...s, 
+      type: s.paymentCode && s.paymentCode.trim() !== '' ? 'regular' : 'special'
+    }));
+    const activeSpecialStudents = specialStudentsList.filter(s => s.status === 'active').map(s => ({ 
+      ...s, 
+      type: s.paymentCode && s.paymentCode.trim() !== '' ? 'regular' : 'special'
+    }));
     return [...activeStudents, ...activeSpecialStudents];
   }, [studentsList, specialStudentsList]);
 
@@ -508,6 +514,16 @@ const OtherPayments = () => {
         )}
       </div>
 
+      {/* Export Options */}
+      <div className="flex justify-center mb-6">
+        <OtherPaymentExportDropdown
+          onExportPaidBook={() => generatePDF('paid', 'book')}
+          onExportUnpaidBook={() => generatePDF('unpaid', 'book')}
+          onExportPaidStationary={() => generatePDF('paid', 'stationary')}
+          onExportUnpaidStationary={() => generatePDF('unpaid', 'stationary')}
+        />
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
@@ -579,16 +595,6 @@ const OtherPayments = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Export Options */}
-      <div className="flex justify-center mb-6">
-        <OtherPaymentExportDropdown
-          onExportPaidBook={() => generatePDF('paid', 'book')}
-          onExportUnpaidBook={() => generatePDF('unpaid', 'book')}
-          onExportPaidStationary={() => generatePDF('paid', 'stationary')}
-          onExportUnpaidStationary={() => generatePDF('unpaid', 'stationary')}
-        />
       </div>
 
       {/* Controls */}
@@ -752,6 +758,7 @@ const OtherPayments = () => {
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
                             ID: {studentId} | Class: {student.class} {student.section} | Type: {student.type}
+                            {student.paymentCode && <span> | Code: {student.paymentCode}</span>}
                           </div>
                         </div>
                       </td>

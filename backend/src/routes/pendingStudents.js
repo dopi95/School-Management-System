@@ -126,14 +126,14 @@ router.post('/:id/approve-special', protect, async (req, res) => {
     // Import SpecialStudent model
     const SpecialStudent = (await import('../models/SpecialStudent.js')).default;
 
-    // Generate unique special student ID
+    // Generate unique special student ID with joined year
     const lastSpecialStudent = await SpecialStudent.findOne({ id: /^SP\d+$/ }).sort({ id: -1 }).lean();
     let nextNumber = 1;
     if (lastSpecialStudent) {
-      const lastNumber = parseInt(lastSpecialStudent.id.replace('SP', ''));
+      const lastNumber = parseInt(lastSpecialStudent.id.replace('SP', '').split('/')[0]);
       nextNumber = lastNumber + 1;
     }
-    const specialStudentId = `SP${String(nextNumber).padStart(3, '0')}`;
+    const specialStudentId = `SP${String(nextNumber).padStart(3, '0')}/${pendingStudent.joinedYear}`;
 
     // Create special student record
     const specialStudentData = {
