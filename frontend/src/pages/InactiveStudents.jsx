@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Eye, Users, UserCheck, History, FileText, FileSpreadsheet, Trash2, Bell } from 'lucide-react';
+import { Search, Eye, Users, UserCheck, History, Trash2, Bell } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
 import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
 import PermissionGuard from '../components/PermissionGuard.jsx';
+import ExportDropdown from '../components/ExportDropdown.jsx';
 import { exportStudentsToPDF, exportStudentsToExcel } from '../utils/exportUtils.js';
 import apiService from '../services/api.js';
 
@@ -140,22 +141,12 @@ const InactiveStudents = () => {
               )}
             </Link>
           )}
-          <button
-            onClick={() => exportStudentsToPDF(filteredStudents, 'Inactive Students List')}
-            className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
-            title="Export to PDF"
-          >
-            <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
-            <span>PDF</span>
-          </button>
-          <button
-            onClick={() => exportStudentsToExcel(filteredStudents, 'inactive_students_list')}
-            className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
-            title="Export to Excel"
-          >
-            <FileSpreadsheet className="w-3 h-3 lg:w-4 lg:h-4" />
-            <span>Excel</span>
-          </button>
+          <div className="ml-5 lg:ml-0">
+            <ExportDropdown
+              onExportPDF={() => exportStudentsToPDF(filteredStudents, 'Inactive Students List', language, 'inactive_students_list')}
+              onExportExcel={() => exportStudentsToExcel(filteredStudents, 'inactive_students_list', language)}
+            />
+          </div>
         </div>
       </div>
 

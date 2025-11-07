@@ -4,64 +4,68 @@ import { saveAs } from 'file-saver';
 
 // PDF Export Functions
 export const exportStudentsToPDF = (students, title = 'Students List', language = 'en', filename = null) => {
-  const doc = new jsPDF();
+  const doc = new jsPDF('l', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.width;
-  const margin = 10;
-  const rowHeight = 8;
+  const pageHeight = doc.internal.pageSize.height;
+  const margin = 15;
   
-  // Add title
-  doc.setFontSize(18);
+  // Header
+  doc.setFontSize(16);
   doc.setFont(undefined, 'bold');
-  doc.text(title, pageWidth / 2, 20, { align: 'center' });
+  doc.text(`Bluelight Academy - ${title}`, pageWidth / 2, 20, { align: 'center' });
   
-  // Add date
   doc.setFontSize(10);
   doc.setFont(undefined, 'normal');
-  doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, 30, { align: 'center' });
+  doc.text(`Total: ${students.length} | Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, 30, { align: 'center' });
   
-  // Table headers
-  const headers = ['#', 'Full Name', 'ID', 'Payment Code', 'Class', 'Section', 'Mother Name'];
-  const colWidths = [15, 40, 25, 25, 20, 20, 35];
-  let yPosition = 45;
+  // Table setup
+  const startY = 45;
+  const rowHeight = 8;
+  const colWidths = [15, 55, 30, 30, 20, 20, 45];
+  const colPositions = [];
+  let currentX = margin;
   
-  // Draw table border
-  const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
-  
-  // Header row background
-  doc.setFillColor(240, 240, 240);
-  doc.rect(margin, yPosition, tableWidth, rowHeight, 'F');
-  
-  // Header row
-  doc.setFontSize(10);
-  doc.setFont(undefined, 'bold');
-  let xPos = margin;
-  
-  headers.forEach((header, index) => {
-    doc.text(header, xPos + 2, yPosition + 5);
-    xPos += colWidths[index];
+  colWidths.forEach(width => {
+    colPositions.push(currentX);
+    currentX += width;
   });
   
-  // Draw header borders
-  xPos = margin;
-  for (let i = 0; i <= headers.length; i++) {
-    doc.line(xPos, yPosition, xPos, yPosition + rowHeight);
-    if (i < headers.length) xPos += colWidths[i];
-  }
-  doc.line(margin, yPosition, margin + tableWidth, yPosition);
-  doc.line(margin, yPosition + rowHeight, margin + tableWidth, yPosition + rowHeight);
+  const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+  let yPos = startY;
+  
+  // Headers
+  doc.setFontSize(9);
+  doc.setFont(undefined, 'bold');
+  doc.setFillColor(240, 240, 240);
+  doc.rect(margin, yPos - 6, tableWidth, rowHeight, 'F');
+  
+  const headers = ['#', 'Full Name', 'ID', 'Payment Code', 'Class', 'Section', 'Mother Name'];
+  headers.forEach((header, index) => {
+    doc.text(header, colPositions[index] + 2, yPos, { maxWidth: colWidths[index] - 4 });
+  });
+  
+  // Draw borders
+  colPositions.forEach((pos, index) => {
+    doc.line(pos, yPos - 6, pos, yPos + 2);
+    if (index === colPositions.length - 1) {
+      doc.line(pos + colWidths[index], yPos - 6, pos + colWidths[index], yPos + 2);
+    }
+  });
+  doc.line(margin, yPos - 6, margin + tableWidth, yPos - 6);
+  doc.line(margin, yPos + 2, margin + tableWidth, yPos + 2);
+  
+  yPos += rowHeight + 2;
   
   // Data rows
   doc.setFont(undefined, 'normal');
-  doc.setFontSize(9);
-  yPosition += rowHeight;
+  doc.setFontSize(8);
   
   students.forEach((student, index) => {
-    if (yPosition > 270) {
+    if (yPos + rowHeight > pageHeight - 20) {
       doc.addPage();
-      yPosition = 30;
+      yPos = 30;
     }
     
-    // Get full name based on language
     let fullName;
     if (language === 'am' && student.firstNameAm && student.middleNameAm && student.lastNameAm) {
       fullName = `${student.firstNameAm} ${student.middleNameAm} ${student.lastNameAm}`;
@@ -71,107 +75,107 @@ export const exportStudentsToPDF = (students, title = 'Students List', language 
       fullName = student.name || 'N/A';
     }
     
+    if (index % 2 === 1) {
+      doc.setFillColor(250, 250, 250);
+      doc.rect(margin, yPos - 6, tableWidth, rowHeight, 'F');
+    }
+    
     const rowData = [
       (index + 1).toString(),
-      fullName.substring(0, 25),
+      fullName,
       student.id || 'N/A',
       student.paymentCode || 'N/A',
       student.class || 'N/A',
       student.section || 'N/A',
-      (student.motherName || 'N/A').substring(0, 20)
+      student.motherName || 'N/A'
     ];
     
-    // Draw row data
-    xPos = margin;
     rowData.forEach((data, colIndex) => {
-      doc.text(String(data), xPos + 2, yPosition + 5);
-      xPos += colWidths[colIndex];
+      doc.text(data, colPositions[colIndex] + 2, yPos, { 
+        maxWidth: colWidths[colIndex] - 4,
+        align: colIndex === 0 ? 'center' : 'left'
+      });
     });
     
-    // Draw row borders
-    xPos = margin;
-    for (let i = 0; i <= headers.length; i++) {
-      doc.line(xPos, yPosition, xPos, yPosition + rowHeight);
-      if (i < headers.length) xPos += colWidths[i];
-    }
-    doc.line(margin, yPosition + rowHeight, margin + tableWidth, yPosition + rowHeight);
+    // Cell borders
+    colPositions.forEach((pos, colIndex) => {
+      doc.setDrawColor(200, 200, 200);
+      doc.line(pos, yPos - 6, pos, yPos + 2);
+      if (colIndex === colPositions.length - 1) {
+        doc.line(pos + colWidths[colIndex], yPos - 6, pos + colWidths[colIndex], yPos + 2);
+      }
+    });
+    doc.line(margin, yPos + 2, margin + tableWidth, yPos + 2);
     
-    yPosition += rowHeight;
+    yPos += rowHeight;
   });
   
-  // Footer
-  const totalPages = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, doc.internal.pageSize.height - 10);
-  }
+  doc.setDrawColor(0, 0, 0);
+  doc.line(margin, yPos, margin + tableWidth, yPos);
   
-  // Save the PDF
   const pdfFilename = filename || title.toLowerCase().replace(/\s+/g, '_');
   doc.save(`${pdfFilename}.pdf`);
 };
 
 // Special Students PDF Export (without payment code)
 export const exportSpecialStudentsToPDF = (students, title = 'Special Students List', language = 'en', filename = null) => {
-  const doc = new jsPDF();
+  const doc = new jsPDF('l', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.width;
-  const margin = 10;
-  const rowHeight = 8;
+  const pageHeight = doc.internal.pageSize.height;
+  const margin = 15;
   
-  // Add title
-  doc.setFontSize(18);
+  doc.setFontSize(16);
   doc.setFont(undefined, 'bold');
-  doc.text(title, pageWidth / 2, 20, { align: 'center' });
+  doc.text(`Bluelight Academy - ${title}`, pageWidth / 2, 20, { align: 'center' });
   
-  // Add date
   doc.setFontSize(10);
   doc.setFont(undefined, 'normal');
-  doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, 30, { align: 'center' });
+  doc.text(`Total: ${students.length} | Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, 30, { align: 'center' });
   
-  // Table headers
-  const headers = ['#', 'Full Name', 'ID', 'Class', 'Section', 'Mother Name'];
-  const colWidths = [15, 45, 25, 20, 20, 35];
-  let yPosition = 45;
+  const startY = 45;
+  const rowHeight = 8;
+  const colWidths = [15, 60, 30, 20, 20, 50];
+  const colPositions = [];
+  let currentX = margin;
   
-  // Draw table border
-  const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
-  
-  // Header row background
-  doc.setFillColor(240, 240, 240);
-  doc.rect(margin, yPosition, tableWidth, rowHeight, 'F');
-  
-  // Header row
-  doc.setFontSize(10);
-  doc.setFont(undefined, 'bold');
-  let xPos = margin;
-  
-  headers.forEach((header, index) => {
-    doc.text(header, xPos + 2, yPosition + 5);
-    xPos += colWidths[index];
+  colWidths.forEach(width => {
+    colPositions.push(currentX);
+    currentX += width;
   });
   
-  // Draw header borders
-  xPos = margin;
-  for (let i = 0; i <= headers.length; i++) {
-    doc.line(xPos, yPosition, xPos, yPosition + rowHeight);
-    if (i < headers.length) xPos += colWidths[i];
-  }
-  doc.line(margin, yPosition, margin + tableWidth, yPosition);
-  doc.line(margin, yPosition + rowHeight, margin + tableWidth, yPosition + rowHeight);
+  const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+  let yPos = startY;
   
-  // Data rows
-  doc.setFont(undefined, 'normal');
   doc.setFontSize(9);
-  yPosition += rowHeight;
+  doc.setFont(undefined, 'bold');
+  doc.setFillColor(240, 240, 240);
+  doc.rect(margin, yPos - 6, tableWidth, rowHeight, 'F');
+  
+  const headers = ['#', 'Full Name', 'ID', 'Class', 'Section', 'Mother Name'];
+  headers.forEach((header, index) => {
+    doc.text(header, colPositions[index] + 2, yPos, { maxWidth: colWidths[index] - 4 });
+  });
+  
+  colPositions.forEach((pos, index) => {
+    doc.line(pos, yPos - 6, pos, yPos + 2);
+    if (index === colPositions.length - 1) {
+      doc.line(pos + colWidths[index], yPos - 6, pos + colWidths[index], yPos + 2);
+    }
+  });
+  doc.line(margin, yPos - 6, margin + tableWidth, yPos - 6);
+  doc.line(margin, yPos + 2, margin + tableWidth, yPos + 2);
+  
+  yPos += rowHeight + 2;
+  
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(8);
   
   students.forEach((student, index) => {
-    if (yPosition > 270) {
+    if (yPos + rowHeight > pageHeight - 20) {
       doc.addPage();
-      yPosition = 30;
+      yPos = 30;
     }
     
-    // Get full name based on language
     let fullName;
     if (language === 'am' && student.firstNameAm && student.middleNameAm && student.lastNameAm) {
       fullName = `${student.firstNameAm} ${student.middleNameAm} ${student.lastNameAm}`;
@@ -181,144 +185,144 @@ export const exportSpecialStudentsToPDF = (students, title = 'Special Students L
       fullName = student.name || 'N/A';
     }
     
+    if (index % 2 === 1) {
+      doc.setFillColor(250, 250, 250);
+      doc.rect(margin, yPos - 6, tableWidth, rowHeight, 'F');
+    }
+    
     const rowData = [
       (index + 1).toString(),
-      fullName.substring(0, 30),
+      fullName,
       student.id || 'N/A',
       student.class || 'N/A',
       student.section || 'N/A',
-      (student.motherName || 'N/A').substring(0, 20)
+      student.motherName || 'N/A'
     ];
     
-    // Draw row data
-    xPos = margin;
     rowData.forEach((data, colIndex) => {
-      doc.text(String(data), xPos + 2, yPosition + 5);
-      xPos += colWidths[colIndex];
+      doc.text(data, colPositions[colIndex] + 2, yPos, { 
+        maxWidth: colWidths[colIndex] - 4,
+        align: colIndex === 0 ? 'center' : 'left'
+      });
     });
     
-    // Draw row borders
-    xPos = margin;
-    for (let i = 0; i <= headers.length; i++) {
-      doc.line(xPos, yPosition, xPos, yPosition + rowHeight);
-      if (i < headers.length) xPos += colWidths[i];
-    }
-    doc.line(margin, yPosition + rowHeight, margin + tableWidth, yPosition + rowHeight);
+    colPositions.forEach((pos, colIndex) => {
+      doc.setDrawColor(200, 200, 200);
+      doc.line(pos, yPos - 6, pos, yPos + 2);
+      if (colIndex === colPositions.length - 1) {
+        doc.line(pos + colWidths[colIndex], yPos - 6, pos + colWidths[colIndex], yPos + 2);
+      }
+    });
+    doc.line(margin, yPos + 2, margin + tableWidth, yPos + 2);
     
-    yPosition += rowHeight;
+    yPos += rowHeight;
   });
   
-  // Footer
-  const totalPages = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, doc.internal.pageSize.height - 10);
-  }
+  doc.setDrawColor(0, 0, 0);
+  doc.line(margin, yPos, margin + tableWidth, yPos);
   
-  // Save the PDF
   const pdfFilename = filename || title.toLowerCase().replace(/\s+/g, '_');
   doc.save(`${pdfFilename}.pdf`);
 };
 
 export const exportEmployeesToPDF = (employees, title = 'Employees List') => {
-  const doc = new jsPDF();
+  const doc = new jsPDF('l', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.width;
-  const margin = 10;
-  const rowHeight = 8;
+  const pageHeight = doc.internal.pageSize.height;
+  const margin = 15;
   
-  // Add title
-  doc.setFontSize(18);
+  doc.setFontSize(16);
   doc.setFont(undefined, 'bold');
-  doc.text(title, pageWidth / 2, 20, { align: 'center' });
+  doc.text(`Bluelight Academy - ${title}`, pageWidth / 2, 20, { align: 'center' });
   
-  // Add date
   doc.setFontSize(10);
   doc.setFont(undefined, 'normal');
-  doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, 30, { align: 'center' });
+  doc.text(`Total: ${employees.length} | Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, 30, { align: 'center' });
   
-  // Table headers
-  const headers = ['#', 'ID', 'Full Name', 'Phone', 'Role', 'Teaching Class'];
-  const colWidths = [15, 25, 40, 30, 25, 35];
-  let yPosition = 45;
+  const startY = 45;
+  const rowHeight = 8;
+  const colWidths = [15, 30, 50, 35, 30, 40];
+  const colPositions = [];
+  let currentX = margin;
   
-  // Draw table border
-  const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
-  
-  // Header row background
-  doc.setFillColor(240, 240, 240);
-  doc.rect(margin, yPosition, tableWidth, rowHeight, 'F');
-  
-  // Header row
-  doc.setFontSize(10);
-  doc.setFont(undefined, 'bold');
-  let xPos = margin;
-  
-  headers.forEach((header, index) => {
-    doc.text(header, xPos + 2, yPosition + 5);
-    xPos += colWidths[index];
+  colWidths.forEach(width => {
+    colPositions.push(currentX);
+    currentX += width;
   });
   
-  // Draw header borders
-  xPos = margin;
-  for (let i = 0; i <= headers.length; i++) {
-    doc.line(xPos, yPosition, xPos, yPosition + rowHeight);
-    if (i < headers.length) xPos += colWidths[i];
-  }
-  doc.line(margin, yPosition, margin + tableWidth, yPosition);
-  doc.line(margin, yPosition + rowHeight, margin + tableWidth, yPosition + rowHeight);
+  const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+  let yPos = startY;
   
-  // Data rows
-  doc.setFont(undefined, 'normal');
   doc.setFontSize(9);
-  yPosition += rowHeight;
+  doc.setFont(undefined, 'bold');
+  doc.setFillColor(240, 240, 240);
+  doc.rect(margin, yPos - 6, tableWidth, rowHeight, 'F');
+  
+  const headers = ['#', 'ID', 'Full Name', 'Phone', 'Role', 'Teaching Class'];
+  headers.forEach((header, index) => {
+    doc.text(header, colPositions[index] + 2, yPos, { maxWidth: colWidths[index] - 4 });
+  });
+  
+  colPositions.forEach((pos, index) => {
+    doc.line(pos, yPos - 6, pos, yPos + 2);
+    if (index === colPositions.length - 1) {
+      doc.line(pos + colWidths[index], yPos - 6, pos + colWidths[index], yPos + 2);
+    }
+  });
+  doc.line(margin, yPos - 6, margin + tableWidth, yPos - 6);
+  doc.line(margin, yPos + 2, margin + tableWidth, yPos + 2);
+  
+  yPos += rowHeight + 2;
+  
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(8);
   
   employees.forEach((employee, index) => {
-    if (yPosition > 270) {
+    if (yPos + rowHeight > pageHeight - 20) {
       doc.addPage();
-      yPosition = 30;
+      yPos = 30;
     }
     
     const teachingClass = ((employee.position === 'Teacher' || employee.role === 'Teacher') && (employee.teachingGradeLevel || employee.classes)) 
       ? (employee.teachingGradeLevel || employee.classes || []).join(', ') 
       : '-';
     
+    if (index % 2 === 1) {
+      doc.setFillColor(250, 250, 250);
+      doc.rect(margin, yPos - 6, tableWidth, rowHeight, 'F');
+    }
+    
     const rowData = [
       (index + 1).toString(),
       employee.id || 'N/A',
-      (employee.fullName || employee.name || 'N/A').substring(0, 25),
+      employee.fullName || employee.name || 'N/A',
       employee.phone || 'N/A',
-      (employee.role || employee.position || 'N/A').substring(0, 15),
-      teachingClass.substring(0, 20)
+      employee.role || employee.position || 'N/A',
+      teachingClass
     ];
     
-    // Draw row data
-    xPos = margin;
     rowData.forEach((data, colIndex) => {
-      doc.text(String(data), xPos + 2, yPosition + 5);
-      xPos += colWidths[colIndex];
+      doc.text(data, colPositions[colIndex] + 2, yPos, { 
+        maxWidth: colWidths[colIndex] - 4,
+        align: colIndex === 0 ? 'center' : 'left'
+      });
     });
     
-    // Draw row borders
-    xPos = margin;
-    for (let i = 0; i <= headers.length; i++) {
-      doc.line(xPos, yPosition, xPos, yPosition + rowHeight);
-      if (i < headers.length) xPos += colWidths[i];
-    }
-    doc.line(margin, yPosition + rowHeight, margin + tableWidth, yPosition + rowHeight);
+    colPositions.forEach((pos, colIndex) => {
+      doc.setDrawColor(200, 200, 200);
+      doc.line(pos, yPos - 6, pos, yPos + 2);
+      if (colIndex === colPositions.length - 1) {
+        doc.line(pos + colWidths[colIndex], yPos - 6, pos + colWidths[colIndex], yPos + 2);
+      }
+    });
+    doc.line(margin, yPos + 2, margin + tableWidth, yPos + 2);
     
-    yPosition += rowHeight;
+    yPos += rowHeight;
   });
   
-  // Footer
-  const totalPages = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, doc.internal.pageSize.height - 10);
-  }
+  doc.setDrawColor(0, 0, 0);
+  doc.line(margin, yPos, margin + tableWidth, yPos);
   
-  // Save the PDF
   doc.save(`${title.toLowerCase().replace(/\s+/g, '_')}.pdf`);
 };
 

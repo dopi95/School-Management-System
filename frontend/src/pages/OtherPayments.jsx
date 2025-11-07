@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Book, Package, Search, Calendar, Users, Trash2 } from 'lucide-react';
+import { Book, Package, Search, Calendar, Users, Trash2, Bell } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useStudents } from '../context/StudentsContext.jsx';
 import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import OtherPaymentExportDropdown from '../components/OtherPaymentExportDropdown.jsx';
+import jsPDF from 'jspdf';
 
 import apiService from '../services/api';
 
@@ -34,6 +37,7 @@ const OtherPayments = () => {
   const [showDescModal, setShowDescModal] = useState(false);
   const [currentPayment, setCurrentPayment] = useState(null);
   const [description, setDescription] = useState('');
+  const [pendingCount, setPendingCount] = useState(0);
 
   const years = Array.from({ length: 34 }, (_, i) => 2017 + i);
   const classes = ['KG-1', 'KG-2', 'KG-3'];
@@ -53,6 +57,23 @@ const OtherPayments = () => {
     localStorage.setItem('otherPaymentsYear', selectedYear);
     fetchPayments();
   }, [selectedYear]);
+
+  // Load pending students count
+  useEffect(() => {
+    const loadPendingCount = async () => {
+      try {
+        const response = await apiService.request('/pending-students');
+        setPendingCount(response.length);
+      } catch (error) {
+        console.error('Failed to load pending students count:', error);
+        setPendingCount(0);
+      }
+    };
+
+    if (admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) {
+      loadPendingCount();
+    }
+  }, [admin]);
 
   const allStudents = useMemo(() => {
     const activeStudents = studentsList.filter(s => s.status === 'active').map(s => ({ ...s, type: 'regular' }));
@@ -286,6 +307,137 @@ const OtherPayments = () => {
     return otherPayments[key];
   };
 
+  const generatePDF = (status, type) => {
+    const studentsToExport = allStudents.filter(student => {
+      const payment = getPaymentStatus(student, type);
+      return status === 'paid' ? payment?.paid : !payment?.paid;
+    });
+    
+    if (studentsToExport.length === 0) {
+      toast.error(`No ${status} ${type} payments found for ${selectedYear}`);
+      return;
+    }
+
+    const doc = new jsPDF('l', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 15;
+    
+    // Header
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    const title = `Bluelight Academy - ${status.charAt(0).toUpperCase() + status.slice(1)} ${type.charAt(0).toUpperCase() + type.slice(1)} Payments`;
+    doc.text(title, pageWidth / 2, 20, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Year: ${selectedYear} | Total: ${studentsToExport.length} | Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, 30, { align: 'center' });
+    
+    // Table setup
+    const startY = 45;
+    const rowHeight = 10;
+    const colWidths = status === 'paid' ? [15, 60, 30, 25, 20, 80] : [15, 70, 35, 30, 25];
+    const colPositions = [];
+    let currentX = margin;
+    
+    colWidths.forEach(width => {
+      colPositions.push(currentX);
+      currentX += width;
+    });
+    
+    const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+    let yPos = startY;
+    
+    // Headers
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'bold');
+    doc.setFillColor(240, 240, 240);
+    doc.rect(margin, yPos - 6, tableWidth, rowHeight, 'F');
+    
+    const headers = status === 'paid' 
+      ? ['#', 'Student Name', 'ID', 'Class', 'Type', 'Description']
+      : ['#', 'Student Name', 'ID', 'Class', 'Type'];
+    
+    headers.forEach((header, index) => {
+      doc.text(header, colPositions[index] + 2, yPos, { maxWidth: colWidths[index] - 4 });
+    });
+    
+    // Draw borders
+    colPositions.forEach((pos, index) => {
+      doc.line(pos, yPos - 6, pos, yPos + 4);
+      if (index === colPositions.length - 1) {
+        doc.line(pos + colWidths[index], yPos - 6, pos + colWidths[index], yPos + 4);
+      }
+    });
+    doc.line(margin, yPos - 6, margin + tableWidth, yPos - 6);
+    doc.line(margin, yPos + 4, margin + tableWidth, yPos + 4);
+    
+    yPos += rowHeight + 4;
+    
+    // Data rows
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(8);
+    
+    studentsToExport.forEach((student, index) => {
+      if (yPos + rowHeight > pageHeight - 20) {
+        doc.addPage();
+        yPos = 30;
+      }
+      
+      const studentName = student.firstName && student.middleName 
+        ? `${student.firstName} ${student.middleName}` 
+        : student.name || student.fullName;
+      
+      if (index % 2 === 1) {
+        doc.setFillColor(250, 250, 250);
+        doc.rect(margin, yPos - 6, tableWidth, rowHeight, 'F');
+      }
+      
+      const payment = getPaymentStatus(student, type);
+      const rowData = status === 'paid'
+        ? [
+            (index + 1).toString(),
+            studentName,
+            student.id || student.studentId,
+            `${student.class} ${student.section || ''}`.trim(),
+            student.type,
+            payment?.description || 'No description'
+          ]
+        : [
+            (index + 1).toString(),
+            studentName,
+            student.id || student.studentId,
+            `${student.class} ${student.section || ''}`.trim(),
+            student.type
+          ];
+      
+      rowData.forEach((data, colIndex) => {
+        doc.text(data, colPositions[colIndex] + 2, yPos, { 
+          maxWidth: colWidths[colIndex] - 4,
+          align: colIndex === 0 ? 'center' : 'left'
+        });
+      });
+      
+      // Cell borders
+      colPositions.forEach((pos, colIndex) => {
+        doc.setDrawColor(200, 200, 200);
+        doc.line(pos, yPos - 6, pos, yPos + 4);
+        if (colIndex === colPositions.length - 1) {
+          doc.line(pos + colWidths[colIndex], yPos - 6, pos + colWidths[colIndex], yPos + 4);
+        }
+      });
+      doc.line(margin, yPos + 4, margin + tableWidth, yPos + 4);
+      
+      yPos += rowHeight;
+    });
+    
+    doc.setDrawColor(0, 0, 0);
+    doc.line(margin, yPos, margin + tableWidth, yPos);
+    
+    const fileName = `${status}_${type}_payments_${selectedYear}.pdf`;
+    doc.save(fileName);
+  };
+
   // Show loading state
   if (studentsLoading || specialStudentsLoading) {
     return (
@@ -339,13 +491,25 @@ const OtherPayments = () => {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Other Payments</h1>
-        <p className="text-gray-600 dark:text-gray-400">Manage book and stationary payments for students</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Other Payments</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage book and stationary payments for students</p>
+        </div>
+        {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
+          <Link to="/pending-students" className="relative p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 dark:border-gray-700">
+            <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            {pendingCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {pendingCount}
+              </span>
+            )}
+          </Link>
+        )}
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
@@ -415,6 +579,16 @@ const OtherPayments = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Export Options */}
+      <div className="flex justify-center mb-6">
+        <OtherPaymentExportDropdown
+          onExportPaidBook={() => generatePDF('paid', 'book')}
+          onExportUnpaidBook={() => generatePDF('unpaid', 'book')}
+          onExportPaidStationary={() => generatePDF('paid', 'stationary')}
+          onExportUnpaidStationary={() => generatePDF('unpaid', 'stationary')}
+        />
       </div>
 
       {/* Controls */}

@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { User, Mail, Lock, Save, Eye, EyeOff, Camera, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Mail, Lock, Save, Eye, EyeOff, Camera, X, Bell } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
 import SuccessModal from '../components/SuccessModal.jsx';
 import { getProfilePictureUrl, getInitials, validateImageFile } from '../utils/profileUtils.js';
+import apiService from '../services/api.js';
 
 const Profile = () => {
   const { admin, updateProfile, refreshProfile } = useAuth();
@@ -23,6 +25,23 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
   const [uploadingPicture, setUploadingPicture] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    const loadPendingCount = async () => {
+      try {
+        const response = await apiService.request('/pending-students');
+        setPendingCount(response.length);
+      } catch (error) {
+        console.error('Failed to load pending students count:', error);
+        setPendingCount(0);
+      }
+    };
+
+    if (admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) {
+      loadPendingCount();
+    }
+  }, [admin]);
 
   const handleChange = (e) => {
     setFormData({
@@ -146,9 +165,21 @@ const Profile = () => {
       position: 'relative',
       overflow: 'visible'
     }}>
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your account information and security</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your account information and security</p>
+        </div>
+        {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
+          <Link to="/pending-students" className="relative p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 dark:border-gray-700">
+            <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            {pendingCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {pendingCount}
+              </span>
+            )}
+          </Link>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{

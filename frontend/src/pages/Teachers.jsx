@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Eye, Trash2, Users, UserX, Edit, FileText, FileSpreadsheet, Bell } from 'lucide-react';
+import { Plus, Search, Eye, Trash2, Users, UserX, Edit, Bell } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useEmployees } from '../context/EmployeesContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
 import PermissionGuard from '../components/PermissionGuard.jsx';
+import ExportDropdown from '../components/ExportDropdown.jsx';
 import { exportEmployeesToPDF, exportEmployeesToExcel } from '../utils/exportUtils.js';
 import apiService from '../services/api.js';
 
@@ -125,26 +126,14 @@ const Teachers = () => {
               )}
             </Link>
           )}
-          <button
-            onClick={() => exportEmployeesToPDF(filteredEmployees, 'Active Employees List')}
-            className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
-            title="Export to PDF"
-          >
-            <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
-            <span>PDF</span>
-          </button>
-          <button
-            onClick={() => exportEmployeesToExcel(filteredEmployees, 'active_employees_list')}
-            className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
-            title="Export to Excel"
-          >
-            <FileSpreadsheet className="w-3 h-3 lg:w-4 lg:h-4" />
-            <span>Excel</span>
-          </button>
           <Link to="/teachers/add" className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
             <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
             <span>Add Employee</span>
           </Link>
+          <ExportDropdown
+            onExportPDF={() => exportEmployeesToPDF(filteredEmployees, 'Active Employees List')}
+            onExportExcel={() => exportEmployeesToExcel(filteredEmployees, 'active_employees_list')}
+          />
         </div>
       </div>
 

@@ -1,19 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, User, Calendar, Filter, Search } from 'lucide-react';
+import { Activity, User, Calendar, Filter, Search, Bell } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import apiService from '../services/api';
 
 const ActivityLogs = () => {
   const { language } = useLanguage();
+  const { admin } = useAuth();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [adminFilter, setAdminFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
     fetchLogs();
   }, [currentPage, filter, adminFilter]);
+
+  useEffect(() => {
+    const loadPendingCount = async () => {
+      try {
+        const response = await apiService.request('/pending-students');
+        setPendingCount(response.length);
+      } catch (error) {
+        console.error('Failed to load pending students count:', error);
+        setPendingCount(0);
+      }
+    };
+
+    if (admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) {
+      loadPendingCount();
+    }
+  }, [admin]);
 
   const fetchLogs = async () => {
     try {
@@ -96,12 +117,26 @@ const ActivityLogs = () => {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Activity Logs
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Track all admin activities and system changes
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Activity Logs
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Track all admin activities and system changes
+            </p>
+          </div>
+          {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
+            <Link to="/pending-students" className="relative p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 dark:border-gray-700">
+              <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Filters */}

@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Eye, Filter, Trash2, Users, UserX, Edit, CheckSquare, Square, FileText, FileSpreadsheet, Bell } from 'lucide-react';
+import { Plus, Search, Eye, Filter, Trash2, Users, UserX, Edit, CheckSquare, Square, Bell } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
+import ExportDropdown from '../components/ExportDropdown.jsx';
 import { exportStudentsToPDF, exportStudentsToExcel, generateFilename } from '../utils/exportUtils.js';
 import { canView, canCreate, canEdit, canDelete } from '../utils/permissions.js';
 import apiService from '../services/api.js';
@@ -243,10 +244,20 @@ const Students = () => {
               )}
             </Link>
           )}
-          {/* Export Buttons Row */}
+          {/* Action Buttons */}
           <div className="flex flex-wrap gap-2">
-            <button
-              onClick={async () => {
+            {canCreate(admin, 'students') && (
+              <Link
+                to="/students/add"
+                className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+              >
+                <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span>Add Student</span>
+              </Link>
+            )}
+            <ExportDropdown
+              selectedCount={selectedStudents.length}
+              onExportPDF={async () => {
                 const fullStudents = await loadStudentsFull();
                 let dataToExport, title, filename;
                 
@@ -269,14 +280,7 @@ const Students = () => {
                 
                 exportStudentsToPDF(dataToExport, title, language, filename);
               }}
-              className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
-              title={selectedStudents.length > 0 ? 'Export Selected to PDF' : 'Export Filtered to PDF'}
-            >
-              <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span>PDF</span>
-            </button>
-            <button
-              onClick={async () => {
+              onExportExcel={async () => {
                 const fullStudents = await loadStudentsFull();
                 let dataToExport, filename;
                 
@@ -290,21 +294,7 @@ const Students = () => {
                 
                 exportStudentsToExcel(dataToExport, filename, language);
               }}
-              className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
-              title={selectedStudents.length > 0 ? 'Export Selected to Excel' : 'Export Filtered to Excel'}
-            >
-              <FileSpreadsheet className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span>Excel</span>
-            </button>
-            {canCreate(admin, 'students') && (
-              <Link
-                to="/students/add"
-                className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
-              >
-                <Plus className="w-3 h-3 lg:w-4 lg:h-4" />
-                <span>Add Student</span>
-              </Link>
-            )}
+            />
           </div>
           
           {/* Bulk Actions Row */}

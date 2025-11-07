@@ -131,7 +131,7 @@ const Sidebar = () => {
       {/* Sidebar */}
       <div className={`bg-white dark:bg-gray-800 shadow-lg w-64 fixed left-0 z-40 transform transition-transform duration-300 ease-in-out flex flex-col ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      } top-0 h-screen overflow-hidden`}>
+      } top-0 h-screen`}>
         {/* Settings Icon */}
         <div className="p-2 flex justify-start">
           <Link
@@ -235,7 +235,7 @@ const Sidebar = () => {
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-colors duration-200 ${
+                    `flex items-center space-x-2 px-3 py-1 rounded-lg transition-colors duration-200 ${
                       isActive
                         ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-400 border-r-4 border-primary-600'
                         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
@@ -252,7 +252,7 @@ const Sidebar = () => {
 
         {/* Desktop Logout - Only show on desktop */}
         {admin && (
-          <div className="hidden lg:block p-2 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <div className="hidden lg:block p-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 bg-white dark:bg-gray-800">
             <button
               onClick={() => {
                 logout();
@@ -261,7 +261,7 @@ const Sidebar = () => {
               className="flex items-center space-x-2 w-full px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors duration-200 font-medium"
             >
               <LogOut className="w-4 h-4 flex-shrink-0" />
-              <span className="text-xs font-medium">
+              <span className="text-sm font-medium">
                 {language === 'am' ? 'ውጣ' : 'Logout'}
               </span>
             </button>

@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { History, Check, CreditCard, Calendar, Users, Search, Filter, FileText, Download, Plus, Trash2, Bell } from 'lucide-react';
+import { History, Check, CreditCard, Calendar, Users, Search, Filter, FileText, Plus, Trash2, Bell } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useStudents } from '../context/StudentsContext.jsx';
 import { usePayments } from '../context/PaymentsContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import PermissionGuard from '../components/PermissionGuard.jsx';
+import PaymentExportDropdown from '../components/PaymentExportDropdown.jsx';
 import apiService from '../services/api.js';
 import jsPDF from 'jspdf';
 
@@ -184,132 +185,122 @@ const Payments = () => {
       return;
     }
 
-    const doc = new jsPDF();
+    const doc = new jsPDF('l', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.width;
-    const margin = 20;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 15;
     
     // Header
-    doc.setFontSize(18);
+    doc.setFontSize(16);
     doc.setFont(undefined, 'bold');
-    doc.text('Bluelight Academy', pageWidth / 2, 20, { align: 'center' });
+    doc.text(`Bluelight Academy - ${type.charAt(0).toUpperCase() + type.slice(1)} Students`, pageWidth / 2, 20, { align: 'center' });
     
-    doc.setFontSize(14);
-    doc.setFont(undefined, 'normal');
-    doc.text(`${type.charAt(0).toUpperCase() + type.slice(1)} Students Report`, pageWidth / 2, 30, { align: 'center' });
-    doc.text(`${months[selectedMonth]} ${selectedYear}`, pageWidth / 2, 40, { align: 'center' });
-    
-    // Filter info
     doc.setFontSize(10);
-    let filterText = `Total Students: ${studentsToExport.length}`;
-    if (classFilter !== 'all') filterText += ` | Class: ${classFilter}`;
-    if (sectionFilter !== 'all') filterText += ` | Section: ${sectionFilter}`;
-    if (searchTerm) filterText += ` | Search: "${searchTerm}"`;
-    if (descriptionSearchTerm) filterText += ` | Description: "${descriptionSearchTerm}"`;
-    doc.text(filterText, pageWidth / 2, 50, { align: 'center' });
-    
-    // Table headers with better spacing
-    doc.setFontSize(11);
-    doc.setFont(undefined, 'bold');
-    let yPos = 70;
-    
-    // Column positions
-    const cols = {
-      no: margin,
-      name: margin + 15,
-      id: margin + 70,
-      class: margin + 105,
-      section: margin + 130,
-      desc: margin + 155
-    };
-    
-    doc.text('No.', cols.no, yPos);
-    doc.text('Student Name', cols.name, yPos);
-    doc.text('ID Number', cols.id, yPos);
-    doc.text('Class', cols.class, yPos);
-    doc.text('Section', cols.section, yPos);
-    if (type === 'paid') {
-      doc.text('Description', cols.desc, yPos);
-    }
-    
-    // Line under headers
-    doc.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
-    
-    // Table content
     doc.setFont(undefined, 'normal');
+    doc.text(`${months[selectedMonth]} ${selectedYear} | Total: ${studentsToExport.length} | Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, 30, { align: 'center' });
+    
+    // Table setup
+    const startY = 45;
+    const rowHeight = 10;
+    const colWidths = type === 'paid' ? [15, 60, 30, 20, 20, 80] : [15, 70, 35, 25, 25];
+    const colPositions = [];
+    let currentX = margin;
+    
+    colWidths.forEach(width => {
+      colPositions.push(currentX);
+      currentX += width;
+    });
+    
+    const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+    let yPos = startY;
+    
+    // Headers
     doc.setFontSize(9);
-    yPos += 10;
+    doc.setFont(undefined, 'bold');
+    doc.setFillColor(240, 240, 240);
+    doc.rect(margin, yPos - 6, tableWidth, rowHeight, 'F');
+    
+    const headers = type === 'paid' 
+      ? ['#', 'Student Name', 'ID', 'Class', 'Section', 'Description']
+      : ['#', 'Student Name', 'ID', 'Class', 'Section'];
+    
+    headers.forEach((header, index) => {
+      doc.text(header, colPositions[index] + 2, yPos, { maxWidth: colWidths[index] - 4 });
+    });
+    
+    // Draw borders
+    colPositions.forEach((pos, index) => {
+      doc.line(pos, yPos - 6, pos, yPos + 4);
+      if (index === colPositions.length - 1) {
+        doc.line(pos + colWidths[index], yPos - 6, pos + colWidths[index], yPos + 4);
+      }
+    });
+    doc.line(margin, yPos - 6, margin + tableWidth, yPos - 6);
+    doc.line(margin, yPos + 4, margin + tableWidth, yPos + 4);
+    
+    yPos += rowHeight + 4;
+    
+    // Data rows
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(8);
     
     studentsToExport.forEach((student, index) => {
+      if (yPos + rowHeight > pageHeight - 20) {
+        doc.addPage();
+        yPos = 30;
+      }
+      
       const studentName = language === 'am' && student.firstNameAm && student.middleNameAm
         ? `${student.firstNameAm} ${student.middleNameAm}`
         : student.firstName && student.middleName 
         ? `${student.firstName} ${student.middleName}`
         : student.name;
       
-      // Calculate row height based on description length
-      let rowHeight = 8;
-      let descriptionLines = [];
+      if (index % 2 === 1) {
+        doc.setFillColor(250, 250, 250);
+        doc.rect(margin, yPos - 6, tableWidth, rowHeight, 'F');
+      }
       
-      if (type === 'paid' && student.payments[currentMonthKey]?.description) {
-        const description = student.payments[currentMonthKey].description;
-        const maxWidth = pageWidth - cols.desc - margin;
-        const words = description.split(' ');
-        let currentLine = '';
-        
-        words.forEach(word => {
-          const testLine = currentLine + (currentLine ? ' ' : '') + word;
-          const textWidth = doc.getTextWidth(testLine);
-          
-          if (textWidth > maxWidth && currentLine) {
-            descriptionLines.push(currentLine);
-            currentLine = word;
-          } else {
-            currentLine = testLine;
-          }
+      const rowData = type === 'paid'
+        ? [
+            (index + 1).toString(),
+            studentName,
+            student.id,
+            student.class,
+            student.section || 'N/A',
+            student.payments[currentMonthKey]?.description || 'No description'
+          ]
+        : [
+            (index + 1).toString(),
+            studentName,
+            student.id,
+            student.class,
+            student.section || 'N/A'
+          ];
+      
+      rowData.forEach((data, colIndex) => {
+        doc.text(data, colPositions[colIndex] + 2, yPos, { 
+          maxWidth: colWidths[colIndex] - 4,
+          align: colIndex === 0 ? 'center' : 'left'
         });
-        
-        if (currentLine) {
-          descriptionLines.push(currentLine);
+      });
+      
+      // Cell borders
+      colPositions.forEach((pos, colIndex) => {
+        doc.setDrawColor(200, 200, 200);
+        doc.line(pos, yPos - 6, pos, yPos + 4);
+        if (colIndex === colPositions.length - 1) {
+          doc.line(pos + colWidths[colIndex], yPos - 6, pos + colWidths[colIndex], yPos + 4);
         }
-        
-        rowHeight = Math.max(8, descriptionLines.length * 4 + 4);
-      }
-      
-      // Check if we need a new page
-      if (yPos + rowHeight > 270) {
-        doc.addPage();
-        yPos = 30;
-      }
-      
-      // Draw row data
-      doc.text((index + 1).toString(), cols.no, yPos);
-      doc.text(studentName.length > 25 ? studentName.substring(0, 25) + '...' : studentName, cols.name, yPos);
-      doc.text(student.id, cols.id, yPos);
-      doc.text(student.class, cols.class, yPos);
-      doc.text(student.section || 'N/A', cols.section, yPos);
-      
-      // Draw description with proper wrapping
-      if (type === 'paid' && descriptionLines.length > 0) {
-        descriptionLines.forEach((line, lineIndex) => {
-          doc.text(line, cols.desc, yPos + (lineIndex * 4));
-        });
-      }
+      });
+      doc.line(margin, yPos + 4, margin + tableWidth, yPos + 4);
       
       yPos += rowHeight;
     });
     
-    // Footer with better formatting
-    const totalPages = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(100);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, margin, doc.internal.pageSize.height - 10);
-      doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 30, doc.internal.pageSize.height - 10);
-      doc.setTextColor(0);
-    }
+    doc.setDrawColor(0, 0, 0);
+    doc.line(margin, yPos, margin + tableWidth, yPos);
     
-    // Download
     const fileName = `${type}_students_${months[selectedMonth]}_${selectedYear}.pdf`;
     doc.save(fileName);
   };
@@ -568,14 +559,7 @@ const Payments = () => {
   }
 
   return (
-    <div className="space-y-6" style={{ 
-      zoom: '0.9', 
-      minWidth: '100%', 
-      maxWidth: '100vw',
-      position: 'relative',
-      overflow: 'visible'
-    }}>
-      <div className="w-full" style={{ maxWidth: '100vw', overflow: 'hidden' }}>
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
         <div className="flex items-center justify-between w-full lg:w-auto">
@@ -610,12 +594,7 @@ const Payments = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-6 mb-6" style={{
-        position: 'relative',
-        width: '100%',
-        maxWidth: '100vw',
-        overflow: 'visible'
-      }}>
+      <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-6 mb-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-full">
           <div className="flex items-center space-x-3 lg:space-x-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
@@ -653,14 +632,16 @@ const Payments = () => {
         </div>
       </div>
 
+      {/* Export Options */}
+      <div className="flex justify-center">
+        <PaymentExportDropdown
+          onExportPaid={() => generatePDF('paid')}
+          onExportUnpaid={() => generatePDF('unpaid')}
+        />
+      </div>
+
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 mb-6" style={{
-        position: 'relative',
-        width: '100%',
-        maxWidth: '100vw',
-        overflow: 'visible',
-        zIndex: 10
-      }}>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 mb-6">
         <div className="space-y-4">
           {/* Year and Month Selection - Top Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-4 border-b border-gray-200 dark:border-gray-600">
@@ -729,7 +710,7 @@ const Payments = () => {
               </div>
             </div>
 
-            {/* Download Links & Bulk Actions */}
+            {/* Export & Bulk Actions */}
             <div className="flex flex-col space-y-2">
               {canEditPayments && (
                 <button
@@ -742,21 +723,6 @@ const Payments = () => {
                   <span>Mark Selected as Paid ({selectedStudents.length})</span>
                 </button>
               )}
-
-              <button
-                onClick={() => generatePDF('paid')}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm font-medium transition-colors w-fit self-start"
-                title="Download Paid Students PDF"
-              >
-                Download Paid Students
-              </button>
-              <button
-                onClick={() => generatePDF('unpaid')}
-                className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm font-medium transition-colors w-fit self-start"
-                title="Download Unpaid Students PDF"
-              >
-                Download Unpaid Students
-              </button>
             </div>
           </div>
 
@@ -903,8 +869,8 @@ const Payments = () => {
       </div>
 
       {/* Payments Table */}
-      <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="card overflow-hidden" style={{ width: '100%', maxWidth: '100vw' }}>
+        <div className="overflow-x-auto" style={{ width: '100%' }}>
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
@@ -1177,7 +1143,6 @@ const Payments = () => {
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 };
