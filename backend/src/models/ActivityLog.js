@@ -16,6 +16,8 @@ const activityLogSchema = new mongoose.Schema({
     enum: [
       'LOGIN', 'LOGOUT', 'PROFILE_UPDATE', 'PASSWORD_CHANGE',
       'STUDENT_CREATE', 'STUDENT_UPDATE', 'STUDENT_DELETE', 'STUDENT_STATUS_CHANGE', 'STUDENT_PAYMENT_UPDATE',
+      'SPECIAL_STUDENT_CREATE', 'SPECIAL_STUDENT_UPDATE', 'SPECIAL_STUDENT_DELETE', 'SPECIAL_STUDENT_STATUS_CHANGE',
+      'SPECIAL_PAYMENT_CREATE', 'SPECIAL_PAYMENT_UPDATE', 'SPECIAL_PAYMENT_DELETE', 'SPECIAL_PAYMENT_MARKED_PAID',
       'EMPLOYEE_CREATE', 'EMPLOYEE_UPDATE', 'EMPLOYEE_DELETE', 'EMPLOYEE_STATUS_CHANGE',
       'ADMIN_CREATE', 'ADMIN_UPDATE', 'ADMIN_DELETE',
       'PAYMENT_CREATE', 'PAYMENT_UPDATE', 'PAYMENT_DELETE',
@@ -24,7 +26,7 @@ const activityLogSchema = new mongoose.Schema({
   },
   targetType: {
     type: String,
-    enum: ['Student', 'Employee', 'Admin', 'Payment', 'Profile', 'System']
+    enum: ['Student', 'Employee', 'Admin', 'Payment', 'Profile', 'System', 'special_student', 'SpecialStudent', 'SpecialPayment']
   },
   targetId: {
     type: String
