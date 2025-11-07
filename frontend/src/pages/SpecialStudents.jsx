@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import DeleteModal from '../components/DeleteModal.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
 import PermissionGuard from '../components/PermissionGuard.jsx';
-import { exportSpecialStudentsToPDF, exportSpecialStudentsToExcel } from '../utils/exportUtils.js';
+import { exportSpecialStudentsToPDF, exportSpecialStudentsToExcel, generateFilename } from '../utils/exportUtils.js';
 import apiService from '../services/api.js';
 
 const SpecialStudents = () => {
@@ -207,13 +207,26 @@ const SpecialStudents = () => {
             <button
               onClick={async () => {
                 const fullStudents = await loadSpecialStudentsFull();
-                const dataToExport = selectedStudents.length > 0 
-                  ? fullStudents.filter(s => selectedStudents.includes(s.id) && s.status === 'active')
-                  : fullStudents.filter(s => s.status === 'active');
-                const title = selectedStudents.length > 0 
-                  ? `Selected Special Students (${selectedStudents.length})`
-                  : 'Special Students List';
-                exportSpecialStudentsToPDF(dataToExport, title, language);
+                let dataToExport, title, filename;
+                
+                if (selectedStudents.length > 0) {
+                  dataToExport = fullStudents.filter(s => selectedStudents.includes(s.id) && s.status === 'active');
+                  title = `Selected Special Students (${selectedStudents.length})`;
+                  filename = generateFilename('special_students', classFilter, sectionFilter, selectedStudents.length);
+                } else {
+                  dataToExport = filteredStudents.length > 0 ? filteredStudents : fullStudents.filter(s => s.status === 'active');
+                  if (classFilter !== 'all' || sectionFilter !== 'all') {
+                    let titleParts = ['Special Students'];
+                    if (classFilter !== 'all') titleParts.push(classFilter);
+                    if (sectionFilter !== 'all') titleParts.push(`Section ${sectionFilter}`);
+                    title = titleParts.join(' - ');
+                  } else {
+                    title = 'Special Students List';
+                  }
+                  filename = generateFilename('special_students', classFilter, sectionFilter);
+                }
+                
+                exportSpecialStudentsToPDF(dataToExport, title, language, filename);
               }}
               className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"
               title={selectedStudents.length > 0 ? 'Export Selected to PDF' : 'Export Filtered to PDF'}
@@ -224,12 +237,16 @@ const SpecialStudents = () => {
             <button
               onClick={async () => {
                 const fullStudents = await loadSpecialStudentsFull();
-                const dataToExport = selectedStudents.length > 0 
-                  ? fullStudents.filter(s => selectedStudents.includes(s.id) && s.status === 'active')
-                  : fullStudents.filter(s => s.status === 'active');
-                const filename = selectedStudents.length > 0 
-                  ? `selected_special_students_${selectedStudents.length}`
-                  : 'special_students_list';
+                let dataToExport, filename;
+                
+                if (selectedStudents.length > 0) {
+                  dataToExport = fullStudents.filter(s => selectedStudents.includes(s.id) && s.status === 'active');
+                  filename = generateFilename('special_students', classFilter, sectionFilter, selectedStudents.length);
+                } else {
+                  dataToExport = filteredStudents.length > 0 ? filteredStudents : fullStudents.filter(s => s.status === 'active');
+                  filename = generateFilename('special_students', classFilter, sectionFilter);
+                }
+                
                 exportSpecialStudentsToExcel(dataToExport, filename, language);
               }}
               className="btn-secondary flex items-center space-x-1 text-xs lg:text-sm px-2 py-1 lg:px-4 lg:py-2"

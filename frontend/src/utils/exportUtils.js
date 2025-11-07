@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
 // PDF Export Functions
-export const exportStudentsToPDF = (students, title = 'Students List', language = 'en') => {
+export const exportStudentsToPDF = (students, title = 'Students List', language = 'en', filename = null) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
   const margin = 10;
@@ -108,11 +108,12 @@ export const exportStudentsToPDF = (students, title = 'Students List', language 
   }
   
   // Save the PDF
-  doc.save(`${title.toLowerCase().replace(/\s+/g, '_')}.pdf`);
+  const pdfFilename = filename || title.toLowerCase().replace(/\s+/g, '_');
+  doc.save(`${pdfFilename}.pdf`);
 };
 
 // Special Students PDF Export (without payment code)
-export const exportSpecialStudentsToPDF = (students, title = 'Special Students List', language = 'en') => {
+export const exportSpecialStudentsToPDF = (students, title = 'Special Students List', language = 'en', filename = null) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
   const margin = 10;
@@ -216,7 +217,8 @@ export const exportSpecialStudentsToPDF = (students, title = 'Special Students L
   }
   
   // Save the PDF
-  doc.save(`${title.toLowerCase().replace(/\s+/g, '_')}.pdf`);
+  const pdfFilename = filename || title.toLowerCase().replace(/\s+/g, '_');
+  doc.save(`${pdfFilename}.pdf`);
 };
 
 export const exportEmployeesToPDF = (employees, title = 'Employees List') => {
@@ -320,6 +322,26 @@ export const exportEmployeesToPDF = (employees, title = 'Employees List') => {
   doc.save(`${title.toLowerCase().replace(/\s+/g, '_')}.pdf`);
 };
 
+// Helper function to generate dynamic filename
+export const generateFilename = (baseFilename, classFilter, sectionFilter, selectedCount = 0) => {
+  let filename = baseFilename;
+  
+  if (selectedCount > 0) {
+    filename += `_selected_${selectedCount}`;
+  } else {
+    if (classFilter && classFilter !== 'all') {
+      filename += `_${classFilter.toLowerCase()}`;
+      if (sectionFilter && sectionFilter !== 'all') {
+        filename += `_section_${sectionFilter.toLowerCase()}`;
+      }
+    } else if (sectionFilter && sectionFilter !== 'all') {
+      filename += `_section_${sectionFilter.toLowerCase()}`;
+    }
+  }
+  
+  return filename;
+};
+
 // Excel Export Functions
 export const exportStudentsToExcel = (students, filename = 'students_list', language = 'en') => {
   const worksheetData = students.map((student, index) => {
@@ -394,47 +416,14 @@ export const exportStudentsToExcel = (students, filename = 'students_list', lang
   ];
   worksheet['!cols'] = columnWidths;
   
-  // Add header styling
+  // Add basic styling (simplified for better compatibility)
   const range = XLSX.utils.decode_range(worksheet['!ref']);
-  for (let col = range.s.c; col <= range.e.c; col++) {
-    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-    if (!worksheet[cellAddress]) continue;
-    
-    worksheet[cellAddress].s = {
-      font: { bold: true, color: { rgb: "FFFFFF" } },
-      fill: { fgColor: { rgb: "366092" } },
-      alignment: { horizontal: "center", vertical: "center" },
-      border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        left: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } }
-      }
-    };
-  }
-  
-  // Add data row styling
-  for (let row = 1; row <= range.e.r; row++) {
-    for (let col = range.s.c; col <= range.e.c; col++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-      if (!worksheet[cellAddress]) continue;
-      
-      worksheet[cellAddress].s = {
-        alignment: { horizontal: "left", vertical: "center" },
-        border: {
-          top: { style: "thin", color: { rgb: "CCCCCC" } },
-          bottom: { style: "thin", color: { rgb: "CCCCCC" } },
-          left: { style: "thin", color: { rgb: "CCCCCC" } },
-          right: { style: "thin", color: { rgb: "CCCCCC" } }
-        },
-        fill: { fgColor: { rgb: row % 2 === 0 ? "F8F9FA" : "FFFFFF" } }
-      };
-    }
-  }
   
   // Set row height
-  worksheet['!rows'] = Array(range.e.r + 1).fill({ hpt: 20 });
-  worksheet['!rows'][0] = { hpt: 25 }; // Header row height
+  if (range) {
+    worksheet['!rows'] = Array(range.e.r + 1).fill({ hpt: 20 });
+    worksheet['!rows'][0] = { hpt: 25 }; // Header row height
+  }
   
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
@@ -473,6 +462,22 @@ export const exportSpecialStudentsToExcel = (students, filename = 'special_stude
   });
   
   const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+  
+  // Set column widths for better formatting
+  const columnWidths = [
+    { wch: 5 },   // #
+    { wch: 25 },  // Full Name
+    { wch: 12 },  // ID
+    { wch: 8 },   // Class
+    { wch: 8 },   // Section
+    { wch: 20 },  // Mother Name
+    { wch: 20 },  // Father Name
+    { wch: 15 },  // Phone
+    { wch: 12 },  // Joined Year
+    { wch: 30 }   // Address
+  ];
+  worksheet['!cols'] = columnWidths;
+  
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Special Students');
   
@@ -506,6 +511,25 @@ export const exportEmployeesToExcel = (employees, filename = 'employees_list') =
   });
   
   const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+  
+  // Set column widths for better formatting
+  const columnWidths = [
+    { wch: 5 },   // #
+    { wch: 12 },  // ID
+    { wch: 25 },  // Full Name
+    { wch: 15 },  // Phone
+    { wch: 15 },  // Role
+    { wch: 20 },  // Teaching Class
+    { wch: 8 },   // Sex
+    { wch: 15 },  // Employment Date
+    { wch: 15 },  // Employment Type
+    { wch: 20 },  // Qualification Level
+    { wch: 15 },  // Experience
+    { wch: 30 },  // Address
+    { wch: 10 }   // Status
+  ];
+  worksheet['!cols'] = columnWidths;
+  
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Employees');
   
