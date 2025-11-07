@@ -27,15 +27,186 @@ const StudentRegistration = () => {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [touchedFields, setTouchedFields] = useState({});
 
   const classes = ['KG-1', 'KG-2', 'KG-3'];
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    // Filter input based on field type
+    let filteredValue = value;
+    const newErrors = { ...fieldErrors };
+    
+    // English name fields - only allow English letters and spaces
+    if (['firstName', 'middleName', 'lastName'].includes(name)) {
+      const originalLength = value.length;
+      filteredValue = value.replace(/[^A-Za-z\s]/g, '');
+      if (filteredValue.length < originalLength) {
+        newErrors[name] = 'Please write in English only';
+        setTouchedFields({ ...touchedFields, [name]: true });
+      } else {
+        delete newErrors[name];
+      }
+    }
+    
+    // Amharic name fields - only allow Amharic letters and spaces
+    if (['firstNameAm', 'middleNameAm', 'lastNameAm'].includes(name)) {
+      const originalLength = value.length;
+      filteredValue = value.replace(/[^\u1200-\u137F\s]/g, '');
+      if (filteredValue.length < originalLength) {
+        newErrors[name] = 'እባክዎ በአማርኛ ይፃፍ';
+        setTouchedFields({ ...touchedFields, [name]: true });
+      } else {
+        delete newErrors[name];
+      }
+    }
+    
+    // Joined Year field - only allow 4-digit numbers between 2017-2019
+    if (name === 'joinedYear') {
+      // Only allow numbers
+      filteredValue = value.replace(/[^0-9]/g, '');
+      
+      // Limit to 4 digits
+      if (filteredValue.length > 4) {
+        filteredValue = filteredValue.slice(0, 4);
+      }
+      
+      // Validate year range if 4 digits entered
+      if (filteredValue.length === 4) {
+        const year = parseInt(filteredValue);
+        if (year < 2017 || year > 2019) {
+          newErrors[name] = 'Year must be between 2017-2019';
+          setTouchedFields({ ...touchedFields, [name]: true });
+        } else {
+          delete newErrors[name];
+        }
+      } else if (filteredValue.length > 0) {
+        newErrors[name] = 'Please enter 4-digit year';
+        setTouchedFields({ ...touchedFields, [name]: true });
+      } else {
+        delete newErrors[name];
+      }
+    }
+    
+    // Parent name fields - only allow English letters and spaces
+    if (['fatherName', 'motherName'].includes(name)) {
+      const originalLength = value.length;
+      filteredValue = value.replace(/[^A-Za-z\s]/g, '');
+      if (filteredValue.length < originalLength) {
+        newErrors[name] = 'Please write in English only';
+        setTouchedFields({ ...touchedFields, [name]: true });
+      } else {
+        // Check if full name contains at least two words
+        const words = filteredValue.trim().split(/\s+/).filter(word => word.length > 0);
+        if (filteredValue.trim() && words.length < 2) {
+          newErrors[name] = 'ሙሉ ስም ከነ አባት ስም ያስገቡ';
+          setTouchedFields({ ...touchedFields, [name]: true });
+        } else {
+          delete newErrors[name];
+        }
+      }
+    }
+    
+    // Phone number fields - Ethiopian format (09xxxxxxxx or 07xxxxxxxx)
+    if (['fatherPhone', 'motherPhone'].includes(name)) {
+      // Only allow numbers
+      filteredValue = value.replace(/[^0-9]/g, '');
+      
+      // Limit to 10 digits
+      if (filteredValue.length > 10) {
+        filteredValue = filteredValue.slice(0, 10);
+      }
+      
+      // Validate Ethiopian phone format
+      if (filteredValue.length > 0) {
+        if (filteredValue.length < 10) {
+          newErrors[name] = 'Phone must be 10 digits';
+          setTouchedFields({ ...touchedFields, [name]: true });
+        } else if (!filteredValue.startsWith('09') && !filteredValue.startsWith('07')) {
+          newErrors[name] = 'Phone must start with 09 or 07';
+          setTouchedFields({ ...touchedFields, [name]: true });
+        } else {
+          delete newErrors[name];
+        }
+      } else {
+        delete newErrors[name];
+      }
+    }
+    
+    // Address field - no special filtering, just clear errors when typing
+    if (name === 'address') {
+      filteredValue = value;
+      delete newErrors[name];
+    }
+    
+    setFormData({ ...formData, [name]: filteredValue });
+    
+    // Check if previous required fields are filled when typing
+    const fieldOrder = Object.keys(requiredFields);
+    const currentIndex = fieldOrder.indexOf(name);
+    
+    // Check previous fields and show error on first empty one (only if no language error)
+    if (!newErrors[name]) {
+      for (let i = 0; i < currentIndex; i++) {
+        const prevField = fieldOrder[i];
+        if (!formData[prevField] || formData[prevField].trim() === '') {
+          newErrors[prevField] = 'Fill this first';
+          setTouchedFields({ ...touchedFields, [prevField]: true });
+          break;
+        }
+      }
+    }
+    
+    setFieldErrors(newErrors);
   };
 
   const handleDateChange = (e) => {
-    setFormData({ ...formData, dateOfBirth: e.target.value });
+    let value = e.target.value;
+    
+    // Only allow numbers and forward slashes
+    value = value.replace(/[^0-9/]/g, '');
+    
+    // Format as dd/mm/yyyy
+    if (value.length <= 10) {
+      if (value.length === 2 && !value.includes('/')) {
+        value = value + '/';
+      } else if (value.length === 5 && value.split('/').length === 2) {
+        value = value + '/';
+      }
+    }
+    
+    setFormData({ ...formData, dateOfBirth: value });
+    
+    // Validate date format
+    const newErrors = { ...fieldErrors };
+    const datePattern = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+    
+    if (value && !datePattern.test(value)) {
+      newErrors.dateOfBirth = 'Please enter date as dd/mm/yyyy';
+      setTouchedFields({ ...touchedFields, dateOfBirth: true });
+    } else {
+      delete newErrors.dateOfBirth;
+    }
+    
+    // Check if previous required fields are filled when typing
+    const fieldOrder = Object.keys(requiredFields);
+    const currentIndex = fieldOrder.indexOf('dateOfBirth');
+    
+    // Check previous fields and show error on first empty one
+    if (!newErrors.dateOfBirth) {
+      for (let i = 0; i < currentIndex; i++) {
+        const prevField = fieldOrder[i];
+        if (!formData[prevField] || formData[prevField].trim() === '') {
+          newErrors[prevField] = 'Fill this first';
+          setTouchedFields({ ...touchedFields, [prevField]: true });
+          break;
+        }
+      }
+    }
+    
+    setFieldErrors(newErrors);
   };
 
   const handlePhotoChange = (e) => {
@@ -49,39 +220,75 @@ const StudentRegistration = () => {
     }
   };
 
+  const requiredFields = {
+    firstName: 'First Name',
+    middleName: 'Middle Name (Father Name)',
+    lastName: 'Last Name',
+    firstNameAm: 'First Name (Amharic)',
+    middleNameAm: 'Middle Name (Amharic)',
+    lastNameAm: 'Last Name (Amharic)',
+    gender: 'Gender',
+    dateOfBirth: 'Date of Birth',
+    joinedYear: 'Joined Year',
+    address: 'Address',
+    class: 'Class',
+    fatherName: 'Father Name',
+    fatherPhone: 'Father Phone',
+    motherName: 'Mother Name',
+    motherPhone: 'Mother Phone'
+  };
+
+  const validateField = (fieldName, value) => {
+    if (requiredFields[fieldName] && (!value || value.trim() === '')) {
+      return `${requiredFields[fieldName]} is required`;
+    }
+    return '';
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouchedFields({ ...touchedFields, [name]: true });
+    
+    const error = validateField(name, value);
+    if (error) {
+      setFieldErrors({ ...fieldErrors, [name]: error });
+    }
+  };
+
+  const handleFocus = (e) => {
+    const { name } = e.target;
+    const fieldOrder = Object.keys(requiredFields);
+    const currentIndex = fieldOrder.indexOf(name);
+    
+    // Check if previous required fields are filled
+    for (let i = 0; i < currentIndex; i++) {
+      const prevField = fieldOrder[i];
+      if (!formData[prevField] || formData[prevField].trim() === '') {
+        const error = `Fill this first`;
+        setFieldErrors({ ...fieldErrors, [prevField]: error });
+        setTouchedFields({ ...touchedFields, [prevField]: true });
+        return;
+      }
+    }
+  };
+
   const validateForm = () => {
-    const requiredFields = {
-      firstName: 'First Name',
-      middleName: 'Middle Name (Father Name)',
-      lastName: 'Last Name',
-      firstNameAm: 'First Name (Amharic)',
-      middleNameAm: 'Middle Name (Amharic)',
-      lastNameAm: 'Last Name (Amharic)',
-      gender: 'Gender',
-      dateOfBirth: 'Date of Birth',
-      joinedYear: 'Joined Year',
-      address: 'Address',
-      class: 'Class',
-      fatherName: 'Father Name',
-      fatherPhone: 'Father Phone',
-      motherName: 'Mother Name',
-      motherPhone: 'Mother Phone'
-    };
+    const errors = {};
+    let hasErrors = false;
 
     for (const [field, label] of Object.entries(requiredFields)) {
       if (!formData[field] || formData[field].trim() === '') {
-        toast.error(`${label} is required!`, {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        return false;
+        errors[field] = `${label} is required`;
+        hasErrors = true;
       }
     }
-    return true;
+
+    setFieldErrors(errors);
+    setTouchedFields(Object.keys(requiredFields).reduce((acc, field) => ({ ...acc, [field]: true }), {}));
+
+    // Errors will be shown via field validation messages
+
+    return !hasErrors;
   };
 
   const handleSubmit = async (e) => {
@@ -94,12 +301,23 @@ const StudentRegistration = () => {
     setIsSubmitting(true);
 
     try {
+      // Process name fields to only include text before first space
+      const processedData = {
+        ...formData,
+        firstName: formData.firstName.split(' ')[0],
+        middleName: formData.middleName.split(' ')[0],
+        lastName: formData.lastName.split(' ')[0],
+        firstNameAm: formData.firstNameAm.split(' ')[0],
+        middleNameAm: formData.middleNameAm.split(' ')[0],
+        lastNameAm: formData.lastNameAm.split(' ')[0]
+      };
+      
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/pending-students/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(processedData),
       });
 
       if (!response.ok) {
@@ -135,7 +353,7 @@ const StudentRegistration = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Registration Submitted!</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Registration Submitted!<br/>ምዝገባው ተሳክቷል</h2>
           <button
             onClick={() => {
               setIsSubmitted(false);
@@ -184,7 +402,7 @@ const StudentRegistration = () => {
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Student Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Student Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Student Information (የተማሪው መረጃ)</h3>
               
               {/* Photo Upload */}
               <div className="flex items-center space-x-6">
@@ -193,14 +411,12 @@ const StudentRegistration = () => {
                     <img src={formData.photo} alt="Student" className="w-full h-full object-cover" />
                   ) : (
                     <div className="text-center">
-                      <div className="text-gray-400 text-sm">4x4 Photo</div>
-                      <div className="text-gray-400 text-xs">(Optional)</div>
                     </div>
                   )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Student Photo (4x4) - Optional
+                    Student Photo (የተማሪው ፎቶ) - Optional
                   </label>
                   <input
                     type="file"
@@ -224,16 +440,25 @@ const StudentRegistration = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    First Name *
+                    Student First Name *
                   </label>
                   <input
                     type="text"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.firstName && touchedFields.firstName
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {fieldErrors.firstName && touchedFields.firstName && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.firstName}</p>
+                  )}
                 </div>
 
                 <div>
@@ -245,85 +470,136 @@ const StudentRegistration = () => {
                     name="middleName"
                     value={formData.middleName}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.middleName && touchedFields.middleName
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {fieldErrors.middleName && touchedFields.middleName && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.middleName}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Last Name *
+                    Last Name (Grand Father Name) *
                   </label>
                   <input
                     type="text"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.lastName && touchedFields.lastName
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {fieldErrors.lastName && touchedFields.lastName && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.lastName}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    First Name (Amharic) *
+                    የተማሪው የመጀመሪያ ስም *
                   </label>
                   <input
                     type="text"
                     name="firstNameAm"
                     value={formData.firstNameAm}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="የመጀመሪያ ስም"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.firstNameAm && touchedFields.firstNameAm
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {fieldErrors.firstNameAm && touchedFields.firstNameAm && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.firstNameAm}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Middle Name (Amharic) *
+                    የአባት ስም *
                   </label>
                   <input
                     type="text"
                     name="middleNameAm"
                     value={formData.middleNameAm}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="የአባት ስም"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.middleNameAm && touchedFields.middleNameAm
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {fieldErrors.middleNameAm && touchedFields.middleNameAm && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.middleNameAm}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Last Name (Amharic) *
+                    የአያት ስም *
                   </label>
                   <input
                     type="text"
                     name="lastNameAm"
                     value={formData.lastNameAm}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="የአያት ስም"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.lastNameAm && touchedFields.lastNameAm
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {fieldErrors.lastNameAm && touchedFields.lastNameAm && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.lastNameAm}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Gender *
+                    Gender (ፆታ) *
                   </label>
                   <select
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.gender && touchedFields.gender
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
                     required
                   >
                     <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
+                    <option value="male">Male (ወንድ)</option>
+                    <option value="female">Female (ሴት)</option>
                   </select>
+                  {fieldErrors.gender && touchedFields.gender && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.gender}</p>
+                  )}
                 </div>
 
                 <div>
@@ -341,50 +617,77 @@ const StudentRegistration = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date of Birth *
+                    Date of Birth (የተወለዱበት ቀን) *
                   </label>
                   <input
                     type="text"
                     name="dateOfBirth"
                     value={formData.dateOfBirth}
                     onChange={handleDateChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="dd/mm/yyyy"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.dateOfBirth && touchedFields.dateOfBirth
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
+                    placeholder="dd/mm/yyyy E.C"
                     required
                   />
+                  {fieldErrors.dateOfBirth && touchedFields.dateOfBirth && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.dateOfBirth}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Joined Year *
+                    Joined Year (ትምሕርት የጀመሩበት/የሚጀምሩበት ዓመት) *
                   </label>
                   <input
                     type="text"
                     name="joinedYear"
                     value={formData.joinedYear}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., 2018"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.joinedYear && touchedFields.joinedYear
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
+                    placeholder="yyyy E.C"
                     required
                   />
+                  {fieldErrors.joinedYear && touchedFields.joinedYear && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.joinedYear}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Class *
+                    Class (ክፍል) *
                   </label>
                   <select
                     name="class"
                     value={formData.class}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.class && touchedFields.class
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
                     required
                   >
                     <option value="">Select Class</option>
-                    {classes.map(cls => (
-                      <option key={cls} value={cls}>{cls}</option>
-                    ))}
+                    <option value="KG-1">KG-1 (ጀማሪ)</option>
+                    <option value="KG-2">KG-2 (ደረጃ 1)</option>
+                    <option value="KG-3">KG-3 (ደረጃ 2)</option>
                   </select>
+                  {fieldErrors.class && touchedFields.class && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.class}</p>
+                  )}
                 </div>
 
                 <div className="md:col-span-2">
@@ -396,29 +699,47 @@ const StudentRegistration = () => {
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.address && touchedFields.address
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {fieldErrors.address && touchedFields.address && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.address}</p>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Parent Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Parent Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Parent Information (የወላጅ መረጃ)</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Father Name *
+                    Father Full Name *
                   </label>
                   <input
                     type="text"
                     name="fatherName"
                     value={formData.fatherName}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.fatherName && touchedFields.fatherName
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {fieldErrors.fatherName && touchedFields.fatherName && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.fatherName}</p>
+                  )}
                 </div>
 
                 <div>
@@ -430,23 +751,41 @@ const StudentRegistration = () => {
                     name="fatherPhone"
                     value={formData.fatherPhone}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.fatherPhone && touchedFields.fatherPhone
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {fieldErrors.fatherPhone && touchedFields.fatherPhone && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.fatherPhone}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mother Name *
+                    Mother Full Name *
                   </label>
                   <input
                     type="text"
                     name="motherName"
                     value={formData.motherName}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.motherName && touchedFields.motherName
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {fieldErrors.motherName && touchedFields.motherName && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.motherName}</p>
+                  )}
                 </div>
 
                 <div>
@@ -458,9 +797,18 @@ const StudentRegistration = () => {
                     name="motherPhone"
                     value={formData.motherPhone}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      fieldErrors.motherPhone && touchedFields.motherPhone
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {fieldErrors.motherPhone && touchedFields.motherPhone && (
+                    <p className="text-red-500 text-sm mt-1">{fieldErrors.motherPhone}</p>
+                  )}
                 </div>
               </div>
             </div>
