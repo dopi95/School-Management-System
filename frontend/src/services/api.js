@@ -242,6 +242,15 @@ class ApiService {
     return this.request('/special-students');
   }
 
+  async getSpecialStudentsFull() {
+    try {
+      const result = await this.request('/special-students/full');
+      return Array.isArray(result) ? result : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
   async getSpecialStudent(id) {
     return this.request(`/special-students/${encodeURIComponent(id)}`);
   }

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import apiService from '../services/api.js';
 import { useAuth } from './AuthContext.jsx';
+import eventBus from '../utils/eventBus.js';
 
 const SpecialStudentsContext = createContext();
 
@@ -24,6 +25,29 @@ export const SpecialStudentsProvider = ({ children }) => {
       loadSpecialStudents();
     }
   }, [isAuthenticated]);
+
+  // Listen for events from pending student approvals
+  useEffect(() => {
+    const handleSpecialStudentAdded = () => {
+      if (!isEditing && localStorage.getItem('token')) {
+        loadSpecialStudents(false); // Silent refresh
+      }
+    };
+
+    const handleStudentRejected = () => {
+      if (!isEditing && localStorage.getItem('token')) {
+        loadSpecialStudents(false); // Silent refresh
+      }
+    };
+
+    eventBus.on('specialStudentAdded', handleSpecialStudentAdded);
+    eventBus.on('studentRejected', handleStudentRejected);
+
+    return () => {
+      eventBus.off('specialStudentAdded', handleSpecialStudentAdded);
+      eventBus.off('studentRejected', handleStudentRejected);
+    };
+  }, [isEditing]);
 
   // Set up refresh mechanisms only when not editing
   useEffect(() => {

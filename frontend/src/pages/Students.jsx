@@ -10,6 +10,7 @@ import ExportDropdown from '../components/ExportDropdown.jsx';
 import { exportStudentsToPDF, exportStudentsToExcel, generateFilename } from '../utils/exportUtils.js';
 import { canView, canCreate, canEdit, canDelete } from '../utils/permissions.js';
 import apiService from '../services/api.js';
+import eventBus from '../utils/eventBus.js';
 
 const Students = () => {
   const { t, language } = useLanguage();
@@ -187,21 +188,42 @@ const Students = () => {
   const isIndeterminate = selectedStudents.length > 0 && selectedStudents.length < filteredStudents.length;
 
   // Load pending students count (only count pending status)
-  useEffect(() => {
-    const loadPendingCount = async () => {
-      try {
-        const response = await apiService.request('/pending-students');
-        const pendingOnly = response.filter(s => !s.status || s.status === 'pending');
-        setPendingCount(pendingOnly.length);
-      } catch (error) {
-        console.error('Failed to load pending students count:', error);
-        setPendingCount(0);
-      }
-    };
+  const loadPendingCount = async () => {
+    try {
+      const response = await apiService.request('/pending-students');
+      const pendingOnly = response.filter(s => !s.status || s.status === 'pending');
+      setPendingCount(pendingOnly.length);
+    } catch (error) {
+      console.error('Failed to load pending students count:', error);
+      setPendingCount(0);
+    }
+  };
 
+  useEffect(() => {
     if (admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) {
       loadPendingCount();
     }
+  }, [admin]);
+
+  // Listen for events from pending student actions
+  useEffect(() => {
+    const handlePendingStudentChange = () => {
+      if (admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) {
+        loadPendingCount();
+      }
+    };
+
+    eventBus.on('studentAdded', handlePendingStudentChange);
+    eventBus.on('specialStudentAdded', handlePendingStudentChange);
+    eventBus.on('studentRejected', handlePendingStudentChange);
+    eventBus.on('pendingStudentDeleted', handlePendingStudentChange);
+
+    return () => {
+      eventBus.off('studentAdded', handlePendingStudentChange);
+      eventBus.off('specialStudentAdded', handlePendingStudentChange);
+      eventBus.off('studentRejected', handlePendingStudentChange);
+      eventBus.off('pendingStudentDeleted', handlePendingStudentChange);
+    };
   }, [admin]);
 
   return (

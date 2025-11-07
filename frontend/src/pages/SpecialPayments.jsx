@@ -662,24 +662,11 @@ const SpecialPayments = () => {
               </div>
             </div>
 
-            {/* Bulk Actions */}
-            <div className="flex flex-col space-y-2">
-              {canEditSpecialPayments && (
-                <button
-                  onClick={() => setShowBulkModal(true)}
-                  disabled={selectedStudents.length === 0}
-                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors w-fit self-start flex items-center space-x-2"
-                  title="Mark Selected as Paid"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Mark Selected as Paid ({selectedStudents.length})</span>
-                </button>
-              )}
-            </div>
+
           </div>
 
-          {/* Search and Other Filters - Second Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Search Filters - Second Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -703,7 +690,10 @@ const SpecialPayments = () => {
                 className="input-field pl-10"
               />
             </div>
+          </div>
 
+          {/* Class and Section Filters - Third Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Class Filter */}
             <div className="relative">
               <Filter className="absolute left-3 top-3 text-gray-400 w-5 h-5 pointer-events-none z-10" />
@@ -797,9 +787,9 @@ const SpecialPayments = () => {
           )}
         </div>
 
-        {/* Clear Filters */}
-        {(searchTerm || descriptionSearchTerm || classFilter !== 'all' || sectionFilter !== 'all' || paymentStatusFilter !== 'all' || showPaidOnly) && (
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
+        {/* Clear Filters and Bulk Actions */}
+        <div className="pt-4 border-t border-gray-200 dark:border-gray-600 flex flex-wrap items-center justify-between gap-4">
+          {(searchTerm || descriptionSearchTerm || classFilter !== 'all' || sectionFilter !== 'all' || paymentStatusFilter !== 'all' || showPaidOnly) && (
             <button
               onClick={() => {
                 setSearchTerm('');
@@ -815,8 +805,20 @@ const SpecialPayments = () => {
             >
               Clear all filters
             </button>
-          </div>
-        )}
+          )}
+          
+          {canEditSpecialPayments && (
+            <button
+              onClick={() => setShowBulkModal(true)}
+              disabled={selectedStudents.length === 0}
+              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+              title="Mark Selected as Paid"
+            >
+              <Check className="w-4 h-4" />
+              <span>Mark Selected as Paid ({selectedStudents.length})</span>
+            </button>
+          )}
+        </div>
         </div>
       </div>
 

@@ -3,6 +3,7 @@ import { Check, X, Users, Clock, Download, Trash2 } from 'lucide-react';
 import apiService from '../services/api.js';
 import { toast, ToastContainer } from 'react-toastify';
 import { useAuth } from '../context/AuthContext.jsx';
+import eventBus from '../utils/eventBus.js';
 import jsPDF from 'jspdf';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -178,6 +179,13 @@ const PendingStudents = () => {
         });
       });
       
+      // Emit events to refresh other contexts
+      if (type === 'special') {
+        eventBus.emit('specialStudentAdded', { studentId, type: 'approved' });
+      } else {
+        eventBus.emit('studentAdded', { studentId, type: 'approved' });
+      }
+      
       apiService.invalidateCache('students');
       apiService.invalidateCache('special-students');
       const message = type === 'special' ? 'Student approved and added to special students list!' : 'Student approved and added to students list!';
@@ -206,10 +214,6 @@ const PendingStudents = () => {
       // Call backend to update status to rejected (backend handles removal from main lists)
       await apiService.request(`/pending-students/${studentId}/reject`, { method: 'POST' });
       
-      // Invalidate caches to refresh other pages
-      apiService.invalidateCache('students');
-      apiService.invalidateCache('special-students');
-      
       // Update local state
       setPendingStudents(prev => {
         const updated = prev.map(s => 
@@ -226,6 +230,13 @@ const PendingStudents = () => {
           return 0;
         });
       });
+      
+      // Emit event to refresh other contexts
+      eventBus.emit('studentRejected', { studentId });
+      
+      // Invalidate caches to refresh other pages
+      apiService.invalidateCache('students');
+      apiService.invalidateCache('special-students');
       
       toast.success('Student registration rejected!', {
         position: "top-right",
@@ -252,6 +263,10 @@ const PendingStudents = () => {
       try {
         await apiService.request(`/pending-students/${studentId}/reject`, { method: 'DELETE' });
         setPendingStudents(prev => prev.filter(s => s.id !== studentId));
+        
+        // Emit event to refresh other contexts
+        eventBus.emit('pendingStudentDeleted', { studentId });
+        
         toast.success('Student registration deleted from pending list!', {
           position: "top-right",
           autoClose: 3000,

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import apiService from '../services/api.js';
 import { useAuth } from './AuthContext.jsx';
+import eventBus from '../utils/eventBus.js';
 
 const StudentsContext = createContext();
 
@@ -24,6 +25,29 @@ export const StudentsProvider = ({ children }) => {
       loadStudents();
     }
   }, [isAuthenticated]);
+
+  // Listen for events from pending student approvals
+  useEffect(() => {
+    const handleStudentAdded = () => {
+      if (!isEditing && localStorage.getItem('token')) {
+        loadStudents(false); // Silent refresh
+      }
+    };
+
+    const handleStudentRejected = () => {
+      if (!isEditing && localStorage.getItem('token')) {
+        loadStudents(false); // Silent refresh
+      }
+    };
+
+    eventBus.on('studentAdded', handleStudentAdded);
+    eventBus.on('studentRejected', handleStudentRejected);
+
+    return () => {
+      eventBus.off('studentAdded', handleStudentAdded);
+      eventBus.off('studentRejected', handleStudentRejected);
+    };
+  }, [isEditing]);
 
   useEffect(() => {
     if (isEditing) return;

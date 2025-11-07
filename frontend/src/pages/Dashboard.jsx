@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, GraduationCap, UserCog, UserX, Send, Bell } from 'lucide-react';
 import apiService from '../services/api.js';
+import eventBus from '../utils/eventBus.js';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -164,6 +165,23 @@ const Dashboard = () => {
   // ===============================
   // 🔔 Load Pending Students & Play Sound
   // ===============================
+  const loadPendingCount = async () => {
+    try {
+      const response = await apiService.request('/pending-students');
+      const pendingOnly = response.filter(s => !s.status || s.status === 'pending');
+      const count = pendingOnly.length;
+      setPendingCount(count);
+
+      if (count > 0) {
+        const audio = new Audio('/cool-s.mp3');
+        audio.play().catch(() => console.log('Autoplay prevented until user interacts.'));
+      }
+    } catch (error) {
+      console.error('Failed to load pending students count:', error);
+      setPendingCount(0);
+    }
+  };
+
   useEffect(() => {
     // Check for preloaded data first
     const preloaded = sessionStorage.getItem('preloadedData');
@@ -186,26 +204,30 @@ const Dashboard = () => {
     }
 
     // Fallback to API call
-    const loadPendingCount = async () => {
-      try {
-        const response = await apiService.request('/pending-students');
-        const pendingOnly = response.filter(s => !s.status || s.status === 'pending');
-        const count = pendingOnly.length;
-        setPendingCount(count);
-
-        if (count > 0) {
-          const audio = new Audio('/cool-s.mp3');
-          audio.play().catch(() => console.log('Autoplay prevented until user interacts.'));
-        }
-      } catch (error) {
-        console.error('Failed to load pending students count:', error);
-        setPendingCount(0);
-      }
-    };
-
     if (admin?.role === 'superadmin' || admin?.permissions?.students) {
       loadPendingCount();
     }
+  }, [admin]);
+
+  // Listen for events from pending student actions
+  useEffect(() => {
+    const handlePendingStudentChange = () => {
+      if (admin?.role === 'superadmin' || admin?.permissions?.students) {
+        loadPendingCount();
+      }
+    };
+
+    eventBus.on('studentAdded', handlePendingStudentChange);
+    eventBus.on('specialStudentAdded', handlePendingStudentChange);
+    eventBus.on('studentRejected', handlePendingStudentChange);
+    eventBus.on('pendingStudentDeleted', handlePendingStudentChange);
+
+    return () => {
+      eventBus.off('studentAdded', handlePendingStudentChange);
+      eventBus.off('specialStudentAdded', handlePendingStudentChange);
+      eventBus.off('studentRejected', handlePendingStudentChange);
+      eventBus.off('pendingStudentDeleted', handlePendingStudentChange);
+    };
   }, [admin]);
 
   // ===============================
