@@ -34,7 +34,8 @@ const Notifications = () => {
     const loadPendingCount = async () => {
       try {
         const response = await apiService.request('/pending-students');
-        setPendingCount(response.length);
+        const pendingOnly = response.filter(s => !s.status || s.status === 'pending');
+        setPendingCount(pendingOnly.length);
       } catch (error) {
         console.error('Failed to load pending students count:', error);
         setPendingCount(0);

@@ -152,12 +152,13 @@ const SpecialStudents = () => {
   const isAllSelected = filteredStudents.length > 0 && selectedStudents.length === filteredStudents.length;
   const isIndeterminate = selectedStudents.length > 0 && selectedStudents.length < filteredStudents.length;
 
-  // Load pending students count
+  // Load pending students count (only count pending status)
   useEffect(() => {
     const loadPendingCount = async () => {
       try {
         const response = await apiService.request('/pending-students');
-        setPendingCount(response.length);
+        const pendingOnly = response.filter(s => !s.status || s.status === 'pending');
+        setPendingCount(pendingOnly.length);
       } catch (error) {
         console.error('Failed to load pending students count:', error);
         setPendingCount(0);
@@ -326,7 +327,7 @@ const SpecialStudents = () => {
         overflow: 'visible',
         zIndex: 10
       }}>
-        <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-4">
+        <div className="space-y-3">
           {/* Search */}
           <div>
             <div className="relative">
@@ -336,21 +337,21 @@ const SpecialStudents = () => {
                 placeholder="Search students..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64 px-3 py-2 pl-9 lg:pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm lg:text-base"
+                className="w-full lg:w-64 px-3 py-2 pl-9 lg:pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm lg:text-base"
               />
             </div>
           </div>
 
-          {/* Filters Row */}
+          {/* First Filter Row - Class and Section */}
           <div className="flex gap-2 lg:gap-4">
             {/* Class Filter */}
-            <div>
+            <div className="flex-1">
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <select
                   value={classFilter}
                   onChange={(e) => setClassFilter(e.target.value)}
-                  className="w-32 px-3 py-2 pl-9 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none text-sm lg:text-base"
+                  className="w-full px-3 py-2 pl-9 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none text-sm lg:text-base"
                 >
                   <option value="all">All Classes</option>
                   {classes.map(cls => (
@@ -366,13 +367,13 @@ const SpecialStudents = () => {
             </div>
 
             {/* Section Filter */}
-            <div>
+            <div className="flex-1">
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <select
                   value={sectionFilter}
                   onChange={(e) => setSectionFilter(e.target.value)}
-                  className="w-36 px-3 py-2 pl-9 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none text-sm lg:text-base"
+                  className="w-full px-3 py-2 pl-9 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none text-sm lg:text-base"
                 >
                   <option value="all">All Sections</option>
                   {sections.map(section => (
@@ -386,25 +387,25 @@ const SpecialStudents = () => {
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Type Filter */}
-            <div>
-              <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                  className="w-40 px-3 py-2 pl-9 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none text-sm lg:text-base"
-                >
-                  <option value="all">All Types</option>
-                  <option value="regular">Regular Students</option>
-                  <option value="special">Special Students</option>
-                </select>
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
+          {/* Second Filter Row - Type Filter */}
+          <div>
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="w-full lg:w-40 px-3 py-2 pl-9 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none text-sm lg:text-base"
+              >
+                <option value="all">All Types</option>
+                <option value="regular">Regular Students</option>
+                <option value="special">Special Students</option>
+              </select>
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg className="w-3 h-3 lg:w-4 lg:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </div>
             </div>
           </div>

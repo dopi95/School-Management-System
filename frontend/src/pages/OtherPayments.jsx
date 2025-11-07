@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Book, Package, Search, Calendar, Users, Trash2, Bell } from 'lucide-react';
+import { Book, Package, Search, Calendar, Users, Trash2, Bell, Filter } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useStudents } from '../context/StudentsContext.jsx';
@@ -63,7 +63,8 @@ const OtherPayments = () => {
     const loadPendingCount = async () => {
       try {
         const response = await apiService.request('/pending-students');
-        setPendingCount(response.length);
+        const pendingOnly = response.filter(s => !s.status || s.status === 'pending');
+        setPendingCount(pendingOnly.length);
       } catch (error) {
         console.error('Failed to load pending students count:', error);
         setPendingCount(0);
@@ -496,14 +497,30 @@ const OtherPayments = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Other Payments</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage book and stationary payments for students</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
+        <div className="flex items-center justify-between w-full lg:w-auto">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Other Payments</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Manage book and stationary payments for students</p>
+          </div>
+          
+          {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
+            <Link to="/pending-students" className="relative p-2 ml-3 mr-10 bg-white dark:bg-gray-800 rounded-full shadow hover:shadow-md border border-gray-200 dark:border-gray-700 lg:hidden">
+              <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          )}
         </div>
+        
+        {/* Bell Icon for Desktop */}
         {(admin?.role === 'superadmin' || admin?.permissions?.pendingStudents?.view) && (
-          <Link to="/pending-students" className="relative p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 dark:border-gray-700">
+          <Link to="/pending-students" className="relative p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 dark:border-gray-700 hidden lg:block" style={{ marginRight: '50px' }}>
             <Bell className="w-6 h-6 text-gray-600 dark:text-gray-400" />
             {pendingCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
@@ -525,159 +542,179 @@ const OtherPayments = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-              <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+              <Book className="w-5 h-5 lg:w-6 lg:h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
-                {paymentStats.totalStudents}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Students</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{paymentStats.paidBook}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Paid Book ({selectedYear})</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-              <Book className="w-5 h-5 text-green-600 dark:text-green-400" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+              <Book className="w-5 h-5 lg:w-6 lg:h-6 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
-                {paymentStats.paidBook}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Paid Book ({selectedYear})</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{paymentStats.unpaidBook}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Unpaid Book ({selectedYear})</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-              <Book className="w-5 h-5 text-red-600 dark:text-red-400" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+              <Package className="w-5 h-5 lg:w-6 lg:h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
-                {paymentStats.unpaidBook}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Unpaid Book ({selectedYear})</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{paymentStats.paidStationary}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Paid Stationary ({selectedYear})</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-              <Package className="w-5 h-5 text-green-600 dark:text-green-400" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+              <Package className="w-5 h-5 lg:w-6 lg:h-6 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
-                {paymentStats.paidStationary}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Paid Stationary ({selectedYear})</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-              <Package className="w-5 h-5 text-red-600 dark:text-red-400" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
-                {paymentStats.unpaidStationary}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Unpaid Stationary ({selectedYear})</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{paymentStats.unpaidStationary}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Unpaid Stationary ({selectedYear})</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 mb-6">
         <div className="space-y-4">
-          {/* First Row - Search and Year */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search by student name, ID, father name, mother name, or payment description..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-gray-400" />
+          {/* Year Selection - Top Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-4 border-b border-gray-200 dark:border-gray-600">
+            {/* Year Filter */}
+            <div className="relative">
+              <Calendar className="absolute left-3 top-3 text-gray-400 w-5 h-5 pointer-events-none z-10" />
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                className="input-field pl-10 pr-10 appearance-none"
               >
                 {years.map(year => (
                   <option key={year} value={year}>{year}</option>
                 ))}
               </select>
+              <div className="absolute right-3 top-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Payment Status Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-3 text-gray-400 w-5 h-5 pointer-events-none z-10" />
+              <select
+                value={paymentFilter}
+                onChange={(e) => setPaymentFilter(e.target.value)}
+                className="input-field pl-10 pr-10 appearance-none"
+              >
+                <option value="all">All Payment Status</option>
+                <option value="paid-book">Paid for Book</option>
+                <option value="unpaid-book">Unpaid for Book</option>
+                <option value="paid-stationary">Paid for Stationary</option>
+                <option value="unpaid-stationary">Unpaid for Stationary</option>
+              </select>
+              <div className="absolute right-3 top-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Student Type Filter */}
+            <div className="relative">
+              <Users className="absolute left-3 top-3 text-gray-400 w-5 h-5 pointer-events-none z-10" />
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="input-field pl-10 pr-10 appearance-none"
+              >
+                <option value="all">All Types</option>
+                <option value="regular">Regular Students</option>
+                <option value="special">Special Students</option>
+              </select>
+              <div className="absolute right-3 top-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
           </div>
 
-          {/* Second Row - Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <select
-              value={classFilter}
-              onChange={(e) => setClassFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-            >
-              <option value="all">All Classes</option>
-              {classes.map(cls => (
-                <option key={cls} value={cls}>{cls}</option>
-              ))}
-            </select>
+          {/* Search and Other Filters - Second Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search students..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input-field pl-10"
+              />
+            </div>
 
-            <select
-              value={sectionFilter}
-              onChange={(e) => setSectionFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-            >
-              <option value="all">All Sections</option>
-              {sections.map(section => (
-                <option key={section} value={section}>Section {section}</option>
-              ))}
-            </select>
+            {/* Class Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-3 text-gray-400 w-5 h-5 pointer-events-none z-10" />
+              <select
+                value={classFilter}
+                onChange={(e) => setClassFilter(e.target.value)}
+                className="input-field pl-10 pr-10 appearance-none"
+              >
+                <option value="all">All Classes</option>
+                {classes.map(cls => (
+                  <option key={cls} value={cls}>{cls}</option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
 
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-            >
-              <option value="all">All Types</option>
-              <option value="regular">Regular Students</option>
-              <option value="special">Special Students</option>
-            </select>
-
-            <select
-              value={paymentFilter}
-              onChange={(e) => setPaymentFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-            >
-              <option value="all">All Payment Status</option>
-              <option value="paid-book">Paid for Book</option>
-              <option value="unpaid-book">Unpaid for Book</option>
-              <option value="paid-stationary">Paid for Stationary</option>
-              <option value="unpaid-stationary">Unpaid for Stationary</option>
-            </select>
+            {/* Section Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-3 text-gray-400 w-5 h-5 pointer-events-none z-10" />
+              <select
+                value={sectionFilter}
+                onChange={(e) => setSectionFilter(e.target.value)}
+                className="input-field pl-10 pr-10 appearance-none"
+              >
+                <option value="all">All Sections</option>
+                {sections.map(section => (
+                  <option key={section} value={section}>Section {section}</option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           {/* Clear Filters */}
           {(searchTerm || classFilter !== 'all' || sectionFilter !== 'all' || typeFilter !== 'all' || paymentFilter !== 'all') && (
-            <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
               <button
                 onClick={() => {
                   setSearchTerm('');
@@ -696,8 +733,8 @@ const OtherPayments = () => {
       </div>
 
       {/* Students Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="card overflow-hidden" style={{ width: '100%', maxWidth: '100vw' }}>
+        <div className="overflow-x-auto" style={{ width: '100%' }}>
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>

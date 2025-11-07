@@ -121,12 +121,13 @@ const SpecialPayments = () => {
   const paidStudents = filteredStudents.filter(student => student.payments[currentMonthKey]?.paid).length;
   const unpaidStudents = filteredStudents.length - paidStudents;
 
-  // Load pending students count
+  // Load pending students count (only count pending status)
   useEffect(() => {
     const loadPendingCount = async () => {
       try {
         const response = await apiService.request('/pending-students');
-        setPendingCount(response.length);
+        const pendingOnly = response.filter(s => !s.status || s.status === 'pending');
+        setPendingCount(pendingOnly.length);
       } catch (error) {
         console.error('Failed to load pending students count:', error);
         setPendingCount(0);
@@ -553,8 +554,8 @@ const SpecialPayments = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:gap-6 mb-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3 lg:space-x-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
               <Check className="w-5 h-5 lg:w-6 lg:h-6 text-green-600 dark:text-green-400" />
@@ -566,7 +567,7 @@ const SpecialPayments = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-full">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3 lg:space-x-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
               <Users className="w-5 h-5 lg:w-6 lg:h-6 text-red-600 dark:text-red-400" />
@@ -578,7 +579,7 @@ const SpecialPayments = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700 w-full">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3 lg:space-x-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
               <CreditCard className="w-5 h-5 lg:w-6 lg:h-6 text-purple-600 dark:text-purple-400" />

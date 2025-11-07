@@ -40,12 +40,12 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Get pending students table data (basic info for fast loading)
+// Get all pending students (including approved/rejected for status tracking)
 router.get('/', protect, async (req, res) => {
   try {
-    const pendingStudents = await PendingStudent.find({ status: 'pending' })
-      .select('id firstName middleName lastName class fatherPhone createdAt')
-      .sort({ createdAt: -1 })
+    const pendingStudents = await PendingStudent.find({})
+      .select('id firstName middleName lastName class fatherPhone createdAt status approvedAs')
+      .sort({ status: 1, createdAt: -1 }) // pending first, then others
       .lean()
       .maxTimeMS(5000);
     res.json(pendingStudents);
@@ -103,8 +103,11 @@ router.post('/:id/approve', protect, async (req, res) => {
     const student = new Student(studentData);
     await student.save();
 
-    // Remove from pending
-    await PendingStudent.findOneAndDelete({ id: decodedId });
+    // Update status instead of deleting
+    await PendingStudent.findOneAndUpdate(
+      { id: decodedId },
+      { status: 'approved', approvedAs: 'regular' }
+    );
 
     await logActivity(req, 'STUDENT_APPROVED', 'Student', student.id, student.name, `Student approved from pending: ${student.name}`);
     res.json({ message: 'Student approved successfully', student });
@@ -165,8 +168,11 @@ router.post('/:id/approve-special', protect, async (req, res) => {
     const specialStudent = new SpecialStudent(specialStudentData);
     await specialStudent.save();
 
-    // Remove from pending
-    await PendingStudent.findOneAndDelete({ id: decodedId });
+    // Update status instead of deleting
+    await PendingStudent.findOneAndUpdate(
+      { id: decodedId },
+      { status: 'approved', approvedAs: 'special' }
+    );
 
     await logActivity(req, 'SPECIAL_STUDENT_APPROVED', 'SpecialStudent', specialStudent.id, specialStudent.name, `Special student approved from pending: ${specialStudent.name}`);
     res.json({ message: 'Special student approved successfully', student: specialStudent });
@@ -176,7 +182,60 @@ router.post('/:id/approve-special', protect, async (req, res) => {
   }
 });
 
-// Reject pending student
+// Reject pending student (update status and remove from main lists if approved)
+router.post('/:id/reject', protect, async (req, res) => {
+  try {
+    const decodedId = decodeURIComponent(req.params.id);
+    const pendingStudent = await PendingStudent.findOne({ id: decodedId }).lean();
+    
+    if (!pendingStudent) {
+      return res.status(404).json({ message: 'Pending student not found' });
+    }
+
+    // If student was previously approved, remove from main lists
+    if (pendingStudent.status === 'approved') {
+      try {
+        if (pendingStudent.approvedAs === 'special') {
+          const SpecialStudent = (await import('../models/SpecialStudent.js')).default;
+          // Find by matching personal information
+          const deleted = await SpecialStudent.findOneAndDelete({
+            firstName: pendingStudent.firstName,
+            middleName: pendingStudent.middleName,
+            lastName: pendingStudent.lastName,
+            fatherPhone: pendingStudent.fatherPhone
+          });
+          console.log('Deleted special student:', deleted ? 'Success' : 'Not found');
+        } else {
+          // Find by matching personal information
+          const deleted = await Student.findOneAndDelete({
+            firstName: pendingStudent.firstName,
+            middleName: pendingStudent.middleName,
+            lastName: pendingStudent.lastName,
+            fatherPhone: pendingStudent.fatherPhone
+          });
+          console.log('Deleted regular student:', deleted ? 'Success' : 'Not found');
+        }
+      } catch (error) {
+        console.error('Error deleting approved student:', error);
+      }
+    }
+
+    // Update status to rejected
+    const updatedStudent = await PendingStudent.findOneAndUpdate(
+      { id: decodedId },
+      { status: 'rejected' },
+      { new: true }
+    ).lean();
+
+    await logActivity(req, 'STUDENT_REJECTED', 'PendingStudent', updatedStudent.id, updatedStudent.name || `${updatedStudent.firstName} ${updatedStudent.lastName}`, `Student registration rejected: ${updatedStudent.name || `${updatedStudent.firstName} ${updatedStudent.lastName}`}`);
+    res.json({ message: 'Student registration rejected successfully' });
+  } catch (error) {
+    console.error('Error rejecting student:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Delete pending student (permanent removal)
 router.delete('/:id/reject', protect, async (req, res) => {
   try {
     const decodedId = decodeURIComponent(req.params.id);
@@ -185,10 +244,10 @@ router.delete('/:id/reject', protect, async (req, res) => {
       return res.status(404).json({ message: 'Pending student not found' });
     }
 
-    await logActivity(req, 'STUDENT_REJECTED', 'PendingStudent', pendingStudent.id, pendingStudent.name || `${pendingStudent.firstName} ${pendingStudent.lastName}`, `Student registration rejected: ${pendingStudent.name || `${pendingStudent.firstName} ${pendingStudent.lastName}`}`);
-    res.json({ message: 'Student registration rejected successfully' });
+    await logActivity(req, 'STUDENT_DELETED', 'PendingStudent', pendingStudent.id, pendingStudent.name || `${pendingStudent.firstName} ${pendingStudent.lastName}`, `Student registration deleted: ${pendingStudent.name || `${pendingStudent.firstName} ${pendingStudent.lastName}`}`);
+    res.json({ message: 'Student registration deleted successfully' });
   } catch (error) {
-    console.error('Error rejecting student:', error);
+    console.error('Error deleting student:', error);
     res.status(500).json({ message: error.message });
   }
 });

@@ -171,7 +171,8 @@ const Dashboard = () => {
       try {
         const { data } = JSON.parse(preloaded);
         if (data.pendingStudents) {
-          const count = data.pendingStudents.length;
+          const pendingOnly = data.pendingStudents.filter(s => !s.status || s.status === 'pending');
+          const count = pendingOnly.length;
           setPendingCount(count);
           
           // 🔊 Play sound only if there are pending students
@@ -188,7 +189,8 @@ const Dashboard = () => {
     const loadPendingCount = async () => {
       try {
         const response = await apiService.request('/pending-students');
-        const count = response.length;
+        const pendingOnly = response.filter(s => !s.status || s.status === 'pending');
+        const count = pendingOnly.length;
         setPendingCount(count);
 
         if (count > 0) {

@@ -186,12 +186,13 @@ const Students = () => {
   const isAllSelected = filteredStudents.length > 0 && selectedStudents.length === filteredStudents.length;
   const isIndeterminate = selectedStudents.length > 0 && selectedStudents.length < filteredStudents.length;
 
-  // Load pending students count
+  // Load pending students count (only count pending status)
   useEffect(() => {
     const loadPendingCount = async () => {
       try {
         const response = await apiService.request('/pending-students');
-        setPendingCount(response.length);
+        const pendingOnly = response.filter(s => !s.status || s.status === 'pending');
+        setPendingCount(pendingOnly.length);
       } catch (error) {
         console.error('Failed to load pending students count:', error);
         setPendingCount(0);
