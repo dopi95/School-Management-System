@@ -113,6 +113,7 @@ const PendingStudents = () => {
   const { admin, isAuthenticated } = useAuth();
   const [pendingStudents, setPendingStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('pending');
 
   
   const canApproveReject = admin?.role === 'superadmin' || admin?.role === 'admin';
@@ -289,6 +290,12 @@ const PendingStudents = () => {
   }, []);
 
   const generatePDF = () => {
+    const filteredStudents = pendingStudents.filter(student => {
+      if (statusFilter === 'all') return true;
+      if (statusFilter === 'pending') return !student.status || student.status === 'pending';
+      return student.status === statusFilter;
+    });
+    
     const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
@@ -297,11 +304,12 @@ const PendingStudents = () => {
     // Header
     doc.setFontSize(16);
     doc.setFont(undefined, 'bold');
-    doc.text('Bluelight Academy - Pending Student Registrations', pageWidth / 2, 20, { align: 'center' });
+    const statusText = statusFilter === 'all' ? 'All' : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
+    doc.text(`Bluelight Academy - ${statusText} Student Registrations`, pageWidth / 2, 20, { align: 'center' });
     
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
-    doc.text(`Total Pending: ${pendingStudents.length} | Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, 30, { align: 'center' });
+    doc.text(`Total ${statusText}: ${filteredStudents.length} | Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, 30, { align: 'center' });
     
     // Table setup
     const startY = 45;
@@ -321,7 +329,7 @@ const PendingStudents = () => {
     let yPos = startY;
     
     // Headers
-    doc.setFontSize(9);
+    doc.setFontSize(11);
     doc.setFont(undefined, 'bold');
     
     // Header background
@@ -354,9 +362,9 @@ const PendingStudents = () => {
     
     // Data rows
     doc.setFont(undefined, 'normal');
-    doc.setFontSize(8);
+    doc.setFontSize(10);
     
-    pendingStudents.forEach((student, index) => {
+    filteredStudents.forEach((student, index) => {
       // Check if we need a new page
       if (yPos + rowHeight > pageHeight - 20) {
         doc.addPage();
@@ -408,7 +416,8 @@ const PendingStudents = () => {
     doc.setLineWidth(0.2);
     doc.line(margin, yPos, margin + tableWidth, yPos);
     
-    doc.save('pending_students.pdf');
+    const filename = statusFilter === 'all' ? 'registered_students.pdf' : `${statusFilter}_registered_students.pdf`;
+    doc.save(filename);
   };
 
 
@@ -477,6 +486,23 @@ const PendingStudents = () => {
         </div>
       </div>
 
+      {/* Status Filter */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center space-x-4">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Status:</label>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+          >
+            <option value="all">All Students</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+
       {/* Students Table */}
       <div className="card overflow-hidden" style={{ width: '100%', maxWidth: '100vw' }}>
         <div className="overflow-x-auto" style={{ width: '100%' }}>
@@ -513,7 +539,11 @@ const PendingStudents = () => {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {pendingStudents.map((student) => (
+                {pendingStudents.filter(student => {
+                  if (statusFilter === 'all') return true;
+                  if (statusFilter === 'pending') return !student.status || student.status === 'pending';
+                  return student.status === statusFilter;
+                }).map((student) => (
                   <PendingStudentRow 
                     key={student.id} 
                     student={student} 

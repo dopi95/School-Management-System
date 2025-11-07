@@ -21,7 +21,7 @@ export const exportStudentsToPDF = (students, title = 'Students List', language 
   // Table setup
   const startY = 45;
   const rowHeight = 8;
-  const colWidths = [15, 55, 30, 30, 20, 20, 45];
+  const colWidths = [15, 70, 45, 40, 25, 25, 30];
   const colPositions = [];
   let currentX = margin;
   
@@ -34,12 +34,12 @@ export const exportStudentsToPDF = (students, title = 'Students List', language 
   let yPos = startY;
   
   // Headers
-  doc.setFontSize(9);
+  doc.setFontSize(11);
   doc.setFont(undefined, 'bold');
   doc.setFillColor(240, 240, 240);
   doc.rect(margin, yPos - 6, tableWidth, rowHeight, 'F');
   
-  const headers = ['#', 'Full Name', 'ID', 'Payment Code', 'Class', 'Section', 'Mother Name'];
+  const headers = ['#', 'Full Name', 'ID', 'Payment Code', 'Class', 'Section', 'Gender'];
   headers.forEach((header, index) => {
     doc.text(header, colPositions[index] + 2, yPos, { maxWidth: colWidths[index] - 4 });
   });
@@ -58,7 +58,7 @@ export const exportStudentsToPDF = (students, title = 'Students List', language 
   
   // Data rows
   doc.setFont(undefined, 'normal');
-  doc.setFontSize(8);
+  doc.setFontSize(10);
   
   students.forEach((student, index) => {
     if (yPos + rowHeight > pageHeight - 20) {
@@ -84,10 +84,10 @@ export const exportStudentsToPDF = (students, title = 'Students List', language 
       (index + 1).toString(),
       fullName,
       student.id || 'N/A',
-      student.paymentCode || 'N/A',
+      student.paymentCode && student.paymentCode.trim() !== '' ? student.paymentCode : 'N/A',
       student.class || 'N/A',
       student.section || 'N/A',
-      student.motherName || 'N/A'
+      student.gender ? (student.gender === 'male' ? 'Male' : 'Female') : 'N/A'
     ];
     
     rowData.forEach((data, colIndex) => {
@@ -117,7 +117,7 @@ export const exportStudentsToPDF = (students, title = 'Students List', language 
   doc.save(`${pdfFilename}.pdf`);
 };
 
-// Special Students PDF Export (without payment code)
+// Special Students PDF Export (with payment code) - Updated
 export const exportSpecialStudentsToPDF = (students, title = 'Special Students List', language = 'en', filename = null) => {
   const doc = new jsPDF('l', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.width;
@@ -134,7 +134,7 @@ export const exportSpecialStudentsToPDF = (students, title = 'Special Students L
   
   const startY = 45;
   const rowHeight = 8;
-  const colWidths = [15, 60, 30, 20, 20, 50];
+  const colWidths = [15, 65, 40, 35, 25, 20, 20, 25];
   const colPositions = [];
   let currentX = margin;
   
@@ -146,12 +146,12 @@ export const exportSpecialStudentsToPDF = (students, title = 'Special Students L
   const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
   let yPos = startY;
   
-  doc.setFontSize(9);
+  doc.setFontSize(11);
   doc.setFont(undefined, 'bold');
   doc.setFillColor(240, 240, 240);
   doc.rect(margin, yPos - 6, tableWidth, rowHeight, 'F');
   
-  const headers = ['#', 'Full Name', 'ID', 'Class', 'Section', 'Mother Name'];
+  const headers = ['#', 'Full Name', 'ID', 'Payment Code', 'Phone', 'Class', 'Section', 'Gender'];
   headers.forEach((header, index) => {
     doc.text(header, colPositions[index] + 2, yPos, { maxWidth: colWidths[index] - 4 });
   });
@@ -168,7 +168,7 @@ export const exportSpecialStudentsToPDF = (students, title = 'Special Students L
   yPos += rowHeight + 2;
   
   doc.setFont(undefined, 'normal');
-  doc.setFontSize(8);
+  doc.setFontSize(10);
   
   students.forEach((student, index) => {
     if (yPos + rowHeight > pageHeight - 20) {
@@ -194,9 +194,10 @@ export const exportSpecialStudentsToPDF = (students, title = 'Special Students L
       (index + 1).toString(),
       fullName,
       student.id || 'N/A',
+      student.paymentCode && student.paymentCode.trim() !== '' ? student.paymentCode : 'N/A',
       student.class || 'N/A',
       student.section || 'N/A',
-      student.motherName || 'N/A'
+      student.gender ? (student.gender === 'male' ? 'Male' : 'Female') : 'N/A'
     ];
     
     rowData.forEach((data, colIndex) => {
@@ -253,7 +254,7 @@ export const exportEmployeesToPDF = (employees, title = 'Employees List') => {
   const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
   let yPos = startY;
   
-  doc.setFontSize(9);
+  doc.setFontSize(11);
   doc.setFont(undefined, 'bold');
   doc.setFillColor(240, 240, 240);
   doc.rect(margin, yPos - 6, tableWidth, rowHeight, 'F');
@@ -275,7 +276,7 @@ export const exportEmployeesToPDF = (employees, title = 'Employees List') => {
   yPos += rowHeight + 2;
   
   doc.setFont(undefined, 'normal');
-  doc.setFontSize(8);
+  doc.setFontSize(10);
   
   employees.forEach((employee, index) => {
     if (yPos + rowHeight > pageHeight - 20) {
@@ -369,7 +370,8 @@ export const exportStudentsToExcel = (students, filename = 'students_list', lang
       'Middle Name (Amharic)': student.middleNameAm || '',
       'Last Name (Amharic)': student.lastNameAm || '',
       'Full Name': fullName,
-      'Payment Code': student.paymentCode || '',
+      'Payment Code': student.paymentCode && student.paymentCode.trim() !== '' ? student.paymentCode : '',
+      'Phone Number': student.fatherPhone || student.phone || '',
       'Gender': student.gender ? (student.gender === 'male' ? 'Male' : 'Female') : '',
       'Email': student.email || '',
       'Date of Birth': student.dateOfBirth || '',
@@ -402,6 +404,7 @@ export const exportStudentsToExcel = (students, filename = 'students_list', lang
     { wch: 18 },  // Last Name (Amharic)
     { wch: 25 },  // Full Name
     { wch: 12 },  // Payment Code
+    { wch: 15 },  // Phone Number
     { wch: 8 },   // Gender
     { wch: 25 },  // Email
     { wch: 12 },  // Date of Birth
@@ -438,7 +441,7 @@ export const exportStudentsToExcel = (students, filename = 'students_list', lang
   saveAs(data, `${filename}.xlsx`);
 };
 
-// Special Students Excel Export (without payment code)
+// Special Students Excel Export (with payment code)
 export const exportSpecialStudentsToExcel = (students, filename = 'special_students_list', language = 'en') => {
   const worksheetData = students.map((student, index) => {
     // Get full name based on language
@@ -455,6 +458,8 @@ export const exportSpecialStudentsToExcel = (students, filename = 'special_stude
       '#': index + 1,
       'Full Name': fullName,
       'ID': student.id || 'N/A',
+      'Payment Code': student.paymentCode && student.paymentCode.trim() !== '' ? student.paymentCode : 'N/A',
+      'Phone Number': student.fatherPhone || student.phone || 'N/A',
       'Class': student.class || 'N/A',
       'Section': student.section || 'N/A',
       'Mother Name': student.motherName || 'N/A',
@@ -472,6 +477,8 @@ export const exportSpecialStudentsToExcel = (students, filename = 'special_stude
     { wch: 5 },   // #
     { wch: 25 },  // Full Name
     { wch: 12 },  // ID
+    { wch: 12 },  // Payment Code
+    { wch: 15 },  // Phone Number
     { wch: 8 },   // Class
     { wch: 8 },   // Section
     { wch: 20 },  // Mother Name

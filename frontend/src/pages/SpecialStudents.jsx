@@ -8,7 +8,8 @@ import DeleteModal from '../components/DeleteModal.jsx';
 import SuccessModal from '../components/SuccessModal.jsx';
 import PermissionGuard from '../components/PermissionGuard.jsx';
 import ExportDropdown from '../components/ExportDropdown.jsx';
-import { exportSpecialStudentsToPDF, exportSpecialStudentsToExcel, generateFilename } from '../utils/exportUtils.js';
+import { exportSpecialStudentsToPDF, exportSpecialStudentsToExcel } from '../utils/specialExportUtils.js';
+import { generateFilename } from '../utils/exportUtils.js';
 import apiService from '../services/api.js';
 import eventBus from '../utils/eventBus.js';
 
@@ -20,6 +21,7 @@ const SpecialStudents = () => {
   const [classFilter, setClassFilter] = useState('all');
   const [sectionFilter, setSectionFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [batchFilter, setBatchFilter] = useState('all');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, student: null });
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [classEditModal, setClassEditModal] = useState({ isOpen: false, newClass: '' });
@@ -48,9 +50,11 @@ const SpecialStudents = () => {
       const matchesType = typeFilter === 'all' || 
         (typeFilter === 'regular' && student.paymentCode && student.paymentCode.trim() !== '') ||
         (typeFilter === 'special' && (!student.paymentCode || student.paymentCode.trim() === ''));
+      const matchesBatch = batchFilter === 'all' || 
+        (student.joinedYear && student.joinedYear.includes(batchFilter.split(' ')[0]));
       
       const isActive = student.status === 'active';
-      return matchesSearch && matchesClass && matchesSection && matchesType && isActive;
+      return matchesSearch && matchesClass && matchesSection && matchesType && matchesBatch && isActive;
     }).sort((a, b) => {
       const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
       const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
@@ -58,7 +62,7 @@ const SpecialStudents = () => {
       if (classComparison !== 0) return classComparison;
       return (sectionOrder[a.section || ''] || 0) - (sectionOrder[b.section || ''] || 0);
     });
-  }, [specialStudentsList, searchTerm, classFilter, sectionFilter, typeFilter]);
+  }, [specialStudentsList, searchTerm, classFilter, sectionFilter, typeFilter, batchFilter]);
 
   const handleDeleteClick = (student) => {
     setDeleteModal({ isOpen: true, student });
@@ -254,15 +258,28 @@ const SpecialStudents = () => {
                   filename = generateFilename('special_students', classFilter, sectionFilter, selectedStudents.length);
                 } else {
                   dataToExport = filteredStudents.length > 0 ? filteredStudents : fullStudents.filter(s => s.status === 'active');
-                  if (classFilter !== 'all' || sectionFilter !== 'all') {
-                    let titleParts = ['Special Students'];
-                    if (classFilter !== 'all') titleParts.push(classFilter);
-                    if (sectionFilter !== 'all') titleParts.push(`Section ${sectionFilter}`);
-                    title = titleParts.join(' - ');
-                  } else {
-                    title = 'Special Students List';
+                  let titleParts = ['Special Students'];
+                  let filenameParts = ['students'];
+                  
+                  if (typeFilter !== 'all') {
+                    titleParts.push(typeFilter === 'regular' ? 'Regular Students' : 'Special Students');
+                    filenameParts.push(typeFilter);
                   }
-                  filename = generateFilename('special_students', classFilter, sectionFilter);
+                  if (batchFilter !== 'all') {
+                    titleParts.push(`Batch ${batchFilter}`);
+                    filenameParts.push('batch', batchFilter.replace(' ', '_').toLowerCase());
+                  }
+                  if (classFilter !== 'all') {
+                    titleParts.push(classFilter);
+                    filenameParts.push(classFilter.toLowerCase());
+                  }
+                  if (sectionFilter !== 'all') {
+                    titleParts.push(`Section ${sectionFilter}`);
+                    filenameParts.push(`section_${sectionFilter.toLowerCase()}`);
+                  }
+                  
+                  title = titleParts.join(' - ');
+                  filename = filenameParts.join('_');
                 }
                 
                 exportSpecialStudentsToPDF(dataToExport, title, language, filename);
@@ -276,7 +293,14 @@ const SpecialStudents = () => {
                   filename = generateFilename('special_students', classFilter, sectionFilter, selectedStudents.length);
                 } else {
                   dataToExport = filteredStudents.length > 0 ? filteredStudents : fullStudents.filter(s => s.status === 'active');
-                  filename = generateFilename('special_students', classFilter, sectionFilter);
+                  let filenameParts = ['students'];
+                  
+                  if (typeFilter !== 'all') filenameParts.push(typeFilter);
+                  if (batchFilter !== 'all') filenameParts.push('batch', batchFilter.replace(' ', '_').toLowerCase());
+                  if (classFilter !== 'all') filenameParts.push(classFilter.toLowerCase());
+                  if (sectionFilter !== 'all') filenameParts.push(`section_${sectionFilter.toLowerCase()}`);
+                  
+                  filename = filenameParts.join('_');
                 }
                 
                 exportSpecialStudentsToExcel(dataToExport, filename, language);
@@ -350,17 +374,42 @@ const SpecialStudents = () => {
         zIndex: 10
       }}>
         <div className="space-y-3">
-          {/* Search */}
-          <div>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 lg:w-5 lg:h-5" />
-              <input
-                type="text"
-                placeholder="Search students..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full lg:w-64 px-3 py-2 pl-9 lg:pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm lg:text-base"
-              />
+          {/* Search and Batch Filter Row */}
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 lg:w-5 lg:h-5" />
+                <input
+                  type="text"
+                  placeholder="Search students..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-3 py-2 pl-9 lg:pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm lg:text-base"
+                />
+              </div>
+            </div>
+            
+            {/* Batch Filter */}
+            <div className="flex-1">
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <select
+                  value={batchFilter}
+                  onChange={(e) => setBatchFilter(e.target.value)}
+                  className="w-full px-3 py-2 pl-9 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none text-sm lg:text-base"
+                >
+                  <option value="all">All Batches</option>
+                  <option value="2017 E.C">2017 E.C</option>
+                  <option value="2018 E.C">2018 E.C</option>
+                  <option value="2019 E.C">2019 E.C</option>
+                  <option value="2020 E.C">2020 E.C</option>
+                </select>
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -505,7 +554,7 @@ const SpecialStudents = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap" style={{ minWidth: '180px' }}>
                     <Link
                       to={`/special-students/${encodeURIComponent(student.id)}`}
                       className="text-sm text-primary-600 hover:text-primary-700 font-medium"
@@ -513,8 +562,8 @@ const SpecialStudents = () => {
                       {student.id}
                     </Link>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {student.phone}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white" style={{ minWidth: '150px' }}>
+                    {student.fatherPhone || student.phone || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">

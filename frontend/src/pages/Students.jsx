@@ -532,7 +532,7 @@ const Students = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap" style={{ minWidth: '180px' }}>
                     <Link
                       to={`/students/${encodeURIComponent(student.id)}`}
                       className="text-sm text-primary-600 hover:text-primary-700 font-medium"
@@ -540,8 +540,8 @@ const Students = () => {
                       {student.id}
                     </Link>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {student.phone}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white" style={{ minWidth: '150px' }}>
+                    {student.fatherPhone || student.phone || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">

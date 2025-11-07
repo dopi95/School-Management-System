@@ -110,7 +110,7 @@ const SpecialStudentDetail = () => {
                   <Calendar className="w-5 h-5 text-gray-400" />
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Joined Year</p>
-                    <p className="font-medium text-gray-900 dark:text-white">{student.joinedYear || 'Not provided'}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{student.joinedYear ? (student.joinedYear.includes('E.C') ? student.joinedYear : `${student.joinedYear} E.C`) : 'Not provided'}</p>
                   </div>
                 </div>
 
