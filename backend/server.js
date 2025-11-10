@@ -32,6 +32,7 @@ app.use(cors({
     'http://localhost:5173',
     'http://localhost:3000',
     'https://school-mnagement-system-frontend.onrender.com',
+    'https://bla-school-management-system.vercel.app',
     /\.vercel\.app$/  // Allow all Vercel domains
   ],
   credentials: true
@@ -124,9 +125,17 @@ app.get('/api/settings', protect, checkPermission('settings'), (req, res) => {
   res.json({ success: true, message: 'Settings access granted' });
 });
 
-// Test route
+// Health check routes
 app.get("/", (req, res) => {
   res.send("API is running...");
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString()
+  });
 });
 
 const PORT = process.env.PORT || 5000;
