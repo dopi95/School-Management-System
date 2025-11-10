@@ -454,17 +454,17 @@ const OtherPayments = () => {
     );
   }
 
-  // Calculate payment statistics for the selected year
+  // Calculate payment statistics for filtered students
   const paymentStats = useMemo(() => {
     const stats = {
-      totalStudents: allStudents.length,
+      totalStudents: filteredStudents.length,
       paidBook: 0,
       unpaidBook: 0,
       paidStationary: 0,
       unpaidStationary: 0
     };
 
-    allStudents.forEach(student => {
+    filteredStudents.forEach(student => {
       const bookPayment = getPaymentStatus(student, 'book');
       const stationaryPayment = getPaymentStatus(student, 'stationary');
       
@@ -482,7 +482,7 @@ const OtherPayments = () => {
     });
 
     return stats;
-  }, [allStudents, otherPayments, selectedYear]);
+  }, [filteredStudents, otherPayments, selectedYear]);
 
   // Show message if no students found
   if (!studentsLoading && !specialStudentsLoading && allStudents.length === 0) {
@@ -680,9 +680,9 @@ const OtherPayments = () => {
                 className="input-field pl-10 pr-10 appearance-none"
               >
                 <option value="all">All Classes</option>
-                {classes.map(cls => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))}
+                <option value="KG-1">KG-1 (ጀማሪ)</option>
+                <option value="KG-2">KG-2 (ደረጃ 1)</option>
+                <option value="KG-3">KG-3 (ደረጃ 2)</option>
               </select>
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -700,9 +700,10 @@ const OtherPayments = () => {
                 className="input-field pl-10 pr-10 appearance-none"
               >
                 <option value="all">All Sections</option>
-                {sections.map(section => (
-                  <option key={section} value={section}>Section {section}</option>
-                ))}
+                <option value="A">A (ሀ)</option>
+                <option value="B">B (ለ)</option>
+                <option value="C">C (ሐ)</option>
+                <option value="D">D (መ)</option>
               </select>
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

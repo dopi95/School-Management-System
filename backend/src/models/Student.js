@@ -36,6 +36,7 @@ const studentSchema = new mongoose.Schema({
   motherPhone: { type: String },
   phone: { type: String },
   photo: { type: String },
+  studentType: { type: String, enum: ['new', 'existing'], default: 'new' },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
   payments: { type: Map, of: paymentSchema },
   otherPayments: { type: Map, of: mongoose.Schema.Types.Mixed }

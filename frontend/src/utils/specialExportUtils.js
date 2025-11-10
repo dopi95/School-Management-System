@@ -12,7 +12,7 @@ export const exportSpecialStudentsToPDF = (students, title = 'Special Students L
   // Title
   doc.setFontSize(16);
   doc.setFont(undefined, 'bold');
-  doc.text(`Bluelight Academy - ${title}`, pageWidth / 2, 20, { align: 'center' });
+  doc.text(`Bluelight Academy - Students List`, pageWidth / 2, 20, { align: 'center' });
   
   // Subtitle
   doc.setFontSize(10);

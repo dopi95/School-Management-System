@@ -27,7 +27,6 @@ const SpecialPayments = () => {
     return saved !== null ? parseInt(saved) : 2017;
   });
   const [searchTerm, setSearchTerm] = useState('');
-  const [descriptionSearchTerm, setDescriptionSearchTerm] = useState(''); // New state for description search
   const [classFilter, setClassFilter] = useState('all');
   const [sectionFilter, setSectionFilter] = useState('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
@@ -56,9 +55,8 @@ const SpecialPayments = () => {
   
   const filteredStudents = activeSpecialStudentsList.filter(student => {
     const searchLower = searchTerm.toLowerCase();
-    const descriptionSearchLower = descriptionSearchTerm.toLowerCase();
     
-    // Main search filter
+    // Combined search filter (includes description search)
     const matchesSearch = !searchTerm || 
       student.name?.toLowerCase().includes(searchLower) ||
       student.id?.toLowerCase().includes(searchLower) ||
@@ -67,15 +65,12 @@ const SpecialPayments = () => {
       student.motherName?.toLowerCase().includes(searchLower) ||
       student.fatherPhone?.includes(searchTerm) ||
       student.motherPhone?.includes(searchTerm) ||
-      `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
-    
-    // Description search filter
-    const matchesDescriptionSearch = !descriptionSearchTerm || 
+      `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower) ||
       // Check current month payment description
-      (student.payments[currentMonthKey]?.description?.toLowerCase().includes(descriptionSearchLower)) ||
+      (student.payments[currentMonthKey]?.description?.toLowerCase().includes(searchLower)) ||
       // Check all payment descriptions in history
       Object.values(student.payments || {}).some(payment => 
-        payment?.description?.toLowerCase().includes(descriptionSearchLower)
+        payment?.description?.toLowerCase().includes(searchLower)
       );
     
     const matchesClass = classFilter === 'all' || student.class === classFilter;
@@ -109,7 +104,7 @@ const SpecialPayments = () => {
       if (!hasPaidInRange) return false;
     }
     
-    return matchesSearch && matchesDescriptionSearch && matchesClass && matchesSection && matchesPaymentStatus;
+    return matchesSearch && matchesClass && matchesSection && matchesPaymentStatus;
   }).sort((a, b) => {
     const classOrder = { 'KG-1': 1, 'KG-2': 2, 'KG-3': 3 };
     const sectionOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
@@ -665,34 +660,7 @@ const SpecialPayments = () => {
 
           </div>
 
-          {/* Search Filters - Second Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search students..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-field pl-10"
-              />
-            </div>
-
-            {/* Description Search */}
-            <div className="relative">
-              <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search by description..."
-                value={descriptionSearchTerm}
-                onChange={(e) => setDescriptionSearchTerm(e.target.value)}
-                className="input-field pl-10"
-              />
-            </div>
-          </div>
-
-          {/* Class and Section Filters - Third Row */}
+          {/* Class and Section Filters - Second Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Class Filter */}
             <div className="relative">
@@ -703,9 +671,9 @@ const SpecialPayments = () => {
                 className="input-field pl-10 pr-10 appearance-none"
               >
                 <option value="all">All Classes</option>
-                {classes.map(cls => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))}
+                <option value="KG-1">KG-1 (ጀማሪ)</option>
+                <option value="KG-2">KG-2 (ደረጃ 1)</option>
+                <option value="KG-3">KG-3 (ደረጃ 2)</option>
               </select>
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -723,9 +691,10 @@ const SpecialPayments = () => {
                 className="input-field pl-10 pr-10 appearance-none"
               >
                 <option value="all">All Sections</option>
-                {sections.map(section => (
-                  <option key={section} value={section}>Section {section}</option>
-                ))}
+                <option value="A">A (ሀ)</option>
+                <option value="B">B (ለ)</option>
+                <option value="C">C (ሐ)</option>
+                <option value="D">D (መ)</option>
               </select>
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -735,6 +704,18 @@ const SpecialPayments = () => {
             </div>
           </div>
         
+          {/* Search Filter - Third Row */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search students, descriptions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input-field pl-10 w-full"
+            />
+          </div>
+
         {/* Date Range Filter */}
         <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-gray-200 dark:border-gray-600">
           <div className="flex items-center space-x-2">
@@ -789,11 +770,10 @@ const SpecialPayments = () => {
 
         {/* Clear Filters and Bulk Actions */}
         <div className="pt-4 border-t border-gray-200 dark:border-gray-600 flex flex-wrap items-center justify-between gap-4">
-          {(searchTerm || descriptionSearchTerm || classFilter !== 'all' || sectionFilter !== 'all' || paymentStatusFilter !== 'all' || showPaidOnly) && (
+          {(searchTerm || classFilter !== 'all' || sectionFilter !== 'all' || paymentStatusFilter !== 'all' || showPaidOnly) && (
             <button
               onClick={() => {
                 setSearchTerm('');
-                setDescriptionSearchTerm('');
                 setClassFilter('all');
                 setSectionFilter('all');
                 setPaymentStatusFilter('all');

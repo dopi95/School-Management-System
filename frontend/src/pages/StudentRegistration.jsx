@@ -15,14 +15,15 @@ const StudentRegistration = () => {
     gender: '',
     email: '',
     dateOfBirth: '',
-    joinedYear: '',
+    joinedYear: '2018',
     address: '',
     class: '',
     fatherName: '',
     fatherPhone: '',
     motherName: '',
     motherPhone: '',
-    photo: ''
+    photo: '',
+    studentType: 'new'
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,6 +35,13 @@ const StudentRegistration = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // If student type is changed, set or clear joined year
+    if (name === 'studentType') {
+      const joinedYear = value === 'new' ? '2018' : '';
+      setFormData({ ...formData, [name]: value, joinedYear });
+      return;
+    }
     
     // Filter input based on field type
     let filteredValue = value;
@@ -179,11 +187,22 @@ const StudentRegistration = () => {
     
     setFormData({ ...formData, dateOfBirth: value });
     
-    // Validate date format
+    // Validate Ethiopian calendar date format
     const newErrors = { ...fieldErrors };
     const datePattern = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
     
-    if (value && !datePattern.test(value)) {
+    if (value && datePattern.test(value)) {
+      const [day, month, year] = value.split('/').map(Number);
+      if (day < 1 || day > 30) {
+        newErrors.dateOfBirth = 'Day must be between 1-30';
+        setTouchedFields({ ...touchedFields, dateOfBirth: true });
+      } else if (month < 1 || month > 13) {
+        newErrors.dateOfBirth = 'Month must be between 1-13 (Ethiopian calendar)';
+        setTouchedFields({ ...touchedFields, dateOfBirth: true });
+      } else {
+        delete newErrors.dateOfBirth;
+      }
+    } else if (value && !datePattern.test(value)) {
       newErrors.dateOfBirth = 'Please enter date as dd/mm/yyyy';
       setTouchedFields({ ...touchedFields, dateOfBirth: true });
     } else {
@@ -221,6 +240,7 @@ const StudentRegistration = () => {
   };
 
   const requiredFields = {
+    studentType: 'Student Type',
     firstName: 'First Name',
     middleName: 'Middle Name (Father Name)',
     lastName: 'Last Name',
@@ -359,8 +379,8 @@ const StudentRegistration = () => {
               setIsSubmitted(false);
               setFormData({
                 firstName: '', middleName: '', lastName: '', firstNameAm: '', middleNameAm: '', lastNameAm: '',
-                gender: '', email: '', dateOfBirth: '', joinedYear: '', address: '', class: '',
-                fatherName: '', fatherPhone: '', motherName: '', motherPhone: '', photo: ''
+                gender: '', email: '', dateOfBirth: '', joinedYear: '2018', address: '', class: '',
+                fatherName: '', fatherPhone: '', motherName: '', motherPhone: '', photo: '', studentType: 'new'
               });
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors"
@@ -435,6 +455,45 @@ const StudentRegistration = () => {
                     </button>
                   )}
                 </div>
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Student Type (የተማሪ አይነት) *
+                </label>
+                <div className="flex space-x-6">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="studentType"
+                      value="new"
+                      checked={formData.studentType === 'new'}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      onFocus={handleFocus}
+                      className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      required
+                    />
+                    <span className="ml-2 text-sm text-gray-700">New (አዲስ)</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="studentType"
+                      value="existing"
+                      checked={formData.studentType === 'existing'}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      onFocus={handleFocus}
+                      className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      required
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Existing (ነባር)</span>
+                  </label>
+                </div>
+                {fieldErrors.studentType && touchedFields.studentType && (
+                  <p className="text-red-500 text-sm mt-1">{fieldErrors.studentType}</p>
+                )}
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

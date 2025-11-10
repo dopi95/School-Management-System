@@ -98,10 +98,31 @@ const SpecialStudents = () => {
   };
 
   const { activeStudents, inactiveStudents } = useMemo(() => {
-    const active = specialStudentsList.filter(s => s.status === 'active').length;
-    const inactive = specialStudentsList.filter(s => s.status === 'inactive').length;
+    const filteredByFilters = specialStudentsList.filter(student => {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = !searchTerm || 
+        student.name?.toLowerCase().includes(searchLower) ||
+        student.id?.toLowerCase().includes(searchLower) ||
+        student.joinedYear?.includes(searchTerm) ||
+        student.fatherName?.toLowerCase().includes(searchLower) ||
+        student.motherName?.toLowerCase().includes(searchLower) ||
+        student.fatherPhone?.includes(searchTerm) ||
+        student.motherPhone?.includes(searchTerm) ||
+        `${student.firstName || ''} ${student.middleName || ''} ${student.lastName || ''}`.toLowerCase().includes(searchLower);
+      const matchesClass = classFilter === 'all' || student.class === classFilter;
+      const matchesSection = sectionFilter === 'all' || student.section === sectionFilter;
+      const matchesType = typeFilter === 'all' || 
+        (typeFilter === 'regular' && student.paymentCode && student.paymentCode.trim() !== '') ||
+        (typeFilter === 'special' && (!student.paymentCode || student.paymentCode.trim() === ''));
+      const matchesBatch = batchFilter === 'all' || 
+        (student.joinedYear && student.joinedYear.includes(batchFilter.split(' ')[0]));
+      return matchesSearch && matchesClass && matchesSection && matchesType && matchesBatch;
+    });
+    
+    const active = filteredByFilters.filter(s => s.status === 'active').length;
+    const inactive = filteredByFilters.filter(s => s.status === 'inactive').length;
     return { activeStudents: active, inactiveStudents: inactive };
-  }, [specialStudentsList]);
+  }, [specialStudentsList, searchTerm, classFilter, sectionFilter, typeFilter, batchFilter]);
 
   const handleDeleteCancel = () => {
     setDeleteModal({ isOpen: false, student: null });
@@ -425,9 +446,9 @@ const SpecialStudents = () => {
                   className="w-full px-3 py-2 pl-9 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none text-sm lg:text-base"
                 >
                   <option value="all">All Classes</option>
-                  {classes.map(cls => (
-                    <option key={cls} value={cls}>{cls}</option>
-                  ))}
+                  <option value="KG-1">KG-1 (ጀማሪ)</option>
+                  <option value="KG-2">KG-2 (ደረጃ 1)</option>
+                  <option value="KG-3">KG-3 (ደረጃ 2)</option>
                 </select>
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
                   <svg className="w-3 h-3 lg:w-4 lg:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -447,9 +468,10 @@ const SpecialStudents = () => {
                   className="w-full px-3 py-2 pl-9 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none text-sm lg:text-base"
                 >
                   <option value="all">All Sections</option>
-                  {sections.map(section => (
-                    <option key={section} value={section}>Section {section}</option>
-                  ))}
+                  <option value="A">A (ሀ)</option>
+                  <option value="B">B (ለ)</option>
+                  <option value="C">C (ሐ)</option>
+                  <option value="D">D (መ)</option>
                 </select>
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
                   <svg className="w-3 h-3 lg:w-4 lg:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -649,9 +671,9 @@ const SpecialStudents = () => {
               className="input-field w-full mb-4"
             >
               <option value="">Select New Class</option>
-              {classes.map(cls => (
-                <option key={cls} value={cls}>{cls}</option>
-              ))}
+              <option value="KG-1">KG-1 (ጀማሪ)</option>
+              <option value="KG-2">KG-2 (ደረጃ 1)</option>
+              <option value="KG-3">KG-3 (ደረጃ 2)</option>
             </select>
             <div className="flex space-x-3">
               <button

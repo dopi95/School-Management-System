@@ -44,7 +44,7 @@ router.post('/register', async (req, res) => {
 router.get('/', protect, async (req, res) => {
   try {
     const pendingStudents = await PendingStudent.find({})
-      .select('id firstName middleName lastName class fatherPhone createdAt status approvedAs')
+      .select('id firstName middleName lastName class fatherPhone fatherName motherName createdAt status approvedAs studentType')
       .sort({ status: 1, createdAt: -1 }) // pending first, then others
       .lean()
       .maxTimeMS(5000);

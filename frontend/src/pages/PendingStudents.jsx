@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Check, X, Users, Clock, Download, Trash2 } from 'lucide-react';
+import { Check, X, Users, Clock, Download, Trash2, Search } from 'lucide-react';
 import apiService from '../services/api.js';
 import { toast, ToastContainer } from 'react-toastify';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -52,6 +52,15 @@ const PendingStudentRow = React.memo(({ student, canApproveReject, onApprove, on
       <td className="px-6 py-4 whitespace-nowrap">
         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
           {student.class}
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+          (student.studentType || 'new') === 'new' 
+            ? 'bg-green-100 text-green-800' 
+            : 'bg-purple-100 text-purple-800'
+        }`}>
+          {(student.studentType || 'new') === 'new' ? 'New (አዲስ)' : 'Existing (ነባር)'}
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -114,6 +123,9 @@ const PendingStudents = () => {
   const [pendingStudents, setPendingStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('pending');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [classFilter, setClassFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   
   const canApproveReject = admin?.role === 'superadmin' || admin?.role === 'admin';
@@ -291,9 +303,25 @@ const PendingStudents = () => {
 
   const generatePDF = () => {
     const filteredStudents = pendingStudents.filter(student => {
-      if (statusFilter === 'all') return true;
-      if (statusFilter === 'pending') return !student.status || student.status === 'pending';
-      return student.status === statusFilter;
+      const statusMatch = statusFilter === 'all' || 
+        (statusFilter === 'pending' && (!student.status || student.status === 'pending')) ||
+        student.status === statusFilter;
+      const studentType = student.studentType || 'new';
+      const typeMatch = typeFilter === 'all' || studentType === typeFilter;
+      const classMatch = classFilter === 'all' || student.class === classFilter;
+      
+      const searchLower = searchTerm.toLowerCase();
+      const studentFullName = `${student.firstName} ${student.middleName} ${student.lastName}`.toLowerCase();
+      
+      const searchMatch = !searchTerm || 
+        studentFullName.includes(searchLower) ||
+        student.firstName?.toLowerCase().includes(searchLower) ||
+        student.middleName?.toLowerCase().includes(searchLower) ||
+        student.lastName?.toLowerCase().includes(searchLower) ||
+        student.fatherName?.toLowerCase().includes(searchLower) ||
+        student.motherName?.toLowerCase().includes(searchLower);
+      
+      return statusMatch && typeMatch && classMatch && searchMatch;
     });
     
     const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
@@ -314,7 +342,7 @@ const PendingStudents = () => {
     // Table setup
     const startY = 45;
     const rowHeight = 8;
-    const colWidths = [15, 60, 35, 25, 35, 35]; // Adjusted widths
+    const colWidths = [15, 50, 30, 20, 25, 30, 30]; // Adjusted widths
     const colPositions = [];
     let currentX = margin;
     
@@ -353,7 +381,7 @@ const PendingStudents = () => {
     doc.line(margin, yPos + 2, margin + tableWidth, yPos + 2);
     
     // Header text
-    const headers = ['No.', 'Student Name', 'ID', 'Class', 'Father Phone', 'Registered Date'];
+    const headers = ['No.', 'Student Name', 'ID', 'Class', 'Type', 'Father Phone', 'Registered Date'];
     headers.forEach((header, index) => {
       doc.text(header, colPositions[index] + 2, yPos, { maxWidth: colWidths[index] - 4 });
     });
@@ -397,6 +425,7 @@ const PendingStudents = () => {
         studentName,
         student.id,
         student.class,
+        (student.studentType || 'new') === 'new' ? 'New' : 'Existing',
         student.fatherPhone,
         new Date(student.createdAt).toLocaleDateString()
       ];
@@ -448,14 +477,59 @@ const PendingStudents = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-3 lg:space-x-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+              <Users className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{pendingStudents.filter(student => {
+                const studentType = student.studentType || 'new';
+                const typeMatch = typeFilter === 'all' || studentType === typeFilter;
+                const classMatch = classFilter === 'all' || student.class === classFilter;
+                
+                const searchLower = searchTerm.toLowerCase();
+                const studentFullName = `${student.firstName} ${student.middleName} ${student.lastName}`.toLowerCase();
+                const searchMatch = !searchTerm || 
+                  studentFullName.includes(searchLower) ||
+                  student.firstName?.toLowerCase().includes(searchLower) ||
+                  student.middleName?.toLowerCase().includes(searchLower) ||
+                  student.lastName?.toLowerCase().includes(searchLower) ||
+                  student.fatherName?.toLowerCase().includes(searchLower) ||
+                  student.motherName?.toLowerCase().includes(searchLower);
+                
+                return typeMatch && classMatch && searchMatch;
+              }).length}</p>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Total</p>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 lg:p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3 lg:space-x-4">
             <div className="w-10 h-10 lg:w-12 lg:h-12 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
               <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{pendingStudents.filter(s => !s.status || s.status === 'pending').length}</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{pendingStudents.filter(student => {
+                const statusMatch = !student.status || student.status === 'pending';
+                const studentType = student.studentType || 'new';
+                const typeMatch = typeFilter === 'all' || studentType === typeFilter;
+                const classMatch = classFilter === 'all' || student.class === classFilter;
+                
+                const searchLower = searchTerm.toLowerCase();
+                const studentFullName = `${student.firstName} ${student.middleName} ${student.lastName}`.toLowerCase();
+                const searchMatch = !searchTerm || 
+                  studentFullName.includes(searchLower) ||
+                  student.firstName?.toLowerCase().includes(searchLower) ||
+                  student.middleName?.toLowerCase().includes(searchLower) ||
+                  student.lastName?.toLowerCase().includes(searchLower) ||
+                  student.fatherName?.toLowerCase().includes(searchLower) ||
+                  student.motherName?.toLowerCase().includes(searchLower);
+                
+                return statusMatch && typeMatch && classMatch && searchMatch;
+              }).length}</p>
               <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Pending</p>
             </div>
           </div>
@@ -467,7 +541,24 @@ const PendingStudents = () => {
               <Check className="w-5 h-5 lg:w-6 lg:h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{pendingStudents.filter(s => s.status === 'approved').length}</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{pendingStudents.filter(student => {
+                const statusMatch = student.status === 'approved';
+                const studentType = student.studentType || 'new';
+                const typeMatch = typeFilter === 'all' || studentType === typeFilter;
+                const classMatch = classFilter === 'all' || student.class === classFilter;
+                
+                const searchLower = searchTerm.toLowerCase();
+                const studentFullName = `${student.firstName} ${student.middleName} ${student.lastName}`.toLowerCase();
+                const searchMatch = !searchTerm || 
+                  studentFullName.includes(searchLower) ||
+                  student.firstName?.toLowerCase().includes(searchLower) ||
+                  student.middleName?.toLowerCase().includes(searchLower) ||
+                  student.lastName?.toLowerCase().includes(searchLower) ||
+                  student.fatherName?.toLowerCase().includes(searchLower) ||
+                  student.motherName?.toLowerCase().includes(searchLower);
+                
+                return statusMatch && typeMatch && classMatch && searchMatch;
+              }).length}</p>
               <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Approved</p>
             </div>
           </div>
@@ -479,27 +570,86 @@ const PendingStudents = () => {
               <X className="w-5 h-5 lg:w-6 lg:h-6 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{pendingStudents.filter(s => s.status === 'rejected').length}</p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{pendingStudents.filter(student => {
+                const statusMatch = student.status === 'rejected';
+                const studentType = student.studentType || 'new';
+                const typeMatch = typeFilter === 'all' || studentType === typeFilter;
+                const classMatch = classFilter === 'all' || student.class === classFilter;
+                
+                const searchLower = searchTerm.toLowerCase();
+                const studentFullName = `${student.firstName} ${student.middleName} ${student.lastName}`.toLowerCase();
+                const searchMatch = !searchTerm || 
+                  studentFullName.includes(searchLower) ||
+                  student.firstName?.toLowerCase().includes(searchLower) ||
+                  student.middleName?.toLowerCase().includes(searchLower) ||
+                  student.lastName?.toLowerCase().includes(searchLower) ||
+                  student.fatherName?.toLowerCase().includes(searchLower) ||
+                  student.motherName?.toLowerCase().includes(searchLower);
+                
+                return statusMatch && typeMatch && classMatch && searchMatch;
+              }).length}</p>
               <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">Rejected</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Status Filter */}
+      {/* Search and Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-4">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Status:</label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-          >
-            <option value="all">All Students</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
+        <div className="flex flex-col space-y-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search students..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+            />
+          </div>
+          
+          {/* Filters */}
+          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-6">
+            <div className="flex items-center space-x-4">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Status:</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+              >
+                <option value="all">All Students</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div className="flex items-center space-x-4">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Type:</label>
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+              >
+                <option value="all">All Types</option>
+                <option value="new">New (አዲስ)</option>
+                <option value="existing">Existing (ነባር)</option>
+              </select>
+            </div>
+            <div className="flex items-center space-x-4">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Class:</label>
+              <select
+                value={classFilter}
+                onChange={(e) => setClassFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+              >
+                <option value="all">All Classes</option>
+                <option value="KG-1">KG-1 (ጀማሪ)</option>
+                <option value="KG-2">KG-2 (ደረጃ 1)</option>
+                <option value="KG-3">KG-3 (ደረጃ 2)</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -525,6 +675,9 @@ const PendingStudents = () => {
                     Class
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Student Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -540,9 +693,25 @@ const PendingStudents = () => {
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {pendingStudents.filter(student => {
-                  if (statusFilter === 'all') return true;
-                  if (statusFilter === 'pending') return !student.status || student.status === 'pending';
-                  return student.status === statusFilter;
+                  const statusMatch = statusFilter === 'all' || 
+                    (statusFilter === 'pending' && (!student.status || student.status === 'pending')) ||
+                    student.status === statusFilter;
+                  const studentType = student.studentType || 'new';
+                  const typeMatch = typeFilter === 'all' || studentType === typeFilter;
+                  const classMatch = classFilter === 'all' || student.class === classFilter;
+                  
+                  const searchLower = searchTerm.toLowerCase();
+                  const studentFullName = `${student.firstName} ${student.middleName} ${student.lastName}`.toLowerCase();
+                  
+                  const searchMatch = !searchTerm || 
+                    studentFullName.includes(searchLower) ||
+                    student.firstName?.toLowerCase().includes(searchLower) ||
+                    student.middleName?.toLowerCase().includes(searchLower) ||
+                    student.lastName?.toLowerCase().includes(searchLower) ||
+                    student.fatherName?.toLowerCase().includes(searchLower) ||
+                    student.motherName?.toLowerCase().includes(searchLower);
+                  
+                  return statusMatch && typeMatch && classMatch && searchMatch;
                 }).map((student) => (
                   <PendingStudentRow 
                     key={student.id} 
