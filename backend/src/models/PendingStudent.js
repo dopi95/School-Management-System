@@ -14,6 +14,7 @@ const pendingStudentSchema = new mongoose.Schema({
   joinedYear: { type: String, required: true },
   address: { type: String, required: true },
   class: { type: String, required: true },
+  studentType: { type: String, enum: ['new', 'existing'], default: 'new' },
   fatherName: { type: String, required: true },
   fatherPhone: { type: String, required: true },
   motherName: { type: String, required: true },
