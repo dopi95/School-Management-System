@@ -21,12 +21,14 @@ const activityLogSchema = new mongoose.Schema({
       'EMPLOYEE_CREATE', 'EMPLOYEE_UPDATE', 'EMPLOYEE_DELETE', 'EMPLOYEE_STATUS_CHANGE',
       'ADMIN_CREATE', 'ADMIN_UPDATE', 'ADMIN_DELETE',
       'PAYMENT_CREATE', 'PAYMENT_UPDATE', 'PAYMENT_DELETE',
-      'NOTIFICATION_SEND'
+      'NOTIFICATION_SEND',
+      'CUSTOM_LIST_CREATED', 'CUSTOM_LIST_UPDATED', 'CUSTOM_LIST_DELETED',
+      'PAYMENT_ADDED_TO_LIST', 'STUDENT_UPDATED_IN_LIST', 'STUDENT_REMOVED_FROM_LIST', 'STUDENTS_ADDED_TO_LIST'
     ]
   },
   targetType: {
     type: String,
-    enum: ['Student', 'Employee', 'Admin', 'Payment', 'Profile', 'System', 'special_student', 'SpecialStudent', 'SpecialPayment']
+    enum: ['Student', 'Employee', 'Admin', 'Payment', 'Profile', 'System', 'special_student', 'SpecialStudent', 'SpecialPayment', 'CustomPaymentList']
   },
   targetId: {
     type: String

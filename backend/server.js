@@ -12,6 +12,7 @@ import notificationRoutes from "./src/routes/notifications.js";
 import authRoutes from "./src/routes/auth.js";
 import activityLogRoutes from "./src/routes/activityLogs.js";
 import pendingStudentRoutes from "./src/routes/pendingStudents.js";
+import customPaymentListRoutes from "./src/routes/customPaymentLists.js";
 
 import { protect } from "./src/middleware/auth.js";
 import { checkPermission, checkWritePermission } from "./src/middleware/permissions.js";
@@ -115,6 +116,7 @@ app.use('/api/notifications', protect, (req, res, next) => {
 app.use('/api/activity-logs', activityLogRoutes);
 // Pending students route - register is public, others require auth
 app.use('/api/pending-students', pendingStudentRoutes);
+app.use('/api/custom-payment-lists', protect, customPaymentListRoutes);
 
 
 // Settings route (protected by settings permission)

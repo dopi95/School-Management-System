@@ -37,6 +37,8 @@ import InactiveStudents from './pages/InactiveStudents';
 import InactiveEmployees from './pages/InactiveEmployees';
 import StudentRegistration from './pages/StudentRegistration';
 import PendingStudents from './pages/PendingStudents';
+import CustomPaymentLists from './pages/CustomPaymentLists';
+import CustomPaymentListDetail from './pages/CustomPaymentListDetail';
 import PermissionRoute from './components/ProtectedRoute.jsx';
 
 const ProtectedRoute = ({ children }) => {
@@ -256,6 +258,26 @@ const AppRoutes = () => {
           <Layout>
             <PermissionRoute permission="students" section="student management">
               <PendingStudents />
+            </PermissionRoute>
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/custom-payment-lists" element={
+        <ProtectedRoute>
+          <Layout>
+            <PermissionRoute permission="payments" section="payments management">
+              <CustomPaymentLists />
+            </PermissionRoute>
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/custom-payment-lists/:id" element={
+        <ProtectedRoute>
+          <Layout>
+            <PermissionRoute permission="payments" section="payments management">
+              <CustomPaymentListDetail />
             </PermissionRoute>
           </Layout>
         </ProtectedRoute>

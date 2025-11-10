@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Book, Package, Search, Calendar, Users, Trash2, Bell, Filter } from 'lucide-react';
+import { Book, Package, Search, Calendar, Users, Trash2, Bell, Filter, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useStudents } from '../context/StudentsContext.jsx';
@@ -11,16 +11,17 @@ import jsPDF from 'jspdf';
 import apiService from '../services/api';
 
 const OtherPayments = () => {
-  const { admin } = useAuth();
-  
-  // Check if user has permission to view this page - allow admin and executive roles
-  if (admin?.role !== 'superadmin' && admin?.role !== 'admin' && admin?.role !== 'user') {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">Access denied. You don't have permission to view Other Payments.</p>
-      </div>
-    );
-  }
+  try {
+    const { admin } = useAuth();
+    
+    // Check if user has permission to view this page - allow admin and executive roles
+    if (admin?.role !== 'superadmin' && admin?.role !== 'admin' && admin?.role !== 'user') {
+      return (
+        <div className="text-center py-12">
+          <p className="text-gray-500 dark:text-gray-400">Access denied. You don't have permission to view Other Payments.</p>
+        </div>
+      );
+    }
   const { studentsList = [], loadStudents, loading: studentsLoading } = useStudents() || {};
   const { specialStudentsList = [], loadSpecialStudents, loading: specialStudentsLoading } = useSpecialStudents() || {};
   
@@ -498,6 +499,17 @@ const OtherPayments = () => {
 
   return (
     <div className="space-y-6">
+      {/* Custom Lists Button */}
+      <div className="flex justify-start">
+        <Link
+          to="/custom-payment-lists"
+          className="inline-flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Custom Payment Lists</span>
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
         <div className="flex items-center justify-between w-full lg:w-auto">
@@ -532,13 +544,15 @@ const OtherPayments = () => {
       </div>
 
       {/* Export Options */}
-      <div className="flex justify-center mb-6">
-        <OtherPaymentExportDropdown
-          onExportPaidBook={() => generatePDF('paid', 'book')}
-          onExportUnpaidBook={() => generatePDF('unpaid', 'book')}
-          onExportPaidStationary={() => generatePDF('paid', 'stationary')}
-          onExportUnpaidStationary={() => generatePDF('unpaid', 'stationary')}
-        />
+      <div className="flex justify-center items-center mb-6">
+        {OtherPaymentExportDropdown && (
+          <OtherPaymentExportDropdown
+            onExportPaidBook={() => generatePDF('paid', 'book')}
+            onExportUnpaidBook={() => generatePDF('unpaid', 'book')}
+            onExportPaidStationary={() => generatePDF('paid', 'stationary')}
+            onExportUnpaidStationary={() => generatePDF('unpaid', 'stationary')}
+          />
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -963,6 +977,20 @@ const OtherPayments = () => {
       )}
     </div>
   );
+  } catch (error) {
+    console.error('OtherPayments error:', error);
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500">Error loading Other Payments page</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          Reload Page
+        </button>
+      </div>
+    );
+  }
 };
 
 export default OtherPayments;
