@@ -12,6 +12,7 @@
     "migrate-sections": "node src/migrateSections.js",
     "migrate-permissions": "node src/migrations/addSpecialPermissions.js",
     "migrate-granular-permissions": "node src/migratePermissions.js",
+    "migrate-new-granular-permissions": "node src/migrations/migrateGranularPermissions.js",
     "migrate-other-payments": "node src/migrations/addOtherPaymentsPermission.js"
   },
   "keywords": [],

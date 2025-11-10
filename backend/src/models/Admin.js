@@ -55,8 +55,17 @@ const adminSchema = new mongoose.Schema({
       edit: { type: Boolean, default: false },
       delete: { type: Boolean, default: false }
     },
+    customPaymentLists: {
+      view: { type: Boolean, default: false },
+      create: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      delete: { type: Boolean, default: false }
+    },
     pendingStudents: {
       view: { type: Boolean, default: false },
+      create: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      delete: { type: Boolean, default: false },
       approve: { type: Boolean, default: false }
     },
     notifications: { type: Boolean, default: false },

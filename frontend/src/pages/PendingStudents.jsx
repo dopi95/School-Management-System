@@ -3,11 +3,12 @@ import { Check, X, Users, Clock, Download, Trash2, Search } from 'lucide-react';
 import apiService from '../services/api.js';
 import { toast, ToastContainer } from 'react-toastify';
 import { useAuth } from '../context/AuthContext.jsx';
+import { canView, canCreate, canEdit, canDelete, canApprove } from '../utils/permissions.js';
 import eventBus from '../utils/eventBus.js';
 import jsPDF from 'jspdf';
 import 'react-toastify/dist/ReactToastify.css';
 
-const PendingStudentRow = React.memo(({ student, canApproveReject, onApprove, onReject, onDelete }) => {
+const PendingStudentRow = React.memo(({ student, canApproveReject, canDeletePending, onApprove, onReject, onDelete }) => {
   const getStatusBadge = () => {
     if (student.status === 'approved') {
       return (
@@ -74,9 +75,9 @@ const PendingStudentRow = React.memo(({ student, canApproveReject, onApprove, on
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
         <div className="flex items-center space-x-2">
-          {canApproveReject && (
+          {(canApproveReject || canDeletePending) && (
             <>
-              {(!student.status || student.status === 'pending' || student.status === 'rejected') && (
+              {canApproveReject && (!student.status || student.status === 'pending' || student.status === 'rejected') && (
                 <>
                   <button
                     onClick={() => onApprove(student.id, 'regular')}
@@ -94,7 +95,7 @@ const PendingStudentRow = React.memo(({ student, canApproveReject, onApprove, on
                   </button>
                 </>
               )}
-              {(!student.status || student.status === 'pending' || student.status === 'approved') && (
+              {canApproveReject && (!student.status || student.status === 'pending' || student.status === 'approved') && (
                 <button
                   onClick={() => onReject(student.id)}
                   className="text-red-600 hover:text-red-700 p-1"
@@ -103,13 +104,15 @@ const PendingStudentRow = React.memo(({ student, canApproveReject, onApprove, on
                   <X className="w-4 h-4" />
                 </button>
               )}
-              <button
-                onClick={() => onDelete(student.id)}
-                className="text-gray-600 hover:text-gray-700 p-1"
-                title="Delete Permanently"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              {canDeletePending && (
+                <button
+                  onClick={() => onDelete(student.id)}
+                  className="text-gray-600 hover:text-gray-700 p-1"
+                  title="Delete Permanently"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
             </>
           )}
         </div>
@@ -128,7 +131,8 @@ const PendingStudents = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   
-  const canApproveReject = admin?.role === 'superadmin' || admin?.role === 'admin';
+  const canApproveReject = canApprove(admin, 'pendingStudents');
+  const canDeletePending = canDelete(admin, 'pendingStudents');
 
   useEffect(() => {
     if (isAuthenticated && localStorage.getItem('token')) {
@@ -690,6 +694,7 @@ const PendingStudents = () => {
                     key={student.id} 
                     student={student} 
                     canApproveReject={canApproveReject}
+                    canDeletePending={canDeletePending}
                     onApprove={handleApprove}
                     onReject={handleReject}
                     onDelete={handleDelete}

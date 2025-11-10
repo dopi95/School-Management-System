@@ -29,16 +29,62 @@ const AdminManagement = () => {
     status: 'active',
     permissions: {
       dashboard: true,
-      students: false,
-      inactiveStudents: false,
-      pendingStudents: false,
-      employees: false,
-      inactiveEmployees: false,
-      payments: false,
-      specialStudents: false,
-      specialPayments: false,
+      students: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
+      inactiveStudents: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
+      pendingStudents: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false,
+        approve: false
+      },
+      employees: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
+      inactiveEmployees: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
+      payments: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
+      specialStudents: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
+      specialPayments: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
       notifications: false,
-      admins: false,
+      admins: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
       profile: true,
       settings: true
     }
@@ -153,16 +199,68 @@ const AdminManagement = () => {
     // Merge existing permissions with default structure to ensure all fields exist
     const defaultPermissions = {
       dashboard: true,
-      students: false,
-      inactiveStudents: false,
-      pendingStudents: false,
-      employees: false,
-      inactiveEmployees: false,
-      payments: false,
-      specialStudents: false,
-      specialPayments: false,
+      students: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
+      inactiveStudents: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
+      pendingStudents: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false,
+        approve: false
+      },
+      employees: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
+      inactiveEmployees: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
+      payments: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
+      specialStudents: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
+      specialPayments: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
+      customPaymentLists: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
       notifications: false,
-      admins: false,
+      admins: {
+        view: false,
+        create: false,
+        edit: false,
+        delete: false
+      },
       profile: true,
       settings: true
     };
@@ -177,17 +275,27 @@ const AdminManagement = () => {
         } else {
           // If it's a boolean (old format), keep as boolean for simple permissions
           // or convert to object for complex permissions
-          const complexPermissions = ['students', 'inactiveStudents', 'pendingStudents', 'employees', 'inactiveEmployees', 'payments', 'otherPayments', 'specialStudents', 'specialPayments', 'admins'];
+          const complexPermissions = ['students', 'inactiveStudents', 'pendingStudents', 'employees', 'inactiveEmployees', 'payments', 'otherPayments', 'specialStudents', 'specialPayments', 'customPaymentLists', 'admins'];
           if (complexPermissions.includes(key) && adminItem.permissions[key] === true) {
             // Convert boolean true to full permissions object
-            mergedPermissions[key] = {
-              view: true,
-              create: true,
-              edit: true,
-              delete: true
-            };
+            if (key === 'pendingStudents') {
+              mergedPermissions[key] = {
+                view: true,
+                create: true,
+                edit: true,
+                delete: true,
+                approve: true
+              };
+            } else {
+              mergedPermissions[key] = {
+                view: true,
+                create: true,
+                edit: true,
+                delete: true
+              };
+            }
           } else {
-            mergedPermissions[key] = adminItem.permissions[key];
+            mergedPermissions[key] = adminItem.permissions[key] || defaultPermissions[key];
           }
         }
       } else {
@@ -234,7 +342,13 @@ const AdminManagement = () => {
         dashboard: true,
         students: false,
         inactiveStudents: false,
-        pendingStudents: false,
+        pendingStudents: {
+          view: false,
+          create: false,
+          edit: false,
+          delete: false,
+          approve: false
+        },
         employees: false,
         inactiveEmployees: false,
         payments: false,
@@ -700,55 +814,75 @@ const AdminManagement = () => {
                     {[
                       { key: 'students', label: 'Students Management' },
                       { key: 'inactiveStudents', label: 'Inactive Students' },
-                      { key: 'pendingStudents', label: 'Pending Students', actions: ['view', 'approve'] },
+                      { key: 'pendingStudents', label: 'Pending Students', actions: ['view', 'create', 'edit', 'delete', 'approve'] },
                       { key: 'employees', label: 'Employees Management' },
                       { key: 'inactiveEmployees', label: 'Inactive Employees' },
                       { key: 'payments', label: 'Monthly Payments' },
-
                       { key: 'specialStudents', label: 'SP Students' },
                       { key: 'specialPayments', label: 'SP Payments' },
+                      { key: 'customPaymentLists', label: 'Custom Payment Lists' },
                       { key: 'admins', label: 'Admin Management', actions: ['view', 'create', 'edit', 'delete'] }
                     ].map(module => {
-                      // For admin role, only show view permission (page access)
+                      // For admin role, only show page access checkbox
                       const actionsToShow = formData.role === 'admin' 
                         ? ['view'] 
                         : (module.actions || ['view', 'create', 'edit', 'delete']);
                       
                       return (
                         <div key={module.key} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">{module.label}</h4>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                            {actionsToShow.map(action => (
-                              <label key={action} className="flex items-center space-x-2 cursor-pointer">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white">{module.label}</h4>
+                            {formData.role === 'admin' && (
+                              <label className="flex items-center space-x-2 cursor-pointer">
                                 <input
                                   type="checkbox"
                                   checked={(() => {
                                     const permission = formData.permissions?.[module.key];
                                     if (typeof permission === 'object') {
-                                      return permission?.[action] || false;
+                                      return permission?.view || false;
                                     }
-                                    // For boolean permissions, only check 'view' action
-                                    return action === 'view' ? (permission || false) : false;
+                                    return permission || false;
                                   })()}
                                   onChange={(e) => {
-                                    if (formData.role === 'admin' && action === 'view') {
-                                      // For admin role, when checking view, also enable all actions
-                                      const allActions = module.actions || ['view', 'create', 'edit', 'delete'];
-                                      const actionPermissions = {};
-                                      allActions.forEach(act => {
-                                        actionPermissions[act] = e.target.checked;
-                                      });
-                                      
-                                      setFormData({
-                                        ...formData,
-                                        permissions: {
-                                          ...formData.permissions,
-                                          profile: true,
-                                          [module.key]: actionPermissions
-                                        }
-                                      });
-                                    } else {
-                                      // For user role or individual action changes
+                                    // For admin role, when checking page access, enable all actions
+                                    const allActions = module.actions || ['view', 'create', 'edit', 'delete'];
+                                    const actionPermissions = {};
+                                    allActions.forEach(act => {
+                                      actionPermissions[act] = e.target.checked;
+                                    });
+                                    
+                                    setFormData({
+                                      ...formData,
+                                      permissions: {
+                                        ...formData.permissions,
+                                        profile: true,
+                                        [module.key]: actionPermissions
+                                      }
+                                    });
+                                  }}
+                                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                />
+                                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                                  Full Access
+                                </span>
+                              </label>
+                            )}
+                          </div>
+                          
+                          {formData.role === 'user' && (
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                              {actionsToShow.map(action => (
+                                <label key={action} className="flex items-center space-x-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={(() => {
+                                      const permission = formData.permissions?.[module.key];
+                                      if (typeof permission === 'object') {
+                                        return permission?.[action] || false;
+                                      }
+                                      return action === 'view' ? (permission || false) : false;
+                                    })()}
+                                    onChange={(e) => {
                                       const currentPermissions = formData.permissions?.[module.key] || {};
                                       const updatedPermissions = {
                                         ...currentPermissions,
@@ -763,16 +897,22 @@ const AdminManagement = () => {
                                           [module.key]: updatedPermissions
                                         }
                                       });
-                                    }
-                                  }}
-                                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                />
-                                <span className="text-xs text-gray-600 dark:text-gray-400 capitalize">
-                                  {formData.role === 'admin' && action === 'view' ? 'Page Access' : action}
-                                </span>
-                              </label>
-                            ))}
-                          </div>
+                                    }}
+                                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                  />
+                                  <span className="text-xs text-gray-600 dark:text-gray-400 capitalize">
+                                    {action}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {formData.role === 'admin' && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              Check "Full Access" to enable all actions for this module
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -789,14 +929,14 @@ const AdminManagement = () => {
               {formData.role === 'admin' && (
                 <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <p className="text-sm text-blue-700 dark:text-blue-300">
-                    Admins get full access (view, create, edit, delete) to selected pages. Simply check "Page Access" to enable complete functionality for that module.
+                    <strong>Admin Role:</strong> Admins get complete access to selected modules. Check "Full Access" to enable all actions (view, create, edit, delete) for that module.
                   </p>
                 </div>
               )}
               {formData.role === 'user' && (
                 <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <p className="text-sm text-green-700 dark:text-green-300">
-                    Executives have limited access. Configure which modules they can access and what actions they can perform.
+                    <strong>Executive Role:</strong> Executives have granular permissions. Select specific actions (view, create, edit, delete) for each module. Only selected actions will be available to them.
                   </p>
                 </div>
               )}

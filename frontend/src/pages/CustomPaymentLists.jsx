@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom';
 import { Plus, Eye, Edit, Trash2, Calendar, FileText, Filter } from 'lucide-react';
 import apiService from '../services/api.js';
 import { toast } from 'react-toastify';
+import { useAuth } from '../context/AuthContext.jsx';
+import { canView, canCreate, canEdit, canDelete } from '../utils/permissions.js';
 
 const CustomPaymentLists = () => {
+  const { admin } = useAuth();
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -120,13 +123,15 @@ const CustomPaymentLists = () => {
         </div>
         
         <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-3">
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create New List</span>
-          </button>
+          {canCreate(admin, 'customPaymentLists') && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create New List</span>
+            </button>
+          )}
           
           <div className="relative">
             <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -173,31 +178,37 @@ const CustomPaymentLists = () => {
               </div>
 
               <div className="flex items-center space-x-2">
-                <Link
-                  to={`/custom-payment-lists/${list._id}`}
-                  className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-sm"
-                >
-                  <Eye className="w-4 h-4" />
-                  <span>View</span>
-                </Link>
-                <button
-                  onClick={() => {
-                    setEditingList(list);
-                    setNewList({ title: list.title, year: list.year });
-                    setShowEditModal(true);
-                  }}
-                  className="flex items-center space-x-1 text-green-600 hover:text-green-700 text-sm"
-                >
-                  <Edit className="w-4 h-4" />
-                  <span>Edit</span>
-                </button>
-                <button
-                  onClick={() => handleDeleteList(list._id)}
-                  className="flex items-center space-x-1 text-red-600 hover:text-red-700 text-sm"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Delete</span>
-                </button>
+                {canView(admin, 'customPaymentLists') && (
+                  <Link
+                    to={`/custom-payment-lists/${list._id}`}
+                    className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-sm"
+                  >
+                    <Eye className="w-4 h-4" />
+                    <span>View</span>
+                  </Link>
+                )}
+                {canEdit(admin, 'customPaymentLists') && (
+                  <button
+                    onClick={() => {
+                      setEditingList(list);
+                      setNewList({ title: list.title, year: list.year });
+                      setShowEditModal(true);
+                    }}
+                    className="flex items-center space-x-1 text-green-600 hover:text-green-700 text-sm"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>Edit</span>
+                  </button>
+                )}
+                {canDelete(admin, 'customPaymentLists') && (
+                  <button
+                    onClick={() => handleDeleteList(list._id)}
+                    className="flex items-center space-x-1 text-red-600 hover:text-red-700 text-sm"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete</span>
+                  </button>
+                )}
               </div>
             </div>
             ))}
@@ -208,12 +219,14 @@ const CustomPaymentLists = () => {
             <p className="text-gray-500 dark:text-gray-400 mb-4">
               {yearFilter === 'all' ? 'No custom payment lists created yet' : `No lists found for ${yearFilter}`}
             </p>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="btn-primary"
-            >
-              Create Your First List
-            </button>
+            {canCreate(admin, 'customPaymentLists') && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="btn-primary"
+              >
+                Create Your First List
+              </button>
+            )}
           </div>
         );
       })()}

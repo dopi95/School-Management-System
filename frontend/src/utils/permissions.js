@@ -23,3 +23,4 @@ export const canView = (admin, module) => hasPermission(admin, module, 'view');
 export const canCreate = (admin, module) => hasPermission(admin, module, 'create');
 export const canEdit = (admin, module) => hasPermission(admin, module, 'edit');
 export const canDelete = (admin, module) => hasPermission(admin, module, 'delete');
+export const canApprove = (admin, module) => hasPermission(admin, module, 'approve');
