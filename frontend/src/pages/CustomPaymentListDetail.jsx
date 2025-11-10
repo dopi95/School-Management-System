@@ -3,8 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Users, Save, Search, Edit, Filter } from 'lucide-react';
 import apiService from '../services/api.js';
 import { toast } from 'react-toastify';
+import { useAuth } from '../context/AuthContext.jsx';
+import { canView, canCreate, canEdit, canDelete } from '../utils/permissions.js';
 
 const CustomPaymentListDetail = () => {
+  const { admin } = useAuth();
   const { id } = useParams();
   const [list, setList] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -203,13 +206,15 @@ const CustomPaymentListDetail = () => {
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">{list.title}</h1>
           <p className="text-gray-600 dark:text-gray-400">Year: {list.year} • {list.students?.length || 0} students</p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Student</span>
-        </button>
+        {canCreate(admin, 'customPaymentLists') && (
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Student</span>
+          </button>
+        )}
       </div>
 
       {/* Filters */}
@@ -328,20 +333,24 @@ const CustomPaymentListDetail = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => handleEditStudent(student)}
-                          className="text-blue-600 hover:text-blue-700"
-                          title="Edit student"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleRemoveStudent(student.studentId)}
-                          className="text-red-600 hover:text-red-700"
-                          title="Remove from list"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {canEdit(admin, 'customPaymentLists') && (
+                          <button
+                            onClick={() => handleEditStudent(student)}
+                            className="text-blue-600 hover:text-blue-700"
+                            title="Edit student"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        )}
+                        {canDelete(admin, 'customPaymentLists') && (
+                          <button
+                            onClick={() => handleRemoveStudent(student.studentId)}
+                            className="text-red-600 hover:text-red-700"
+                            title="Remove from list"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -354,12 +363,14 @@ const CustomPaymentListDetail = () => {
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
           <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500 dark:text-gray-400 mb-4">No students added to this list yet</p>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="btn-primary"
-          >
-            Add Student
-          </button>
+          {canCreate(admin, 'customPaymentLists') && (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="btn-primary"
+            >
+              Add Student
+            </button>
+          )}
         </div>
         );
       })()}

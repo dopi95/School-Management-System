@@ -73,50 +73,48 @@ const PendingStudentRow = React.memo(({ student, canApproveReject, canDeletePend
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
         {new Date(student.createdAt).toLocaleDateString()}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-        <div className="flex items-center space-x-2">
-          {(canApproveReject || canDeletePending) && (
-            <>
-              {canApproveReject && (!student.status || student.status === 'pending' || student.status === 'rejected') && (
-                <>
-                  <button
-                    onClick={() => onApprove(student.id, 'regular')}
-                    className="text-green-600 hover:text-green-700 p-1"
-                    title="Approve as Student"
-                  >
-                    <Check className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => onApprove(student.id, 'special')}
-                    className="text-purple-600 hover:text-purple-700 p-1"
-                    title="Approve as SP Student"
-                  >
-                    <Check className="w-4 h-4" />
-                  </button>
-                </>
-              )}
-              {canApproveReject && (!student.status || student.status === 'pending' || student.status === 'approved') && (
+      {(canApproveReject || canDeletePending) && (
+        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+          <div className="flex items-center space-x-2">
+            {canApproveReject && (!student.status || student.status === 'pending' || student.status === 'rejected') && (
+              <>
                 <button
-                  onClick={() => onReject(student.id)}
-                  className="text-red-600 hover:text-red-700 p-1"
-                  title="Reject"
+                  onClick={() => onApprove(student.id, 'regular')}
+                  className="text-green-600 hover:text-green-700 p-1"
+                  title="Approve as Student"
                 >
-                  <X className="w-4 h-4" />
+                  <Check className="w-4 h-4" />
                 </button>
-              )}
-              {canDeletePending && (
                 <button
-                  onClick={() => onDelete(student.id)}
-                  className="text-gray-600 hover:text-gray-700 p-1"
-                  title="Delete Permanently"
+                  onClick={() => onApprove(student.id, 'special')}
+                  className="text-purple-600 hover:text-purple-700 p-1"
+                  title="Approve as SP Student"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Check className="w-4 h-4" />
                 </button>
-              )}
-            </>
-          )}
-        </div>
-      </td>
+              </>
+            )}
+            {canApproveReject && (!student.status || student.status === 'pending' || student.status === 'approved') && (
+              <button
+                onClick={() => onReject(student.id)}
+                className="text-red-600 hover:text-red-700 p-1"
+                title="Reject"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            {canDeletePending && (
+              <button
+                onClick={() => onDelete(student.id)}
+                className="text-gray-600 hover:text-gray-700 p-1"
+                title="Delete Permanently"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </td>
+      )}
     </tr>
   );
 });
@@ -663,9 +661,11 @@ const PendingStudents = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Registered Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  {(canApproveReject || canDeletePending) && (
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Book, Package, Search, Calendar, Users, Trash2, Bell, Filter, Plus } from 'lucide-react';
+import { Book, Package, Search, Calendar, Users, Trash2, Bell, Filter, Plus, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useStudents } from '../context/StudentsContext.jsx';
 import { useSpecialStudents } from '../context/SpecialStudentsContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { canView } from '../utils/permissions';
 import OtherPaymentExportDropdown from '../components/OtherPaymentExportDropdown.jsx';
 import jsPDF from 'jspdf';
 
@@ -499,22 +500,22 @@ const OtherPayments = () => {
 
   return (
     <div className="space-y-6">
-      {/* Custom Lists Button */}
-      <div className="flex justify-start">
-        <Link
-          to="/custom-payment-lists"
-          className="inline-flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Custom Payment Lists</span>
-        </Link>
-      </div>
+
 
       {/* Header */}
       <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
         <div className="flex items-center justify-between w-full lg:w-auto">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Other Payments</h1>
+            {canView(admin, 'customPaymentLists') && (
+              <Link
+                to="/custom-payment-lists"
+                className="flex items-center space-x-2 mb-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+              >
+                <span className="text-sm font-medium">Custom Payment Lists</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Book and Stationary Payments</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">Manage book and stationary payments for students</p>
           </div>
           

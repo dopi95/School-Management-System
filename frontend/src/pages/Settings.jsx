@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { Settings as SettingsIcon, Moon, Sun, Globe, Save, Bell, Shield, Database } from 'lucide-react';
+import { Settings as SettingsIcon, Moon, Sun, Globe, Save, Bell, Shield, Database, FileText } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
+import { canView } from '../utils/permissions.js';
 import SuccessModal from '../components/SuccessModal.jsx';
 
 const Settings = () => {
+  const { admin } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { language, toggleLanguage } = useLanguage();
   const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '' });
@@ -38,6 +42,35 @@ const Settings = () => {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your application preferences and configurations</p>
       </div>
+
+      {/* Quick Actions */}
+      {canView(admin, 'customPaymentLists') && (
+        <div className="card">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
+              <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Payment Management</h3>
+          </div>
+          <Link
+            to="/custom-payment-lists"
+            className="inline-flex items-center space-x-3 w-full p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-700 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 transition-all duration-200 group"
+          >
+            <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-800 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 dark:group-hover:bg-indigo-700 transition-colors">
+              <FileText className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div className="flex-1">
+              <h4 className="text-base font-semibold text-gray-900 dark:text-white">Custom Payment Lists</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Create and manage custom student payment lists</p>
+            </div>
+            <div className="text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 transition-transform">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Appearance Settings */}

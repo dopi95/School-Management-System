@@ -126,7 +126,7 @@ const CustomPaymentLists = () => {
           {canCreate(admin, 'customPaymentLists') && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+              className="inline-flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 w-fit self-start"
             >
               <Plus className="w-4 h-4" />
               <span>Create New List</span>
